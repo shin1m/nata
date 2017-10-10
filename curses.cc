@@ -250,18 +250,18 @@ int main(int argc, char* argv[])
 			f_scroll(0, int(a_value) - int(v_top));
 			v_top = a_value;
 		}
-		void f_y(const decltype(rows.f_begin())& a_row)
+		void f_into_view(size_t a_y, size_t a_height)
 		{
-			v_y = a_row.f_index().v_y;
 			size_t top = v_top;
-			if (v_y < top) {
-				top = v_y;
-			} else {
-				size_t b = v_y + a_row.f_delta().v_y;
-				size_t h = v_region.f_size().v_i1;
-				if (b > top + h) top = b - h;
-			}
+			size_t b = a_y + a_height;
+			size_t h = v_region.f_size().v_i1;
+			if (b > top + h) top = b - h;
+			if (a_y < top) top = a_y;
 			f_top__(top);
+		}
+		void f_into_view(const decltype(rows.f_begin())& a_row)
+		{
+			f_into_view(a_row.f_index().v_y, a_row.f_delta().v_y);
 		}
 		void f_from_line()
 		{
@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
 			v_position = std::get<0>(x);
 			v_column = v_position - line.f_index().v_i1;
 			v_x = std::get<1>(x) - row.f_index().v_x;
-			f_y(row);
+			v_y = row.f_index().v_y;
 		}
 		void f_from_position(bool a_retarget = false)
 		{
@@ -295,7 +295,7 @@ int main(int argc, char* argv[])
 			size_t ax = std::get<1>(x);
 			if (a_retarget || v_target < ax || v_column < line.f_delta().v_i1 - 1 && v_target >= ax + std::get<2>(x)) v_target = ax - v_rows.f_at_in_text(line.f_index().v_i1).f_index().v_x;
 			v_x = ax - row.f_index().v_x;
-			f_y(row);
+			v_y = row.f_index().v_y;
 		}
 
 		void f_adjust(size_t a_y, size_t a_h0, size_t a_h1)
@@ -407,6 +407,7 @@ int main(int argc, char* argv[])
 			default:
 				text.f_replace(state.v_position, 0, &c, &c + 1);
 			}
+			state.f_into_view(rows.f_at_in_text(state.v_position));
 		}
 	}
 	return 0;
