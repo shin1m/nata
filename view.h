@@ -160,7 +160,7 @@ private:
 
 	t_array v_array;
 
-	void f_replace(size_t a_p, size_t a_n0, size_t a_n1)
+	std::tuple<size_t, size_t, size_t> f_replace(size_t a_p, size_t a_n0, size_t a_n1)
 	{
 		auto i = f_at_in_text(a_p);
 		if (i.f_index().v_text >= a_p && !i->v_head) --i;
@@ -170,7 +170,9 @@ private:
 		do ++j; while (j != f_end() && !j->v_head);
 		a_n1 += j.f_index().v_text - p;
 		if (j == f_end()) --a_n1;
+		size_t bottom = j.f_index().v_y;
 		i = v_array.f_erase(i, j);
+		size_t y = i.f_index().v_y;
 		size_t text = 0;
 		size_t width = 0;
 		size_t ascent = 0;
@@ -230,32 +232,31 @@ private:
 			auto size = v_target.f_eof();
 			if (overflow(size)) wrap(false);
 			advance(size);
-			v_array.f_insert(i, t_row{head, true, text, width, ascent, ascent + descent});
+			i = v_array.f_insert(i, t_row{head, true, text, width, ascent, ascent + descent});
+			++i;
 		}
+		return {y, bottom - y, i.f_index().v_y - y};
 	};
 	t_slot<size_t, size_t, size_t> v_tokens_replaced{[this](auto a_p, auto a_n0, auto a_n1)
 	{
-		f_replace(a_p, a_n0, a_n1);
-		v_replaced(a_p, a_n0, a_n1);
+		auto x = f_replace(a_p, a_n0, a_n1);
+		v_replaced(a_p, a_n0, a_n1, std::get<0>(x), std::get<1>(x), std::get<2>(x));
 	}};
 	t_slot<size_t, size_t> v_tokens_painted{[this](auto a_p, auto a_n)
 	{
-		f_replace(a_p, a_n, a_n);
-		v_painted(a_p, a_n);
+		auto x = f_replace(a_p, a_n, a_n);
+		v_painted(a_p, a_n, std::get<0>(x), std::get<1>(x), std::get<2>(x));
 	}};
 	t_slot<> v_target_resized{[this]
 	{
-		size_t n = v_tokens.v_text.f_size();
-		f_replace(0, n, n);
-		v_resized();
+		v_tokens_painted(0, v_tokens.v_text.f_size());
 	}};
 
 public:
 	typedef typename t_array::t_constant_iterator t_iterator;
 
-	t_signal<size_t, size_t, size_t> v_replaced;
-	t_signal<size_t, size_t> v_painted;
-	t_signal<> v_resized;
+	t_signal<size_t, size_t, size_t, size_t, size_t, size_t> v_replaced;
+	t_signal<size_t, size_t, size_t, size_t, size_t> v_painted;
 
 	T_tokens& v_tokens;
 	T_target& v_target;

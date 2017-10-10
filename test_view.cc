@@ -201,6 +201,32 @@ int main(int argc, char* argv[])
 				{true, true, 10, 10, 2, 2}
 			});
 		});
+		{
+			auto test = [&](size_t a_p, size_t a_n, const std::wstring& a_s, size_t a_y, size_t a_h0, size_t a_h1)
+			{
+				setup([&](auto& text, auto& rows)
+				{
+					bool called = false;
+					nata::t_slot<size_t, size_t, size_t, size_t, size_t, size_t> replaced = [&](auto p, auto n0, auto n1, auto y, auto h0, auto h1)
+					{
+						called = true;
+						assert(p == a_p);
+						assert(n0 == a_n);
+						assert(n1 == a_s.size());
+						assert(y == a_y);
+						assert(h0 == a_h0);
+						assert(h1 == a_h1);
+					};
+					rows.v_replaced >> replaced;
+					text.f_replace(a_p, a_n, a_s.begin(), a_s.end());
+					assert(called);
+				});
+			};
+			test(6, 1, L" ", 0, 5, 4);
+			test(9, 1, L"R", 0, 5, 5);
+			test(10, 1, L"L", 3, 2, 2);
+			test(18, 1, L"\t", 5, 2, 5);
+		}
 		setup([](auto& text, auto& rows)
 		{
 			rows.v_tokens.f_paint(7, {
