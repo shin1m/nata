@@ -2,7 +2,6 @@
 #define NATA__VIEW_H
 
 #include "model.h"
-
 #include <numeric>
 
 namespace nata

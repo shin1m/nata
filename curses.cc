@@ -241,10 +241,14 @@ int main(int argc, char* argv[])
 			}
 			v_rows.v_target.f_scroll(a_y, height, a_delta);
 		}
-		void f_top__(size_t a_value)
+		size_t f_range() const
 		{
 			size_t h = v_region.f_size().v_i1;
-			size_t n = std::max(v_rows.f_size().v_i, h) - h;
+			return std::max(v_rows.f_size().v_i, h) - h;
+		}
+		void f_top__(size_t a_value)
+		{
+			size_t n = f_range();
 			if (a_value > n) a_value = n;
 			if (a_value == v_top) return;
 			f_scroll(0, int(a_value) - int(v_top));
@@ -293,7 +297,8 @@ int main(int argc, char* argv[])
 				return p < v_position;
 			});
 			size_t ax = std::get<1>(x);
-			if (a_retarget || v_target < ax || v_column < line.f_delta().v_i1 - 1 && v_target >= ax + std::get<2>(x)) v_target = ax - v_rows.f_at_in_text(line.f_index().v_i1).f_index().v_x;
+			size_t tx = ax - v_rows.f_at_in_text(line.f_index().v_i1).f_index().v_x;
+			if (a_retarget || v_target < tx || v_column < line.f_delta().v_i1 - 1 && v_target >= tx + std::get<2>(x)) v_target = tx;
 			v_x = ax - row.f_index().v_x;
 			v_y = row.f_index().v_y;
 		}
@@ -328,7 +333,7 @@ int main(int argc, char* argv[])
 			if (v_position > a_p || a_n0 <= 0) v_position = (v_position < a_p + a_n0 ? a_p : v_position - a_n0) + a_n1;
 			f_from_position();
 		};
-		nata::t_slot<size_t, size_t, size_t, size_t, size_t> v_painted = [this](auto a_p, auto a_n, auto a_y, auto a_h0, auto a_h1)
+		nata::t_slot<size_t, size_t, size_t, size_t, size_t> v_painted = [this](auto, auto, auto a_y, auto a_h0, auto a_h1)
 		{
 			f_adjust(a_y, a_h0, a_h1);
 			f_from_position();
@@ -345,15 +350,73 @@ int main(int argc, char* argv[])
 	}
 	rows.v_replaced >> state.v_replaced;
 	rows.v_painted >> state.v_painted;
+	struct
+	{
+		decltype(tokens)& v_tokens;
+		std::wregex v_keywords{L"(#.*(?:\\n|$))|(?:\\b(if|then|elif|else|fi|case|esac|for|in|do|done|break|continue|return)\\b)"};
+		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_i;
+		size_t v_p;
+		std::wstring v_message;
+
+		operator bool() const
+		{
+			return v_p < v_tokens.v_text.f_size();
+		}
+		void f_reset()
+		{
+			v_i = decltype(v_i)(v_tokens.v_text.f_begin(), v_tokens.v_text.f_end(), v_keywords);
+			v_p = 0;
+		}
+		void operator()()
+		{
+			const auto& text = v_tokens.v_text;
+			if (v_i == decltype(v_i)()) {
+				if (v_p < text.f_size()) {
+					v_tokens.f_paint(v_p, {{0, text.f_size() - v_p}});
+					v_p = text.f_size();
+					v_message.clear();
+				}
+				return;
+			}
+			auto match = *v_i;
+			std::deque<decltype(tokens)::t_span> xs{{
+				match[1].length() > 0 ? attribute_comment : attribute_keyword,
+				size_t(match.length())
+			}};
+			if (v_p < match.position()) xs.push_front({0, match.position() - v_p});
+			v_tokens.f_paint(v_p, std::move(xs));
+			v_p = match.position() + match.length();
+			std::wostringstream s;
+			s << L"running: " << match.position() * 100 / text.f_size() << L'%';
+			v_message = s.str();
+			++v_i;
+		}
+
+		nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
+		{
+			f_reset();
+		};
+	} task{tokens};
+	tokens.v_text.v_replaced >> task.v_replaced;
+	task.f_reset();
 	while (true) {
 		{
 			t_graphics g{target, 0};
 			state.f_render(g);
 		}
-		mvprintw(region.f_size().v_i1, 0, "T:%d L:%d C:%d", state.v_top, state.v_line, state.v_column);
-		clrtoeol();
+		if (task.v_message.empty()) {
+			size_t x = state.v_x;
+			x += rows.f_at_in_text(state.v_position).f_index().v_x;
+			x -= rows.f_at_in_text(state.v_position - state.v_column).f_index().v_x;
+			size_t n = state.f_range();
+			mvprintw(region.f_size().v_i1, 0, "%d,%d-%d %d%%", state.v_line, state.v_column, x, n > 0 ? state.v_top * 100 / n : 100);
+		} else {
+			mvaddwstr(region.f_size().v_i1, 0, task.v_message.c_str());
+		}
+		clrtobot();
 		move(state.v_y - state.v_top, state.v_x);
 		refresh();
+		timeout(task ? 0 : -1);
 		wint_t c;
 		if (get_wch(&c) != ERR) {
 			if (c == 0x1b) break;
@@ -388,19 +451,6 @@ int main(int argc, char* argv[])
 			case KEY_BACKSPACE:
 				if (state.v_position > 0) text.f_replace(state.v_position - 1, 1, &c, &c);
 				break;
-			case KEY_F(1):
-				{
-					std::wregex keywords(L"(#.*(?:\\n|$))|(?:\\b(if|then|elif|else|fi|case|esac|for|in|do|done|break|continue|return)\\b)");
-					std::regex_iterator<decltype(text.f_begin()), wchar_t> last;
-					for (decltype(last) i(text.f_begin(), text.f_end(), keywords); i != last; ++i) {
-						auto match = *i;
-						tokens.f_paint(match.position(), {{
-							match[1].length() > 0 ? attribute_comment : attribute_keyword,
-							size_t(match.length())
-						}});
-					}
-				}
-				break;
 			case KEY_ENTER:
 			case L'\r':
 				c = L'\n';
@@ -409,6 +459,7 @@ int main(int argc, char* argv[])
 			}
 			state.f_into_view(rows.f_at_in_text(state.v_position));
 		}
+		task();
 	}
 	return 0;
 }
