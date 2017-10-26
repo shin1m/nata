@@ -25,6 +25,22 @@ struct t_curses
 	}
 };
 
+#if 0
+constexpr size_t c_text_chunk = 4096;
+constexpr size_t c_lines_chunk = 256;
+constexpr size_t c_tokens_chunk = 256;
+constexpr size_t c_rows_chunk = 256;
+constexpr size_t c_region_chunk = 8;
+constexpr size_t c_tokens_paint_unit = 256;
+#else
+constexpr size_t c_text_chunk = 5;
+constexpr size_t c_lines_chunk = 5;
+constexpr size_t c_tokens_chunk = 5;
+constexpr size_t c_rows_chunk = 5;
+constexpr size_t c_region_chunk = 5;
+constexpr size_t c_tokens_paint_unit = 4;
+#endif
+
 int main(int argc, char* argv[])
 {
 	t_curses curses;
@@ -34,8 +50,8 @@ int main(int argc, char* argv[])
 	constexpr attr_t attribute_comment = COLOR_PAIR(2);
 	init_pair(3, COLOR_YELLOW, -1);
 	constexpr attr_t attribute_keyword = COLOR_PAIR(3);
-	nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
-	nata::t_tokens<decltype(text), attr_t, 5, 5> tokens(text);
+	nata::t_text<nata::t_lines<c_lines_chunk, c_lines_chunk>, c_text_chunk, c_text_chunk> text;
+	nata::t_tokens<decltype(text), attr_t, c_tokens_chunk, c_tokens_chunk> tokens(text);
 	struct
 	{
 		nata::t_signal<> v_resized;
@@ -67,7 +83,7 @@ int main(int argc, char* argv[])
 			setscrreg(0, LINES - 1);
 		}
 	} target;
-	nata::t_rows<decltype(tokens), decltype(target), 5, 5> rows(tokens, target);
+	nata::t_rows<decltype(tokens), decltype(target), c_rows_chunk, c_rows_chunk> rows(tokens, target);
 	struct t_graphics
 	{
 		const decltype(target)& v_target;
@@ -128,7 +144,7 @@ int main(int argc, char* argv[])
 			clrtoeol();
 		}
 	};
-	nata::t_stretches<bool, 5, 5> region;
+	nata::t_stretches<bool, c_region_chunk, c_region_chunk> region;
 	region.f_replace(0, 0, {{true, 8}});
 	struct
 	{
@@ -353,7 +369,8 @@ int main(int argc, char* argv[])
 	struct
 	{
 		decltype(tokens)& v_tokens;
-		std::wregex v_keywords{L"(#.*(?:\\n|$))|(?:\\b(if|then|elif|else|fi|case|esac|for|in|do|done|break|continue|return)\\b)"};
+		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(if|then|elif|else|fi|case|esac|for|in|do|done|break|continue|return)\\b)", std::regex_constants::ECMAScript | std::regex_constants::optimize};
+		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_eos;
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_i;
 		size_t v_p;
 		std::wstring v_message;
@@ -362,43 +379,55 @@ int main(int argc, char* argv[])
 		{
 			return v_p < v_tokens.v_text.f_size();
 		}
-		void f_reset()
-		{
-			v_i = decltype(v_i)(v_tokens.v_text.f_begin(), v_tokens.v_text.f_end(), v_keywords);
-			v_p = 0;
-		}
 		void operator()()
 		{
-			const auto& text = v_tokens.v_text;
-			if (v_i == decltype(v_i)()) {
-				if (v_p < text.f_size()) {
-					v_tokens.f_paint(v_p, {{0, text.f_size() - v_p}});
-					v_p = text.f_size();
-					v_message.clear();
+			std::deque<decltype(tokens)::t_span> xs;
+			auto push = [&](attr_t a, size_t n)
+			{
+				if (n <= 0) return;
+				if (!xs.empty()) {
+					auto& x = xs.back();
+					if (a == x.v_x) {
+						x.v_n += n;
+						return;
+					}
 				}
-				return;
+				xs.push_back({a, n});
+			};
+			size_t p = v_p;
+			for (size_t i = 0; i < c_tokens_paint_unit; ++i) {
+				if (v_i == v_eos) break;
+				auto& m0 = (*v_i)[0];
+				push(0, m0.first.f_index() - v_p);
+				auto& m1 = (*v_i)[1];
+				push(
+					m1.first != m1.second ? attribute_comment : attribute_keyword,
+					m0.second.f_index() - m0.first.f_index()
+				);
+				v_p = m0.second.f_index();
+				++v_i;
 			}
-			auto match = *v_i;
-			std::deque<decltype(tokens)::t_span> xs{{
-				match[1].length() > 0 ? attribute_comment : attribute_keyword,
-				size_t(match.length())
-			}};
-			if (v_p < match.position()) xs.push_front({0, match.position() - v_p});
-			v_tokens.f_paint(v_p, std::move(xs));
-			v_p = match.position() + match.length();
-			std::wostringstream s;
-			s << L"running: " << match.position() * 100 / text.f_size() << L'%';
-			v_message = s.str();
-			++v_i;
+			v_tokens.f_paint(p, std::move(xs));
+			size_t n = v_tokens.v_text.f_size();
+			if (v_i != v_eos) {
+				std::wostringstream s;
+				s << L"running: " << v_p * 100 / n << L'%';
+				v_message = s.str();
+			} else if (v_p < n) {
+				v_tokens.f_paint(v_p, {{0, n - v_p}});
+				v_p = n;
+				v_message.clear();
+			}
 		}
 
 		nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 		{
-			f_reset();
+			v_i = decltype(v_i)(v_tokens.v_text.f_begin(), v_tokens.v_text.f_end(), v_pattern);
+			v_p = 0;
 		};
 	} task{tokens};
 	tokens.v_text.v_replaced >> task.v_replaced;
-	task.f_reset();
+	task.v_replaced(0, 0, 0);
 	while (true) {
 		{
 			t_graphics g{target, 0};
