@@ -3,6 +3,8 @@ EXTRA_DIST = \
 	signal.h \
 	model.h \
 	view.h \
+	widget.h \
+	curses.h \
 	test_spans.h
 
 CLEANFILES = *.gcda *.gcno *.gcov
@@ -24,7 +26,7 @@ AM_DEFAULT_SOURCE_EXT = .cc
 bin_PROGRAMS = \
 	dump \
 	curses
-curses_LDFLAGS = -lncursesw
+curses_LDFLAGS = -lncursesw -ltinfo
 check_PROGRAMS = \
 	test_stretches \
 	test_signal \
