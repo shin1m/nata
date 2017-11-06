@@ -1,4 +1,5 @@
 #include "test_spans.h"
+#include "stretches.h"
 
 int main(int argc, char* argv[])
 {

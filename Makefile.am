@@ -1,6 +1,7 @@
 EXTRA_DIST = \
-	spans.h \
 	signal.h \
+	spans.h \
+	stretches.h \
 	model.h \
 	view.h \
 	widget.h \
