@@ -1,4 +1,4 @@
-AC_INIT([nata], [201710])
+AC_INIT([nata], [201711])
 AM_INIT_AUTOMAKE([foreign nostdinc dist-bzip2 no-dist-gzip])
 AC_CONFIG_SRCDIR([model.h])
 

@@ -1,5 +1,4 @@
 #include "signal.h"
-
 #include <cassert>
 
 int main(int argc, char* argv[])

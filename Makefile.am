@@ -29,8 +29,9 @@ bin_PROGRAMS = \
 	curses
 curses_LDFLAGS = -lncursesw -ltinfo
 check_PROGRAMS = \
-	test_stretches \
 	test_signal \
+	test_stretches \
+	test_foldings \
 	test_lines \
 	test_text \
 	test_view

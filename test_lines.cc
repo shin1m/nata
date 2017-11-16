@@ -1,5 +1,5 @@
-#include "test_spans.h"
 #include "model.h"
+#include "test_spans.h"
 
 int main(int argc, char* argv[])
 {

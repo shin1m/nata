@@ -1,5 +1,5 @@
-#include "test_spans.h"
 #include "view.h"
+#include "test_spans.h"
 #include <vector>
 
 template<typename T>
