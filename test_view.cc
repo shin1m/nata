@@ -1,21 +1,5 @@
-#include "view.h"
-#include "test_spans.h"
-#include <vector>
-
-template<typename T>
-void f_assert_equals(const T& a0, std::initializer_list<typename T::t_row> a1)
-{
-	f_assert_equals<T, std::initializer_list<typename T::t_row>>(a0, a1);
-}
-
-template<typename T_tokens, typename T_size, size_t A_leaf, size_t A_branch>
-void f_dump(const nata::t_rows<T_tokens, T_size, A_leaf, A_branch>& a)
-{
-	for (auto i = a.f_begin(); i != a.f_end(); ++i) {
-		auto x = *i;
-		std::printf("%d, %d, %d, %d, %d, %d\n", x.v_head, x.v_tail, x.v_text, x.v_width, x.v_ascent, x.v_height);
-	}
-}
+#include "test_rows.h"
+#include "foldings.h"
 
 int main(int argc, char* argv[])
 {
@@ -65,33 +49,8 @@ int main(int argc, char* argv[])
 		{
 			nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
 			nata::t_tokens<decltype(text), int, 5, 5> tokens(text);
-			struct
-			{
-				size_t v_width = 10;
-				nata::t_signal<> v_resized;
-
-				size_t f_width() const
-				{
-					return v_width;
-				}
-				std::tuple<size_t, size_t, size_t> f_size(wchar_t a_c, int a_a) const
-				{
-					return {1 + a_a, 2, a_a};
-				}
-				std::tuple<size_t, size_t, size_t> f_tab(size_t a_x, int a_a) const
-				{
-					return {(a_x + 4) / 4 * 4 - a_x, 2, 1};
-				}
-				std::tuple<size_t, size_t, size_t> f_eol(int a_a) const
-				{
-					return {1, 2, a_a};
-				}
-				std::tuple<size_t, size_t, size_t> f_eof() const
-				{
-					return {1, 1, 0};
-				}
-			} target;
-			nata::t_rows<decltype(tokens), decltype(target), 5, 5> rows(tokens, target);
+			t_test_target target;
+			nata::t_rows<decltype(tokens), nata::t_foldings<5, 5>, decltype(target), 5, 5> rows(tokens, target);
 			std::wstring s = L"Hello,\tworld!\nGood bye.";
 			text.f_replace(0, 0, s.begin(), s.end());
 			test(text, rows);

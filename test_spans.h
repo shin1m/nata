@@ -1,5 +1,4 @@
 #include "spans.h"
-
 #include <cassert>
 
 template<typename T, typename U>

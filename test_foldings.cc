@@ -2,15 +2,6 @@
 #include "test_spans.h"
 #include <vector>
 
-template<size_t A_leaf, size_t A_branch>
-typename nata::t_foldings<A_leaf, A_branch>::t_span f_make_span(std::deque<typename nata::t_foldings<A_leaf, A_branch>::t_span>&& a_xs)
-{
-	auto x = std::make_shared<nata::t_folding<A_leaf, A_branch>>();
-	auto& foldings = x->v_foldings;
-	foldings.f_replace(0, 0, std::move(a_xs));
-	return {std::move(x), foldings.f_size().v_i1};
-}
-
 struct t_test_folding_span;
 
 struct t_test_folding
@@ -72,7 +63,7 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		auto i = foldings.f_replace(0, 0, {
-			{{}, 10}
+			{10}
 		});
 		f_assert_equals(foldings, {
 			{{}, 10}
@@ -90,13 +81,13 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
-			{{}, 10}
+			{10}
 		});
 		// ----------
 		//  | \
 		// -===-------
 		foldings.f_replace(1, 2, {
-			{{}, 3}
+			{3}
 		});
 		f_assert_equals(foldings, {
 			{{}, 11}
@@ -105,16 +96,14 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
-			{{}, 10}
+			{10}
 		});
 		// ----------
 		//  | \
 		// -===-------
 		//  ===
 		foldings.f_replace(1, 2, {
-			f_make_span<5, 5>({
-				{{}, 3}
-			})
+			{{{3}}}
 		});
 		f_assert_equals(foldings, {
 			{{}, 1},
@@ -127,18 +116,23 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
+			{1},
+			{{{2}}},
+			{7}
+		});
+		f_assert_equals(foldings, {
 			{{}, 1},
-			f_make_span<5, 5>({
+			{{{
 				{{}, 2}
-			}),
+			}, false}, 2},
 			{{}, 7}
 		});
 		// ----------
 		//  --
-		//   |\
-		// --==-------
-		foldings.f_replace(2, 1, {
-			{{}, 2}
+		//   | \
+		// --===------
+		foldings.f_replace(2, 2, {
+			{3}
 		});
 		f_assert_equals(foldings, {
 			{{}, 11}
@@ -147,22 +141,30 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
+			{1},
+			{{
+				{1},
+				{{{2}}}
+			}},
+			{6}
+		});
+		f_assert_equals(foldings, {
 			{{}, 1},
-			f_make_span<5, 5>({
+			{{{
 				{{}, 1},
-				f_make_span<5, 5>({
+				{{{
 					{{}, 2}
-				})
-			}),
+				}, false}, 2}
+			}, false}, 3},
 			{{}, 6}
 		});
 		// ----------
 		//  ---
 		//   --
-		//   | \
-		// --===------
-		foldings.f_replace(2, 2, {
-			{{}, 3}
+		//   |  \
+		// --====-----
+		foldings.f_replace(2, 3, {
+			{4}
 		});
 		f_assert_equals(foldings, {
 			{{}, 11}
@@ -171,18 +173,16 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
-			{{}, 1},
-			f_make_span<5, 5>({
-				{{}, 2}
-			}),
-			{{}, 7}
+			{1},
+			{{{2}}},
+			{7}
 		});
 		// ----------
 		//  --
 		//  |\
 		// -==--------
 		foldings.f_replace(1, 1, {
-			{{}, 2}
+			{2}
 		});
 		f_assert_equals(foldings, {
 			{{}, 11}
@@ -191,13 +191,21 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
+			{1},
+			{{
+				{{{2}}},
+				{1}
+			}},
+			{6}
+		});
+		f_assert_equals(foldings, {
 			{{}, 1},
-			f_make_span<5, 5>({
-				f_make_span<5, 5>({
+			{{{
+				{{{
 					{{}, 2}
-				}),
+				}, false}, 2},
 				{{}, 1}
-			}),
+			}, false}, 3},
 			{{}, 6}
 		});
 		// ----------
@@ -206,7 +214,7 @@ int main(int argc, char* argv[])
 		//  | \
 		// -===-------
 		foldings.f_replace(1, 2, {
-			{{}, 3}
+			{3}
 		});
 		f_assert_equals(foldings, {
 			{{}, 11}
@@ -215,11 +223,9 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
-			{{}, 1},
-			f_make_span<5, 5>({
-				{{}, 2}
-			}),
-			{{}, 7}
+			{1},
+			{{{2}}},
+			{7}
 		});
 		// ----------
 		//  --
@@ -233,13 +239,19 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
+			{1},
+			{{{2}}},
+			{{{2}}},
+			{5}
+		});
+		f_assert_equals(foldings, {
 			{{}, 1},
-			f_make_span<5, 5>({
+			{{{
 				{{}, 2}
-			}),
-			f_make_span<5, 5>({
+			}, false}, 2},
+			{{{
 				{{}, 2}
-			}),
+			}, false}, 2},
 			{{}, 5}
 		});
 		// --- -------
@@ -259,14 +271,10 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
-			{{}, 1},
-			f_make_span<5, 5>({
-				{{}, 2}
-			}),
-			f_make_span<5, 5>({
-				{{}, 2}
-			}),
-			{{}, 5}
+			{1},
+			{{{2}}},
+			{{{2}}},
+			{5}
 		});
 		// --- -------
 		//  -- --
@@ -285,19 +293,24 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
+			{1},
+			{{{4}}},
+			{5}
+		});
+		f_assert_equals(foldings, {
 			{{}, 1},
-			f_make_span<5, 5>({
+			{{{
 				{{}, 4}
-			}),
+			}, false}, 4},
 			{{}, 5}
 		});
 		// ----------
 		//  ----
-		//   | \
-		// --===------
-		//  -===-
-		foldings.f_replace(2, 2, {
-			{{}, 3}
+		//   |  \
+		// --====-----
+		//  -====
+		foldings.f_replace(2, 3, {
+			{4}
 		});
 		f_assert_equals(foldings, {
 			{{}, 1},
@@ -310,16 +323,14 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		auto i = foldings.f_replace(0, 0, {
-			{{}, 10}
+			{10}
 		});
 		f_assert_equals(foldings, {
 			{{}, 10}
 		});
 		assert(i == foldings.f_begin());
 		i = foldings.f_replace(1, 2, {
-			f_make_span<5, 5>({
-				{{}, 3}
-			})
+			{{{3}}}
 		});
 		f_assert_equals(foldings, {
 			{{}, 1},
@@ -333,10 +344,15 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
+			{2},
+			{{{5}}},
+			{3}
+		});
+		f_assert_equals(foldings, {
 			{{}, 2},
-			f_make_span<5, 5>({
+			{{{
 				{{}, 5}
-			}),
+			}, false}, 5},
 			{{}, 3}
 		});
 		f_assert_equals(foldings, {
@@ -358,11 +374,9 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
-			{{}, 2},
-			f_make_span<5, 5>({
-				{{}, 5}
-			}),
-			{{}, 3}
+			{2},
+			{{{5}}},
+			{3}
 		});
 		foldings.f_replace(2, 1, {});
 		f_assert_equals(foldings, {
@@ -372,16 +386,19 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
+			{1},
+			{{{7}}},
+			{2}
+		});
+		f_assert_equals(foldings, {
 			{{}, 1},
-			f_make_span<5, 5>({
+			{{{
 				{{}, 7}
-			}),
+			}, false}, 7},
 			{{}, 2}
 		});
 		foldings.f_replace(3, 4, {
-			f_make_span<5, 5>({
-				{{}, 4}
-			})
+			{{{4}}}
 		});
 		f_assert_equals(foldings, {
 			{{}, 1},
@@ -398,18 +415,27 @@ int main(int argc, char* argv[])
 	{
 		nata::t_foldings<5, 5> foldings;
 		foldings.f_replace(0, 0, {
+			{1},
+			{{
+				{2},
+				{{{4}}},
+				{1}
+			}},
+			{2}
+		});
+		f_assert_equals(foldings, {
 			{{}, 1},
-			f_make_span<5, 5>({
+			{{{
 				{{}, 2},
-				f_make_span<5, 5>({
+				{{{
 					{{}, 4}
-				}),
+				}, false}, 4},
 				{{}, 1}
-			}),
+			}, false}, 7},
 			{{}, 2}
 		});
 		foldings.f_replace(2, 1, {
-			{{}, 3}
+			{3}
 		});
 		f_assert_equals(foldings, {
 			{{}, 1},

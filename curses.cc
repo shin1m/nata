@@ -1,4 +1,5 @@
 #include "view.h"
+#include "foldings.h"
 #include "widget.h"
 #include "curses.h"
 #include <fstream>
@@ -8,12 +9,14 @@
 constexpr size_t c_text_chunk = 4096;
 constexpr size_t c_lines_chunk = 256;
 constexpr size_t c_tokens_chunk = 256;
+constexpr size_t c_foldings_chunk = 256;
 constexpr size_t c_rows_chunk = 256;
 constexpr size_t c_tokens_paint_unit = 256;
 #else
 constexpr size_t c_text_chunk = 5;
 constexpr size_t c_lines_chunk = 5;
 constexpr size_t c_tokens_chunk = 5;
+constexpr size_t c_foldings_chunk = 5;
 constexpr size_t c_rows_chunk = 5;
 constexpr size_t c_tokens_paint_unit = 4;
 #endif
@@ -30,7 +33,7 @@ int main(int argc, char* argv[])
 	nata::t_text<nata::t_lines<c_lines_chunk, c_lines_chunk>, c_text_chunk, c_text_chunk> text;
 	nata::t_tokens<decltype(text), attr_t, c_tokens_chunk, c_tokens_chunk> tokens(text);
 	nata::curses::t_target target;
-	nata::t_rows<decltype(tokens), decltype(target), c_rows_chunk, c_rows_chunk> rows(tokens, target);
+	nata::t_rows<decltype(tokens), nata::t_foldings<c_foldings_chunk, c_foldings_chunk>, decltype(target), c_rows_chunk, c_rows_chunk> rows(tokens, target);
 	if (argc > 1) {
 		std::wifstream in(argv[1]);
 		in.imbue(std::locale(""));

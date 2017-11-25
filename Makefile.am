@@ -6,7 +6,8 @@ EXTRA_DIST = \
 	view.h \
 	widget.h \
 	curses.h \
-	test_spans.h
+	test_spans.h \
+	test_rows.h
 
 CLEANFILES = *.gcda *.gcno *.gcov
 
@@ -34,5 +35,6 @@ check_PROGRAMS = \
 	test_foldings \
 	test_lines \
 	test_text \
-	test_view
+	test_view \
+	test_view_foldings
 TESTS = $(check_PROGRAMS)

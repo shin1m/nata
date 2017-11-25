@@ -56,6 +56,10 @@ struct t_target
 	{
 		return {1, 1, 0};
 	}
+	std::tuple<size_t, size_t, size_t> f_folding() const
+	{
+		return {3, 1, 0};
+	}
 	void f_scroll(size_t a_y, size_t a_height, int a_delta)
 	{
 		setscrreg(a_y, a_height - 1);
