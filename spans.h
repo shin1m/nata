@@ -7,19 +7,25 @@
 namespace nata
 {
 
-template<typename T_value, size_t A_leaf = 4096, size_t A_branch = 4096>
+template<typename T_value>
+struct t_span
+{
+	T_value v_x;
+	size_t v_n;
+
+	bool operator==(const t_span& a_x) const
+	{
+		return v_x == a_x.v_x && v_n == a_x.v_n;
+	}
+	t_span f_get(size_t a_n) const
+	{
+		return {v_x, a_n};
+	}
+};
+
+template<typename T_span, size_t A_leaf = 4096, size_t A_branch = 4096>
 struct t_spans
 {
-	struct t_span
-	{
-		T_value v_x;
-		size_t v_n;
-
-		bool operator==(const t_span& a_x) const
-		{
-			return v_x == a_x.v_x && v_n == a_x.v_n;
-		}
-	};
 	template<typename T>
 	struct t_index
 	{
@@ -89,9 +95,9 @@ protected:
 			a_value.v_n += a_index.v_i1;
 		}
 		template<typename T>
-		static constexpr T f_get(T* a_base, T* a_p)
+		static constexpr auto f_get(T* a_base, T* a_p) -> decltype(a_p->f_get(0))
 		{
-			return {a_p->v_x, f_delta(a_base, a_p).v_i1};
+			return a_p->f_get(f_delta(a_base, a_p).v_i1);
 		}
 		template<typename T>
 		static constexpr t_index f_delta(T* a_base, T* a_p)
@@ -99,7 +105,7 @@ protected:
 			return {1, a_p > a_base ? a_p->v_n - a_p[-1].v_n : a_p->v_n};
 		}
 	};
-	typedef jumoku::t_array<t_span, A_leaf, A_branch, t_traits> t_array;
+	typedef jumoku::t_array<T_span, A_leaf, A_branch, t_traits> t_array;
 
 	t_array v_array;
 

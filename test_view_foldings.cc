@@ -1,4 +1,3 @@
-#include "foldings.h"
 #include "test_rows.h"
 
 int main(int argc, char* argv[])
@@ -8,7 +7,7 @@ int main(int argc, char* argv[])
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
 		nata::t_tokens<decltype(text), int, 5, 5> tokens(text);
 		t_test_target target;
-		nata::t_rows<decltype(tokens), nata::t_foldings<5, 5>, decltype(target), 5, 5> rows(tokens, target);
+		nata::t_rows<decltype(tokens), nata::t_foldings<nata::t_foldings_traits, 5, 5>, decltype(target), 5, 5> rows(tokens, target);
 		test(text, rows);
 	};
 	setup([](auto& text, auto& rows)
@@ -16,7 +15,7 @@ int main(int argc, char* argv[])
 		std::wstring s = L"Hello,\tworld!\nGood bye.";
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_foldable(7, {
-			std::decay_t<decltype(rows)>::f_subfolding(11, {})
+			{11, {}}
 		});
 		f_assert_equals(rows, {
 			{true, false, 9, 10, 2, 3},
@@ -34,8 +33,8 @@ int main(int argc, char* argv[])
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_foldable(2, {
-			std::decay_t<decltype(rows)>::f_subfolding(7, {}),
-			std::decay_t<decltype(rows)>::f_subfolding(10, {})
+			{7, {}},
+			{10, {}}
 		});
 		f_assert_equals(rows, {
 			{true, true, 6, 6, 2, 2},
@@ -68,10 +67,10 @@ int main(int argc, char* argv[])
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_foldable(1, {
-			std::decay_t<decltype(rows)>::f_subfolding(1, {
-				std::decay_t<decltype(rows)>::f_subfolding(7, {}),
-				std::decay_t<decltype(rows)>::f_subfolding(10, {})
-			})
+			{1, {
+				{7, {}},
+				{10, {}}
+			}}
 		});
 		f_assert_equals(rows, {
 			{true, true, 6, 6, 2, 2},
@@ -104,13 +103,13 @@ int main(int argc, char* argv[])
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_foldable(2, {
-			std::decay_t<decltype(rows)>::f_subfolding(7, {}),
-			std::decay_t<decltype(rows)>::f_subfolding(1, {
-				std::decay_t<decltype(rows)>::f_subfolding(5, {}),
-				std::decay_t<decltype(rows)>::f_subfolding(2, {
-					std::decay_t<decltype(rows)>::f_subfolding(2, {})
-				})
-			})
+			{7, {}},
+			{1, {
+				{5, {}},
+				{2, {
+				    {2, {}}
+				}}
+			}}
 		});
 		f_assert_equals(rows, {
 			{true, true, 6, 6, 2, 2},
@@ -123,8 +122,8 @@ int main(int argc, char* argv[])
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_foldable(2, {
-			std::decay_t<decltype(rows)>::f_subfolding(7, {}),
-			std::decay_t<decltype(rows)>::f_subfolding(10, {})
+			{7, {}},
+			{10, {}}
 		});
 		{
 			std::vector<std::tuple<size_t, size_t, size_t>> xs;

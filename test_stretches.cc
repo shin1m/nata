@@ -3,7 +3,7 @@
 
 int main(int argc, char* argv[])
 {
-	typedef nata::t_spans<int, 5, 5>::t_span t_span;
+	using t_span = nata::t_stretches<int, 5, 5>::t_span;
 	{
 		nata::t_stretches<int, 5, 5> stretches;
 		auto i = stretches.f_replace(0, 0, {

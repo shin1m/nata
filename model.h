@@ -7,23 +7,29 @@
 namespace nata
 {
 
-struct t_void
+struct t_line
 {
-	bool operator==(const t_void&) const
+	size_t v_n;
+
+	bool operator==(const t_line& a_x) const
 	{
-		return true;
+		return v_n == a_x.v_n;
+	}
+	t_line f_get(size_t a_n) const
+	{
+		return {a_n};
 	}
 };
 
 template<size_t A_leaf = 4096, size_t A_branch = 4096>
-struct t_lines : t_spans<t_void, A_leaf, A_branch>
+struct t_lines : t_spans<t_line, A_leaf, A_branch>
 {
-	typedef typename t_spans<t_void, A_leaf, A_branch>::t_span t_span;
-	typedef typename t_spans<t_void, A_leaf, A_branch>::t_iterator t_iterator;
+	typedef t_line t_span;
+	typedef typename t_spans<t_line, A_leaf, A_branch>::t_iterator t_iterator;
 
 	t_lines()
 	{
-		this->v_array.f_insert(this->f_end(), t_span{{}, 1});
+		this->v_array.f_insert(this->f_end(), t_span{1});
 	}
 	template<typename T>
 	void f_replace(size_t a_p, size_t a_n, T a_first, T a_last)
@@ -37,14 +43,14 @@ struct t_lines : t_spans<t_void, A_leaf, A_branch>
 		while (a_first != a_last) {
 			++n;
 			if (*a_first == L'\n') {
-				i = this->v_array.f_insert(i, t_span{{}, n});
+				i = this->v_array.f_insert(i, t_span{n});
 				++i;
 				n = 0;
 			}
 			++a_first;
 		}
 		n += m;
-		if (n > 0) this->v_array.f_insert(i, t_span{{}, n});
+		if (n > 0) this->v_array.f_insert(i, t_span{n});
 	}
 };
 

@@ -1,5 +1,4 @@
 #include "test_rows.h"
-#include "foldings.h"
 
 int main(int argc, char* argv[])
 {
@@ -50,7 +49,7 @@ int main(int argc, char* argv[])
 			nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
 			nata::t_tokens<decltype(text), int, 5, 5> tokens(text);
 			t_test_target target;
-			nata::t_rows<decltype(tokens), nata::t_foldings<5, 5>, decltype(target), 5, 5> rows(tokens, target);
+			nata::t_rows<decltype(tokens), nata::t_foldings<nata::t_foldings_traits, 5, 5>, decltype(target), 5, 5> rows(tokens, target);
 			std::wstring s = L"Hello,\tworld!\nGood bye.";
 			text.f_replace(0, 0, s.begin(), s.end());
 			test(text, rows);

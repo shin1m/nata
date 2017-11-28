@@ -3,16 +3,15 @@
 
 int main(int argc, char* argv[])
 {
-	typedef nata::t_spans<size_t, 5, 5>::t_span t_span;
 	{
 		nata::t_lines<5, 5> lines;
 		f_assert_equals(lines, {
-			{{}, 1}
+			{1}
 		});
 		std::wstring s = L"Hello.";
 		lines.f_replace(0, 0, s.begin(), s.end());
 		f_assert_equals(lines, {
-			{{}, 7}
+			{7}
 		});
 	}
 	{
@@ -20,8 +19,8 @@ int main(int argc, char* argv[])
 		std::wstring s = L"Hello.\nGood bye.";
 		lines.f_replace(0, 0, s.begin(), s.end());
 		f_assert_equals(lines, {
-			{{}, 7},
-			{{}, 10}
+			{7},
+			{10}
 		});
 	}
 	{
@@ -35,8 +34,8 @@ int main(int argc, char* argv[])
 			lines.f_replace(5, 3, s.begin(), s.end());
 		}
 		f_assert_equals(lines, {
-			{{}, 14},
-			{{}, 10}
+			{14},
+			{10}
 		});
 	}
 	{
@@ -46,20 +45,20 @@ int main(int argc, char* argv[])
 			lines.f_replace(0, 0, s.begin(), s.end());
 		}
 		f_assert_equals(lines, {
-			{{}, 1},
-			{{}, 1},
-			{{}, 1}
+			{1},
+			{1},
+			{1}
 		});
 		{
 			std::wstring s;
 			lines.f_replace(1, 1, s.begin(), s.end());
 			f_assert_equals(lines, {
-				{{}, 1},
-				{{}, 1}
+				{1},
+				{1}
 			});
 			lines.f_replace(0, 1, s.begin(), s.end());
 			f_assert_equals(lines, {
-				{{}, 1}
+				{1}
 			});
 		}
 	}
@@ -74,8 +73,8 @@ int main(int argc, char* argv[])
 			lines.f_replace(6, 0, s.begin(), s.end());
 		}
 		f_assert_equals(lines, {
-			{{}, 7},
-			{{}, 5}
+			{7},
+			{5}
 		});
 	}
 	{
@@ -89,8 +88,8 @@ int main(int argc, char* argv[])
 			lines.f_replace(0, 0, s.begin(), s.end());
 		}
 		f_assert_equals(lines, {
-			{{}, 7},
-			{{}, 5}
+			{7},
+			{5}
 		});
 	}
 	{
@@ -104,8 +103,8 @@ int main(int argc, char* argv[])
 			lines.f_replace(6, 0, s.begin(), s.end());
 		}
 		f_assert_equals(lines, {
-			{{}, 7},
-			{{}, 5}
+			{7},
+			{5}
 		});
 	}
 	return 0;

@@ -3,6 +3,7 @@
 
 #include "model.h"
 #include "stretches.h"
+#include "foldings.h"
 #include <numeric>
 #include <vector>
 
@@ -50,6 +51,52 @@ public:
 		v_painted(a_p, n);
 		return i;
 	}
+};
+
+struct t_foldings_traits
+{
+	template<size_t A_leaf, size_t A_branch>
+	struct t_folding
+	{
+		t_foldings<t_foldings_traits, A_leaf, A_branch> v_foldings;
+		bool v_folded = false;
+	};
+	template<size_t A_leaf, size_t A_branch>
+	class t_span
+	{
+		friend struct t_foldings<t_foldings_traits, A_leaf, A_branch>;
+
+		static std::shared_ptr<t_folding<A_leaf, A_branch>> f_x(size_t a_n, std::deque<t_span>&& a_xs)
+		{
+			a_xs.emplace_front(a_n);
+			auto x = std::make_shared<t_folding<A_leaf, A_branch>>();
+			x->v_foldings.f_replace(0, 0, std::move(a_xs));
+			return x;
+		}
+
+		t_span(const std::shared_ptr<t_folding<A_leaf, A_branch>>& a_x, size_t a_n) : v_x(std::move(a_x)), v_n(a_n)
+		{
+		}
+		t_span(std::shared_ptr<t_folding<A_leaf, A_branch>>&& a_x) : v_x(std::move(a_x)), v_n(v_x->v_foldings.f_size().v_i1)
+		{
+		}
+
+	public:
+		std::shared_ptr<t_folding<A_leaf, A_branch>> v_x;
+		size_t v_n;
+
+		t_span() = default;
+		t_span(size_t a_n) : v_n(a_n)
+		{
+		}
+		t_span(size_t a_n, std::deque<t_span>&& a_xs) : t_span(f_x(a_n, std::move(a_xs)))
+		{
+		}
+		t_span f_get(size_t a_n) const
+		{
+			return {v_x, a_n};
+		}
+	};
 };
 
 template<typename T_tokens, typename T_foldings, typename T_target, size_t A_leaf = 4096, size_t A_branch = 4096>
@@ -263,7 +310,7 @@ private:
 	};
 	t_slot<size_t, size_t, size_t> v_tokens_replaced{[this](auto a_p, auto a_n0, auto a_n1)
 	{
-		v_foldings.f_replace(a_p ,a_n0, {{a_n1}});
+		v_foldings.f_replace(a_p, a_n0, {{a_n1}});
 		auto x = f_replace(a_p, a_n0, a_n1);
 		v_replaced(a_p, a_n0, a_n1, std::get<0>(x), std::get<1>(x), std::get<2>(x));
 	}};
@@ -279,12 +326,6 @@ private:
 
 public:
 	typedef typename t_array::t_constant_iterator t_iterator;
-
-	static typename T_foldings::t_span f_subfolding(size_t a_n, std::deque<typename T_foldings::t_span>&& a_xs)
-	{
-		a_xs.emplace_front(a_n);
-		return std::move(a_xs);
-	}
 
 	t_signal<size_t, size_t, size_t, size_t, size_t, size_t> v_replaced;
 	t_signal<size_t, size_t, size_t, size_t, size_t> v_painted;
