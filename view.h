@@ -3,7 +3,7 @@
 
 #include "model.h"
 #include "stretches.h"
-#include "foldings.h"
+#include "nested.h"
 #include <numeric>
 #include <vector>
 
@@ -53,36 +53,36 @@ public:
 	}
 };
 
-struct t_foldings_traits
+struct t_foldable
 {
 	template<size_t A_leaf, size_t A_branch>
-	struct t_folding
+	struct t_value
 	{
-		t_foldings<t_foldings_traits, A_leaf, A_branch> v_foldings;
+		t_nested<t_foldable, A_leaf, A_branch> v_nested;
 		bool v_folded = false;
 	};
 	template<size_t A_leaf, size_t A_branch>
 	class t_span
 	{
-		friend struct t_foldings<t_foldings_traits, A_leaf, A_branch>;
+		friend struct t_nested<t_foldable, A_leaf, A_branch>;
 
-		static std::shared_ptr<t_folding<A_leaf, A_branch>> f_x(size_t a_n, std::deque<t_span>&& a_xs)
+		static std::shared_ptr<t_value<A_leaf, A_branch>> f_x(size_t a_n, std::deque<t_span>&& a_xs)
 		{
 			a_xs.emplace_front(a_n);
-			auto x = std::make_shared<t_folding<A_leaf, A_branch>>();
-			x->v_foldings.f_replace(0, 0, std::move(a_xs));
+			auto x = std::make_shared<t_value<A_leaf, A_branch>>();
+			x->v_nested.f_replace(0, 0, std::move(a_xs));
 			return x;
 		}
 
-		t_span(const std::shared_ptr<t_folding<A_leaf, A_branch>>& a_x, size_t a_n) : v_x(std::move(a_x)), v_n(a_n)
+		t_span(const std::shared_ptr<t_value<A_leaf, A_branch>>& a_x, size_t a_n) : v_x(std::move(a_x)), v_n(a_n)
 		{
 		}
-		t_span(std::shared_ptr<t_folding<A_leaf, A_branch>>&& a_x) : v_x(std::move(a_x)), v_n(v_x->v_foldings.f_size().v_i1)
+		t_span(std::shared_ptr<t_value<A_leaf, A_branch>>&& a_x) : v_x(std::move(a_x)), v_n(v_x->v_nested.f_size().v_i1)
 		{
 		}
 
 	public:
-		std::shared_ptr<t_folding<A_leaf, A_branch>> v_x;
+		std::shared_ptr<t_value<A_leaf, A_branch>> v_x;
 		size_t v_n;
 
 		t_span() = default;
@@ -386,7 +386,7 @@ public:
 			a_path.push_back(i);
 			a_p -= i.f_index().v_i1;
 			if (a_p <= 0 || !i->v_x) break;
-			x = &i->v_x->v_foldings;
+			x = &i->v_x->v_nested;
 		}
 		return a_p;
 	}
@@ -396,7 +396,7 @@ public:
 		while (true) {
 			auto& i = a_path.back();
 			if (!i->v_x || i->v_x->v_folded) break;
-			a_path.push_back(i->v_x->v_foldings.f_begin());
+			a_path.push_back(i->v_x->v_nested.f_begin());
 		}
 	}
 	size_t f_leaf_at_in_text(size_t a_p, std::vector<typename T_foldings::t_iterator>& a_path) const
@@ -408,7 +408,7 @@ public:
 	void f_next(std::vector<typename T_foldings::t_iterator>& a_path) const
 	{
 		while (a_path.size() >= 2) {
-			if (++a_path.back() != a_path[a_path.size() - 2]->v_x->v_foldings.f_end()) return;
+			if (++a_path.back() != a_path[a_path.size() - 2]->v_x->v_nested.f_end()) return;
 			a_path.pop_back();
 		}
 		++a_path.back();

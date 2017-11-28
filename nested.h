@@ -1,5 +1,5 @@
-#ifndef NATA__FOLDINGS_H
-#define NATA__FOLDINGS_H
+#ifndef NATA__NESTED_H
+#define NATA__NESTED_H
 
 #include "spans.h"
 
@@ -7,7 +7,7 @@ namespace nata
 {
 
 template<typename T_traits, size_t A_leaf = 4096, size_t A_branch = 4096>
-struct t_foldings : t_spans<typename T_traits::template t_span<A_leaf, A_branch>, A_leaf, A_branch>
+struct t_nested : t_spans<typename T_traits::template t_span<A_leaf, A_branch>, A_leaf, A_branch>
 {
 	typedef typename T_traits::template t_span<A_leaf, A_branch> t_span;
 	typedef typename t_spans<t_span, A_leaf, A_branch>::t_iterator t_iterator;
@@ -24,7 +24,7 @@ private:
 	void f_merge(t_iterator a_i, size_t a_n, std::deque<t_span>& a_xs) const
 	{
 		if (a_i->v_x) {
-			auto& x = a_i->v_x->v_foldings;
+			auto& x = a_i->v_x->v_nested;
 			auto i = x.f_at_in_text(a_n);
 			size_t n = a_n - i.f_index().v_i1;
 			if (n > 0) x.f_merge(i, n, a_xs);
@@ -45,7 +45,7 @@ private:
 	void f_merge(std::deque<t_span>& a_xs, t_iterator a_i, size_t a_n) const
 	{
 		if (a_i->v_x) {
-			auto& x = a_i->v_x->v_foldings;
+			auto& x = a_i->v_x->v_nested;
 			auto i = x.f_at_in_text(a_n);
 			size_t n = a_n - i.f_index().v_i1;
 			if (n > 0) {
@@ -73,7 +73,7 @@ public:
 		if (n > 0) {
 			if (i->v_x && p <= i.f_index().v_i1 + i.f_delta().v_i1) {
 				auto x = i->v_x;
-				x->v_foldings.f_replace(n, a_n, std::move(a_xs));
+				x->v_nested.f_replace(n, a_n, std::move(a_xs));
 				return this->v_array.f_insert(this->v_array.f_erase(i), t_span{std::move(x)});
 			}
 			f_merge(i, n, a_xs);

@@ -2,6 +2,7 @@ EXTRA_DIST = \
 	signal.h \
 	spans.h \
 	stretches.h \
+	nested.h \
 	model.h \
 	view.h \
 	widget.h \
@@ -32,7 +33,7 @@ curses_LDFLAGS = -lncursesw -ltinfo
 check_PROGRAMS = \
 	test_signal \
 	test_stretches \
-	test_foldings \
+	test_nested \
 	test_lines \
 	test_text \
 	test_view \

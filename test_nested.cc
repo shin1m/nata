@@ -1,4 +1,4 @@
-#include "foldings.h"
+#include "nested.h"
 #include "test_spans.h"
 #include <numeric>
 #include <vector>
@@ -6,21 +6,21 @@
 struct t_test_traits
 {
 	template<size_t A_leaf, size_t A_branch>
-	struct t_folding
+	struct t_value
 	{
-		nata::t_foldings<t_test_traits, A_leaf, A_branch> v_foldings;
+		nata::t_nested<t_test_traits, A_leaf, A_branch> v_nested;
 	};
 	template<size_t A_leaf, size_t A_branch>
 	struct t_span
 	{
-		std::shared_ptr<t_folding<A_leaf, A_branch>> v_x;
+		std::shared_ptr<t_value<A_leaf, A_branch>> v_x;
 		size_t v_n;
 
 		t_span() = default;
-		t_span(const std::shared_ptr<t_folding<A_leaf, A_branch>>& a_x, size_t a_n) : v_x(std::move(a_x)), v_n(a_n)
+		t_span(const std::shared_ptr<t_value<A_leaf, A_branch>>& a_x, size_t a_n) : v_x(std::move(a_x)), v_n(a_n)
 		{
 		}
-		t_span(std::shared_ptr<t_folding<A_leaf, A_branch>>&& a_x) : v_x(std::move(a_x)), v_n(v_x->v_foldings.f_size().v_i1)
+		t_span(std::shared_ptr<t_value<A_leaf, A_branch>>&& a_x) : v_x(std::move(a_x)), v_n(v_x->v_nested.f_size().v_i1)
 		{
 		}
 		t_span(size_t a_n) : v_n(a_n)
@@ -28,9 +28,9 @@ struct t_test_traits
 		}
 		t_span(std::deque<t_span>&& a_xs)
 		{
-			v_x = std::make_shared<t_folding<A_leaf, A_branch>>();
-			v_x->v_foldings.f_replace(0, 0, std::move(a_xs));
-			v_n = v_x->v_foldings.f_size().v_i1;
+			v_x = std::make_shared<t_value<A_leaf, A_branch>>();
+			v_x->v_nested.f_replace(0, 0, std::move(a_xs));
+			v_n = v_x->v_nested.f_size().v_i1;
 		}
 		bool operator==(const t_span& a_x) const
 		{
@@ -51,7 +51,7 @@ struct t_test_span
 	t_test_span(size_t a_n) : v_n(a_n)
 	{
 	}
-	t_test_span(std::vector<t_test_span>&& a_foldings) : v_x(std::make_shared<std::vector<t_test_span>>(std::move(a_foldings)))
+	t_test_span(std::vector<t_test_span>&& a_nested) : v_x(std::make_shared<std::vector<t_test_span>>(std::move(a_nested)))
 	{
 		v_n = std::accumulate(v_x->begin(), v_x->end(), 0, [](size_t n, const auto& x)
 		{
@@ -65,7 +65,7 @@ inline bool operator==(const T& a_x, const t_test_span& a_y)
 {
 	if (!a_x.v_x != !a_y.v_x) return false;
 	if (a_x.v_x) {
-		auto& x = a_x.v_x->v_foldings;
+		auto& x = a_x.v_x->v_nested;
 		auto& y = *a_y.v_x;
 		if (!std::equal(x.f_begin(), x.f_end(), y.begin(), y.end())) return false;
 	}
@@ -79,13 +79,13 @@ void f_assert_equals(const T& a0, std::initializer_list<t_test_span> a1)
 }
 
 template<typename T_traits, size_t A_leaf, size_t A_branch>
-void f_dump(const nata::t_foldings<T_traits, A_leaf, A_branch>& a, const std::string& a_indent)
+void f_dump(const nata::t_nested<T_traits, A_leaf, A_branch>& a, const std::string& a_indent)
 {
 	for (auto i = a.f_begin(); i != a.f_end(); ++i) {
 		auto x = *i;
 		if (x.v_x) {
 			std::printf("%s{\n", a_indent.c_str());
-			f_dump(x.v_x->v_foldings, a_indent + '\t');
+			f_dump(x.v_x->v_nested, a_indent + '\t');
 			std::printf("%s}, %d\n", a_indent.c_str(), x.v_n);
 		} else {
 			std::printf("%s%d\n", a_indent.c_str(), x.v_n);
@@ -96,64 +96,64 @@ void f_dump(const nata::t_foldings<T_traits, A_leaf, A_branch>& a, const std::st
 int main(int argc, char* argv[])
 {
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		auto i = foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		auto i = nested.f_replace(0, 0, {
 			{10}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{10}
 		});
-		assert(i == foldings.f_begin());
+		assert(i == nested.f_begin());
 		// ----------
 		//  \
 		// ----------
-		i = foldings.f_replace(1, 0, {});
-		f_assert_equals(foldings, {
+		i = nested.f_replace(1, 0, {});
+		f_assert_equals(nested, {
 			{10}
 		});
-		assert(i == foldings.f_begin());
+		assert(i == nested.f_begin());
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{10}
 		});
 		// ----------
 		//  | \
 		// -===-------
-		foldings.f_replace(1, 2, {
+		nested.f_replace(1, 2, {
 			{3}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{11}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{10}
 		});
 		// ----------
 		//  | \
 		// -===-------
 		//  ===
-		foldings.f_replace(1, 2, {
+		nested.f_replace(1, 2, {
 			{{{3}}}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{{3}}},
 			{7}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{1},
 			{{{2}}},
 			{7}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{{2}}},
 			{7}
@@ -162,16 +162,16 @@ int main(int argc, char* argv[])
 		//  --
 		//   | \
 		// --===------
-		foldings.f_replace(2, 2, {
+		nested.f_replace(2, 2, {
 			{3}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{11}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{1},
 			{{
 				{1},
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
 			}},
 			{6}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{
 				{1},
@@ -192,16 +192,16 @@ int main(int argc, char* argv[])
 		//   --
 		//   |  \
 		// --====-----
-		foldings.f_replace(2, 3, {
+		nested.f_replace(2, 3, {
 			{4}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{11}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{1},
 			{{{2}}},
 			{7}
@@ -210,16 +210,16 @@ int main(int argc, char* argv[])
 		//  --
 		//  |\
 		// -==--------
-		foldings.f_replace(1, 1, {
+		nested.f_replace(1, 1, {
 			{2}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{11}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{1},
 			{{
 				{{{2}}},
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
 			}},
 			{6}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{
 				{{{2}}},
@@ -240,16 +240,16 @@ int main(int argc, char* argv[])
 		//  --
 		//  | \
 		// -===-------
-		foldings.f_replace(1, 2, {
+		nested.f_replace(1, 2, {
 			{3}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{11}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{1},
 			{{{2}}},
 			{7}
@@ -258,20 +258,20 @@ int main(int argc, char* argv[])
 		//  --
 		//  | \
 		// -|-------
-		foldings.f_replace(1, 2, {});
-		f_assert_equals(foldings, {
+		nested.f_replace(1, 2, {});
+		f_assert_equals(nested, {
 			{8}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{1},
 			{{{2}}},
 			{{{2}}},
 			{5}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{{2}}},
 			{{{2}}},
@@ -282,16 +282,16 @@ int main(int argc, char* argv[])
 		//  | \
 		// -|-------
 		//   --
-		foldings.f_replace(1, 2, {});
-		f_assert_equals(foldings, {
+		nested.f_replace(1, 2, {});
+		f_assert_equals(nested, {
 			{1},
 			{{{2}}},
 			{5}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{1},
 			{{{2}}},
 			{{{2}}},
@@ -302,21 +302,21 @@ int main(int argc, char* argv[])
 		//     | \
 		// --- |-----
 		//  --
-		foldings.f_replace(3, 2, {});
-		f_assert_equals(foldings, {
+		nested.f_replace(3, 2, {});
+		f_assert_equals(nested, {
 			{1},
 			{{{2}}},
 			{5}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{1},
 			{{{4}}},
 			{5}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{{4}}},
 			{5}
@@ -326,81 +326,81 @@ int main(int argc, char* argv[])
 		//   |  \
 		// --====-----
 		//  -====
-		foldings.f_replace(2, 3, {
+		nested.f_replace(2, 3, {
 			{4}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{{5}}},
 			{5}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		auto i = foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		auto i = nested.f_replace(0, 0, {
 			{10}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{10}
 		});
-		assert(i == foldings.f_begin());
-		i = foldings.f_replace(1, 2, {
+		assert(i == nested.f_begin());
+		i = nested.f_replace(1, 2, {
 			{{{3}}}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{{3}}},
 			{7}
 		});
-		assert(i == foldings.f_begin());
+		assert(i == nested.f_begin());
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{2},
 			{{{5}}},
 			{3}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{2},
 			{{{5}}},
 			{3}
 		});
-		foldings.f_replace(7, 1, {});
-		f_assert_equals(foldings, {
+		nested.f_replace(7, 1, {});
+		f_assert_equals(nested, {
 			{2},
 			{{{5}}},
 			{2}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{2},
 			{{{5}}},
 			{3}
 		});
-		foldings.f_replace(2, 1, {});
-		f_assert_equals(foldings, {
+		nested.f_replace(2, 1, {});
+		f_assert_equals(nested, {
 			{9}
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{1},
 			{{{7}}},
 			{2}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{{7}}},
 			{2}
 		});
-		foldings.f_replace(3, 4, {
+		nested.f_replace(3, 4, {
 			{{{4}}}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{
 				{2},
@@ -411,8 +411,8 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_foldings<t_test_traits, 5, 5> foldings;
-		foldings.f_replace(0, 0, {
+		nata::t_nested<t_test_traits, 5, 5> nested;
+		nested.f_replace(0, 0, {
 			{1},
 			{{
 				{2},
@@ -421,7 +421,7 @@ int main(int argc, char* argv[])
 			}},
 			{2}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{
 				{2},
@@ -430,10 +430,10 @@ int main(int argc, char* argv[])
 			}},
 			{2}
 		});
-		foldings.f_replace(2, 1, {
+		nested.f_replace(2, 1, {
 			{3}
 		});
-		f_assert_equals(foldings, {
+		f_assert_equals(nested, {
 			{1},
 			{{
 				{4},
