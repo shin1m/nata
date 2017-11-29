@@ -16,7 +16,6 @@ struct t_test_traits
 		std::shared_ptr<t_value<A_leaf, A_branch>> v_x;
 		size_t v_n;
 
-		t_span() = default;
 		t_span(const std::shared_ptr<t_value<A_leaf, A_branch>>& a_x, size_t a_n) : v_x(std::move(a_x)), v_n(a_n)
 		{
 		}
