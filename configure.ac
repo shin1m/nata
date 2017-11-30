@@ -35,5 +35,8 @@ AC_ARG_ENABLE(
 AM_CONDITIONAL([PROFILE], [test x$profile = xtrue])
 
 AC_CONFIG_HEADERS([configure.h])
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([
+	Makefile
+	test/Makefile
+])
 AC_OUTPUT
