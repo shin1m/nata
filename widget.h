@@ -68,7 +68,7 @@ class t_widget
 		f_adjust(a_y, a_h0, a_h1);
 		if (v_position < a_p) return;
 		if (v_position > a_p || a_n0 <= 0) v_position = (v_position < a_p + a_n0 ? a_p : v_position - a_n0) + a_n1;
-		f_from_position();
+		f_from_position(true);
 	};
 	nata::t_slot<size_t, size_t, size_t, size_t, size_t> v_painted = [this](auto, auto, auto a_y, auto a_h0, auto a_h1)
 	{
