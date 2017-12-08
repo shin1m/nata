@@ -41,7 +41,7 @@ struct t_test_target
 	{
 		return {1, 1, 0};
 	}
-	std::tuple<size_t, size_t, size_t> f_folding() const
+	std::tuple<size_t, size_t, size_t> f_folded() const
 	{
 		return {3, 1, 0};
 	}

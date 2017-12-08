@@ -2,6 +2,7 @@
 #define NATA__NESTED_H
 
 #include "spans.h"
+#include <deque>
 
 namespace nata
 {
@@ -95,7 +96,9 @@ public:
 				++j;
 			}
 		}
-		return this->v_array.f_insert(this->v_array.f_erase(i, j), a_xs.begin(), a_xs.end());
+		i = this->v_array.f_insert(this->v_array.f_erase(i, j), a_xs.begin(), a_xs.end());
+		a_xs.clear();
+		return i;
 	}
 };
 

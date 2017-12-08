@@ -2,6 +2,7 @@
 #define NATA__STRETCHES_H
 
 #include "spans.h"
+#include <deque>
 
 namespace nata
 {
@@ -54,6 +55,7 @@ struct t_stretches : t_spans<t_span<T_value>, A_leaf, A_branch>
 			}
 		}
 		i = this->v_array.f_insert(this->v_array.f_erase(i, j), a_xs.begin(), a_xs.end());
+		a_xs.clear();
 		if (i.f_index().v_i1 + i.f_delta().v_i1 == a_p) ++i;
 		return i;
 	}

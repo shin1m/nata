@@ -1,7 +1,6 @@
 #ifndef NATA__SPANS_H
 #define NATA__SPANS_H
 
-#include <deque>
 #include <jumoku/array.h>
 
 namespace nata

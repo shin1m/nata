@@ -25,10 +25,12 @@ int main(int argc, char* argv[])
 	nata::curses::t_session session;
 	init_pair(1, COLOR_WHITE, -1);
 	constexpr attr_t attribute_control = A_DIM | COLOR_PAIR(1);
-	init_pair(2, COLOR_BLUE, -1);
-	constexpr attr_t attribute_comment = COLOR_PAIR(2);
-	init_pair(3, COLOR_YELLOW, -1);
-	constexpr attr_t attribute_keyword = COLOR_PAIR(3);
+	init_pair(2, COLOR_BLACK, COLOR_WHITE);
+	constexpr attr_t attribute_folded = A_DIM | COLOR_PAIR(2);
+	init_pair(3, COLOR_BLUE, -1);
+	constexpr attr_t attribute_comment = COLOR_PAIR(3);
+	init_pair(4, COLOR_YELLOW, -1);
+	constexpr attr_t attribute_keyword = COLOR_PAIR(4);
 	nata::t_text<nata::t_lines<c_lines_chunk, c_lines_chunk>, c_text_chunk, c_text_chunk> text;
 	nata::t_tokens<decltype(text), attr_t, c_tokens_chunk, c_tokens_chunk> tokens(text);
 	nata::curses::t_target target;
@@ -45,12 +47,22 @@ int main(int argc, char* argv[])
 	nata::t_widget<decltype(rows)> widget(rows, 16);
 	struct
 	{
+		struct t_block
+		{
+			size_t v_type;
+			std::deque<decltype(rows)::t_foldings::t_span> v_xs;
+		};
+
 		decltype(tokens)& v_tokens;
-		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(if|then|elif|else|fi|case|esac|for|in|do|done|break|continue|return)\\b)", std::regex_constants::ECMAScript | std::regex_constants::optimize};
+		decltype(rows)& v_rows;
+		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(if|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done)|for|in|break|continue|return)\\b)", std::regex_constants::ECMAScript | std::regex_constants::optimize};
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_eos;
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_i;
 		size_t v_p;
 		std::wstring v_message;
+		std::deque<t_block> v_nesting;
+		size_t v_nesting_p;
+		size_t v_nesting_n;
 
 		operator bool() const
 		{
@@ -58,6 +70,7 @@ int main(int argc, char* argv[])
 		}
 		void operator()()
 		{
+			if (!*this) return;
 			std::deque<decltype(tokens)::t_span> xs;
 			auto push = [&](attr_t a, size_t n)
 			{
@@ -71,6 +84,12 @@ int main(int argc, char* argv[])
 				}
 				xs.push_back({a, n});
 			};
+			auto plain = [&]
+			{
+				if (v_nesting_n <= 0) return;
+				v_nesting.back().v_xs.emplace_back(v_nesting_n);
+				v_nesting_n = 0;
+			};
 			size_t p = v_p;
 			for (size_t i = 0; i < c_tokens_paint_unit; ++i) {
 				if (v_i == v_eos) break;
@@ -81,6 +100,61 @@ int main(int argc, char* argv[])
 					m1.first != m1.second ? attribute_comment : attribute_keyword,
 					m0.second.f_index() - m0.first.f_index()
 				);
+				auto open = [&](size_t type)
+				{
+					plain();
+					v_nesting.push_back({type});
+				};
+				auto close = [&]
+				{
+					v_nesting_n += m0.first.f_index() - v_p;
+					plain();
+					auto xs = std::move(v_nesting.back().v_xs);
+					if (xs.empty()) {
+						v_nesting.pop_back();
+					} else {
+						size_t n = xs.front().v_n;
+						xs.pop_front();
+						v_nesting.pop_back();
+						v_nesting.back().v_xs.emplace_back(n, std::move(xs));
+					}
+					if (v_nesting.back().v_type == 0) {
+						v_rows.f_foldable(v_nesting_p, std::move(v_nesting.back().v_xs));
+						v_nesting_p = m0.first.f_index();
+					}
+					v_nesting_n += m0.second.f_index() - m0.first.f_index();
+				};
+				size_t type = 3;
+				for (; type < v_i->size(); ++type) {
+					auto& m = (*v_i)[type];
+					if (m.first != m.second) break;
+				}
+				switch (type) {
+				case 3:
+					if (v_nesting.back().v_type == 4) {
+						close();
+						open(4);
+					} else {
+						v_nesting_n += m0.second.f_index() - v_p;
+					}
+					break;
+				case 4:
+				case 5:
+				case 6:
+					v_nesting_n += m0.second.f_index() - v_p;
+					open(type);
+					break;
+				case 7:
+				case 8:
+				case 9:
+					if (v_nesting.back().v_type == type - 3)
+						close();
+					else
+						v_nesting_n += m0.second.f_index() - v_p;
+					break;
+				default:
+					v_nesting_n += m0.second.f_index() - v_p;
+				}
 				v_p = m0.second.f_index();
 				++v_i;
 			}
@@ -90,9 +164,28 @@ int main(int argc, char* argv[])
 				std::wostringstream s;
 				s << L"running: " << v_p * 100 / n << L'%';
 				v_message = s.str();
-			} else if (v_p < n) {
-				v_tokens.f_paint(v_p, {{0, n - v_p}});
-				v_p = n;
+			} else {
+				v_nesting_n += n - v_p;
+				plain();
+				while (v_nesting.size() > 1) {
+					auto xs = std::move(v_nesting.back().v_xs);
+					v_nesting.pop_back();
+					if (!xs.empty() && !xs.front().v_x && !v_nesting.back().v_xs.empty() && !v_nesting.back().v_xs.back().v_x) {
+						v_nesting.back().v_xs.back().v_n += xs.front().v_n;
+						xs.pop_front();
+					}
+					v_nesting.back().v_xs.insert(v_nesting.back().v_xs.end(), xs.begin(), xs.end());
+				}
+				size_t m = std::accumulate(v_nesting.back().v_xs.begin(), v_nesting.back().v_xs.end(), 0, [](size_t n, const auto& x)
+				{
+					return n + x.v_n;
+				});
+				v_rows.f_foldable(v_nesting_p, std::move(v_nesting.back().v_xs));
+				v_nesting.clear();
+				if (v_p < n) {
+					v_tokens.f_paint(v_p, {{0, n - v_p}});
+					v_p = n;
+				}
 				v_message.clear();
 			}
 		}
@@ -100,14 +193,15 @@ int main(int argc, char* argv[])
 		nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 		{
 			v_i = decltype(v_i)(v_tokens.v_text.f_begin(), v_tokens.v_text.f_end(), v_pattern);
-			v_p = 0;
+			v_p = v_nesting_p = 0;
+			v_nesting.push_back({0});
 		};
-	} task{tokens};
+	} task{tokens, rows};
 	tokens.v_text.v_replaced >> task.v_replaced;
 	task.v_replaced(0, 0, 0);
 	while (true) {
 		{
-			nata::curses::t_graphics g{target, attribute_control, 0};
+			nata::curses::t_graphics g{target, attribute_control, attribute_folded, 0};
 			widget.f_render(g);
 		}
 		if (task.v_message.empty()) {
@@ -153,6 +247,12 @@ int main(int argc, char* argv[])
 				break;
 			case KEY_BACKSPACE:
 				if (widget.v_position > 0) text.f_replace(widget.v_position - 1, 1, &c, &c);
+				break;
+			case KEY_F(1):
+				rows.f_folded(widget.v_position, true);
+				break;
+			case KEY_F(2):
+				rows.f_folded(widget.v_position, false);
 				break;
 			case KEY_ENTER:
 			case L'\r':

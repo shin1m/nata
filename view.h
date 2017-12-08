@@ -101,6 +101,7 @@ struct t_foldable
 template<typename T_tokens, typename T_foldings, typename T_target, size_t A_leaf = 4096, size_t A_branch = 4096>
 struct t_rows
 {
+	typedef T_foldings t_foldings;
 	struct t_row
 	{
 		bool v_head;
@@ -206,7 +207,7 @@ private:
 	typedef jumoku::t_array<t_row, A_leaf, A_branch, t_traits> t_array;
 
 	t_array v_array;
-	T_foldings v_foldings;
+	t_foldings v_foldings;
 
 	std::tuple<size_t, size_t, size_t> f_replace(size_t a_p, size_t a_n0, size_t a_n1)
 	{
@@ -249,7 +250,7 @@ private:
 			advance(n, size);
 		};
 		p = i.f_index().v_text;
-		std::vector<typename T_foldings::t_iterator> folding;
+		std::vector<typename t_foldings::t_iterator> folding;
 		size_t q = f_leaf_at_in_text(p, folding);
 		size_t fd = folding.back().f_delta().v_i1 - q;
 		auto token = v_tokens.f_at_in_text(p);
@@ -261,7 +262,7 @@ private:
 				size_t p = first.f_index();
 				do {
 					size_t d = folding.back().f_delta().v_i1;
-					cell(d, v_target.f_folding());
+					cell(d, v_target.f_folded());
 					p += d;
 					f_next_leaf(folding);
 				} while (folding.back() != v_foldings.f_end() && folding.back()->v_x);
@@ -377,7 +378,15 @@ public:
 			return a_index.v_y;
 		});
 	}
-	size_t f_folding_at_in_text(size_t a_p, std::vector<typename T_foldings::t_iterator>& a_path) const
+	typename t_foldings::t_iterator f_foldings_begin() const
+	{
+		return v_foldings.f_begin();
+	}
+	typename t_foldings::t_iterator f_foldings_end() const
+	{
+		return v_foldings.f_end();
+	}
+	size_t f_folding_at_in_text(size_t a_p, std::vector<typename t_foldings::t_iterator>& a_path) const
 	{
 		auto x = &v_foldings;
 		while (true) {
@@ -389,7 +398,7 @@ public:
 		}
 		return a_p;
 	}
-	void f_leaf(std::vector<typename T_foldings::t_iterator>& a_path) const
+	void f_leaf(std::vector<typename t_foldings::t_iterator>& a_path) const
 	{
 		if (a_path.back() == v_foldings.f_end()) return;
 		while (true) {
@@ -398,13 +407,13 @@ public:
 			a_path.push_back(i->v_x->v_nested.f_begin());
 		}
 	}
-	size_t f_leaf_at_in_text(size_t a_p, std::vector<typename T_foldings::t_iterator>& a_path) const
+	size_t f_leaf_at_in_text(size_t a_p, std::vector<typename t_foldings::t_iterator>& a_path) const
 	{
 		a_p = f_folding_at_in_text(a_p, a_path);
 		if (a_p <= 0) f_leaf(a_path);
 		return a_p;
 	}
-	void f_next(std::vector<typename T_foldings::t_iterator>& a_path) const
+	void f_next(std::vector<typename t_foldings::t_iterator>& a_path) const
 	{
 		while (a_path.size() >= 2) {
 			if (++a_path.back() != a_path[a_path.size() - 2]->v_x->v_nested.f_end()) return;
@@ -412,12 +421,12 @@ public:
 		}
 		++a_path.back();
 	}
-	void f_next_leaf(std::vector<typename T_foldings::t_iterator>& a_path) const
+	void f_next_leaf(std::vector<typename t_foldings::t_iterator>& a_path) const
 	{
 		f_next(a_path);
 		f_leaf(a_path);
 	}
-	void f_foldable(size_t a_p, std::deque<typename T_foldings::t_span>&& a_xs)
+	void f_foldable(size_t a_p, std::deque<typename t_foldings::t_span>&& a_xs)
 	{
 		size_t n = std::accumulate(a_xs.begin(), a_xs.end(), 0, [](size_t n, const auto& x)
 		{
@@ -428,7 +437,7 @@ public:
 	}
 	void f_folded(size_t a_p, bool v_folded)
 	{
-		std::vector<typename T_foldings::t_iterator> path;
+		std::vector<typename t_foldings::t_iterator> path;
 		f_folding_at_in_text(a_p, path);
 		auto& i = path.back();
 		if (i == v_foldings.f_end() || !i->v_x) return;
@@ -440,7 +449,7 @@ public:
 	{
 		size_t p = a_i.f_index().v_text;
 		size_t x = a_i.f_index().v_x;
-		std::vector<typename T_foldings::t_iterator> folding;
+		std::vector<typename t_foldings::t_iterator> folding;
 		size_t q = f_leaf_at_in_text(p, folding);
 		size_t fd = folding.back().f_delta().v_i1 - q;
 		auto token = v_tokens.f_at_in_text(p);
@@ -452,7 +461,7 @@ public:
 			if (folding.back()->v_x) {
 				size_t p = first.f_index();
 				do {
-					size_t width = std::get<0>(v_target.f_folding());
+					size_t width = std::get<0>(v_target.f_folded());
 					if (!a_do(p, x, width)) return std::make_tuple(p, x, width);
 					p += folding.back().f_delta().v_i1;
 					x += width;

@@ -56,7 +56,7 @@ struct t_target
 	{
 		return {1, 1, 0};
 	}
-	std::tuple<size_t, size_t, size_t> f_folding() const
+	std::tuple<size_t, size_t, size_t> f_folded() const
 	{
 		return {3, 1, 0};
 	}
@@ -72,6 +72,7 @@ struct t_graphics
 {
 	const t_target& v_target;
 	const attr_t v_attribute_control;
+	const attr_t v_attribute_folded;
 	size_t v_to;
 	size_t v_x = 0;
 	cchar_t v_c{A_NORMAL, L" "};
@@ -122,6 +123,11 @@ struct t_graphics
 		cchar_t cc{v_attribute_control, L"<"};
 		add_wch(&cc);
 		clrtoeol();
+	}
+	void f_folded()
+	{
+		cchar_t cc{v_attribute_folded, L"."};
+		for (size_t i = 0; i < 3; ++i) add_wch(&cc);
 	}
 	void f_empty(size_t a_y)
 	{

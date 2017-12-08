@@ -108,13 +108,22 @@ public:
 	void f_render(T_graphics& a_target)
 	{
 		auto row = v_rows.f_at_in_y(v_top);
-		auto text = v_rows.v_tokens.v_text.f_at(row.f_index().v_text);
-		auto token = v_rows.v_tokens.f_at_in_text(text.f_index());
-		size_t delta = token.f_index().v_i1 + token.f_delta().v_i1 - text.f_index();
-		auto next = [&](size_t a_d)
+		size_t p = row.f_index().v_text;
+		auto text = v_rows.v_tokens.v_text.f_at(p);
+		std::vector<typename T_rows::t_foldings::t_iterator> folding;
+		size_t q = v_rows.f_leaf_at_in_text(p, folding);
+		size_t fd = folding.back().f_delta().v_i1 - q;
+		auto token = v_rows.v_tokens.f_at_in_text(p);
+		size_t td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
+		auto next = [&](size_t d)
 		{
-			delta -= a_d;
-			if (delta <= 0) delta = (++token).f_delta().v_i1;
+			td -= d;
+			if (td <= 0) td = (++token).f_delta().v_i1;
+			fd -= d;
+			if (fd <= 0) {
+				v_rows.f_next_leaf(folding);
+				fd = folding.back().f_delta().v_i1;
+			}
 		};
 		auto dirty = v_region.f_begin();
 		auto dend = v_region.f_end();
@@ -123,13 +132,41 @@ public:
 		while (dirty != dend) {
 			auto rd = row.f_delta();
 			if (row->v_tail) --rd.v_text;
+			auto run = [&](auto folded, auto puts)
+			{
+				while (rd.v_text > 0) {
+					if (folding.back()->v_x) {
+						size_t p = text.f_index();
+						do {
+							folded();
+							size_t d = folding.back().f_delta().v_i1;
+							p += d;
+							rd.v_text -= d;
+							v_rows.f_next_leaf(folding);
+						} while (rd.v_text > 0 && folding.back()->v_x);
+						if (folding.back() == v_rows.f_foldings_end()) break;
+						fd = folding.back().f_delta().v_i1;
+						token = v_rows.v_tokens.f_at_in_text(p);
+						td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
+						text = v_rows.v_tokens.v_text.f_at(p);
+					}
+					if (rd.v_text <= 0) break;
+					size_t d = std::min(fd, std::min(td, rd.v_text));
+					puts(d);
+					next(d);
+					rd.v_text -= d;
+				}
+				y += rd.v_y;
+			};
 			if (y + rd.v_y > dirty.f_index().v_i1) {
 				a_target.f_move(y);
-				size_t x = 0;
-				while (rd.v_text > 0) {
+				run([&]
+				{
+					a_target.f_folded();
+				}, [&](size_t d)
+				{
 					a_target.f_attribute(token->v_x);
-					size_t td = std::min(delta, rd.v_text);
-					for (size_t i = 0; i < td; ++i) {
+					for (size_t i = 0; i < d; ++i) {
 						wchar_t c = *text;
 						if (c == L'\t')
 							a_target.f_tab();
@@ -137,10 +174,7 @@ public:
 							a_target.f_put(c);
 						++text;
 					}
-					next(td);
-					rd.v_text -= td;
-				}
-				y += rd.v_y;
+				});
 				if (dirty.f_index().v_i1 + dirty.f_delta().v_i1 <= y) {
 					do ++dirty; while (dirty != dend && dirty.f_index().v_i1 + dirty.f_delta().v_i1 <= y);
 					if (dirty != dend && !dirty->v_x) ++dirty;
@@ -158,13 +192,10 @@ public:
 					a_target.f_wrap();
 				}
 			} else {
-				while (rd.v_text > 0) {
-					size_t td = std::min(delta, rd.v_text);
-					for (size_t i = 0; i < td; ++i) ++text;
-					next(td);
-					rd.v_text -= td;
-				}
-				y += rd.v_y;
+				run([&] {}, [&](size_t d)
+				{
+					for (size_t i = 0; i < d; ++i) ++text;
+				});
 				if (row->v_tail) {
 					if (++row == v_rows.f_end()) break;
 					++text;
@@ -207,8 +238,10 @@ public:
 	{
 		auto line = v_rows.v_tokens.v_text.f_lines().f_at(v_line);
 		size_t p = line.f_index().v_i1;
-		size_t ax = v_rows.f_at_in_text(p).f_index().v_x + v_target;
-		auto row = v_rows.f_at_in_text(p + line.f_delta().v_i1);
+		auto row = v_rows.f_at_in_text(p);
+		if (row.f_index().v_text < p) p = row.f_index().v_text;
+		size_t ax = row.f_index().v_x + v_target;
+		row = v_rows.f_at_in_text(p + std::max(line.f_delta().v_i1, row.f_delta().v_text));
 		if (ax < row.f_index().v_x)
 			row = v_rows.f_at_in_x(ax);
 		else
