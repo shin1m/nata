@@ -235,13 +235,17 @@ int main(int argc, char* argv[])
 				break;
 			case KEY_LEFT:
 				if (widget.v_position > 0) {
-					--widget.v_position;
+					std::vector<decltype(rows)::t_foldings::t_iterator> folding;
+					size_t p = rows.f_leaf_at_in_text(--widget.v_position, folding);
+					if (folding.back()->v_x) widget.v_position -= p;
 					widget.f_from_position(true);
 				}
 				break;
 			case KEY_RIGHT:
 				if (widget.v_position < text.f_size()) {
-					++widget.v_position;
+					std::vector<decltype(rows)::t_foldings::t_iterator> folding;
+					size_t p = rows.f_leaf_at_in_text(++widget.v_position, folding);
+					if (p > 0 && folding.back()->v_x) widget.v_position += folding.back().f_delta().v_i1 - p;
 					widget.f_from_position(true);
 				}
 				break;

@@ -386,14 +386,14 @@ public:
 	{
 		return v_foldings.f_end();
 	}
-	size_t f_folding_at_in_text(size_t a_p, std::vector<typename t_foldings::t_iterator>& a_path) const
+	size_t f_folding_at_in_text(size_t a_p, std::vector<typename t_foldings::t_iterator>& a_path, bool a_visible = false) const
 	{
 		auto x = &v_foldings;
 		while (true) {
 			auto i = x->f_at_in_text(a_p);
 			a_path.push_back(i);
 			a_p -= i.f_index().v_i1;
-			if (a_p <= 0 || !i->v_x) break;
+			if (a_p <= 0 || !i->v_x || a_visible && i->v_x->v_folded) break;
 			x = &i->v_x->v_nested;
 		}
 		return a_p;
@@ -409,7 +409,7 @@ public:
 	}
 	size_t f_leaf_at_in_text(size_t a_p, std::vector<typename t_foldings::t_iterator>& a_path) const
 	{
-		a_p = f_folding_at_in_text(a_p, a_path);
+		a_p = f_folding_at_in_text(a_p, a_path, true);
 		if (a_p <= 0) f_leaf(a_path);
 		return a_p;
 	}
