@@ -66,9 +66,10 @@ class t_widget
 	nata::t_slot<size_t, size_t, size_t, size_t, size_t, size_t> v_replaced = [this](auto a_p, auto a_n0, auto a_n1, auto a_y, auto a_h0, auto a_h1)
 	{
 		f_adjust(a_y, a_h0, a_h1);
-		if (v_position < a_p) return;
-		if (v_position > a_p || a_n0 <= 0) v_position = (v_position < a_p + a_n0 ? a_p : v_position - a_n0) + a_n1;
-		f_from_position(v_y < a_y + a_h0);
+		size_t& p = std::get<0>(v_position);
+		if (p < a_p) return;
+		if (p > a_p || a_n0 <= 0) p = (p < a_p + a_n0 ? a_p : p - a_n0) + a_n1;
+		f_from_position(v_row.f_index().v_y < a_y + a_h0);
 	};
 	nata::t_slot<size_t, size_t, size_t, size_t, size_t> v_painted = [this](auto, auto, auto a_y, auto a_h0, auto a_h1)
 	{
@@ -78,12 +79,10 @@ class t_widget
 
 public:
 	size_t v_top = 0;
-	size_t v_position = 0;
-	size_t v_line = 0;
+	std::tuple<size_t, size_t, size_t> v_position{0, 0, 0};
+	typename T_rows::template t_index<size_t> v_line{0, 0, 0, 0, 0};
 	size_t v_target = 0;
-	size_t v_column = 0;
-	size_t v_x = 0;
-	size_t v_y = 0;
+	typename T_rows::t_iterator v_row;
 
 	t_widget(T_rows& a_rows, size_t a_height) : v_rows(a_rows)
 	{
@@ -99,10 +98,6 @@ public:
 	{
 		size_t height = f_height();
 		return std::max(v_rows.f_size().v_i, height) - height;
-	}
-	size_t f_x_in_line() const
-	{
-		return v_x + v_rows.f_at_in_text(v_position).f_index().v_x - v_rows.f_at_in_text(v_position - v_column).f_index().v_x;
 	}
 	template<typename T_graphics>
 	void f_render(T_graphics& a_target)
@@ -236,40 +231,28 @@ public:
 	}
 	void f_from_line()
 	{
-		auto line = v_rows.v_tokens.v_text.f_lines().f_at(v_line);
-		size_t p = line.f_index().v_i1;
-		auto row = v_rows.f_at_in_text(p);
-		if (row.f_index().v_text < p) p = row.f_index().v_text;
-		size_t ax = row.f_index().v_x + v_target;
-		row = v_rows.f_at_in_text(p + std::max(line.f_delta().v_i1, row.f_delta().v_text));
-		if (ax < row.f_index().v_x)
-			row = v_rows.f_at_in_x(ax);
+		v_line = v_rows.f_at_in_line(v_line.v_line).f_index();
+		size_t ax = v_line.v_x + v_target;
+		v_row = v_rows.f_at_in_line(v_line.v_line + 1);
+		if (ax < v_row.f_index().v_x)
+			v_row = v_rows.f_at_in_x(ax);
 		else
-			--row;
-		auto x = v_rows.f_each_x(row, [&](size_t p, size_t x, size_t width)
+			--v_row;
+		v_position = v_rows.f_each_x(v_row, [&](size_t p, size_t x, size_t width)
 		{
 			return x + width <= ax;
 		});
-		v_position = std::get<0>(x);
-		v_column = v_position - line.f_index().v_i1;
-		v_x = std::get<1>(x) - row.f_index().v_x;
-		v_y = row.f_index().v_y;
 	}
 	void f_from_position(bool a_retarget = false)
 	{
-		auto line = v_rows.v_tokens.v_text.f_lines().f_at_in_text(v_position);
-		v_line = line.f_index().v_i0;
-		v_column = v_position - line.f_index().v_i1;
-		auto row = v_rows.f_at_in_text(v_position);
-		auto x = v_rows.f_each_x(row, [&](size_t p, size_t x, size_t width)
+		v_row = v_rows.f_at_in_text(std::get<0>(v_position));
+		v_line = v_rows.f_at_in_line(v_row.f_index().v_line + v_row.f_delta().v_line - 1).f_index();
+		v_position = v_rows.f_each_x(v_row, [&](size_t p, size_t x, size_t width)
 		{
-			return p < v_position;
+			return p < std::get<0>(v_position);
 		});
-		size_t ax = std::get<1>(x);
-		size_t tx = ax - v_rows.f_at_in_text(line.f_index().v_i1).f_index().v_x;
-		if (a_retarget || v_target < tx || v_column < line.f_delta().v_i1 - 1 && v_target >= tx + std::get<2>(x)) v_target = tx;
-		v_x = ax - row.f_index().v_x;
-		v_y = row.f_index().v_y;
+		size_t tx = std::get<1>(v_position) - v_line.v_x;
+		if (a_retarget || v_target < tx || std::get<0>(v_position) < v_rows.f_at_in_line(v_line.v_line + 1).f_index().v_text - 1 && v_target >= tx + std::get<2>(v_position)) v_target = tx;
 	}
 };
 

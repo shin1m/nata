@@ -53,7 +53,6 @@ int main(int argc, char* argv[])
 			std::deque<decltype(rows)::t_foldings::t_span> v_xs;
 		};
 
-		decltype(tokens)& v_tokens;
 		decltype(rows)& v_rows;
 		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(if|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done)|for|in|break|continue|return)\\b)", std::regex_constants::ECMAScript | std::regex_constants::optimize};
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_eos;
@@ -66,7 +65,7 @@ int main(int argc, char* argv[])
 
 		operator bool() const
 		{
-			return v_p < v_tokens.v_text.f_size();
+			return v_p < v_rows.v_tokens.v_text.f_size();
 		}
 		void operator()()
 		{
@@ -158,8 +157,8 @@ int main(int argc, char* argv[])
 				v_p = m0.second.f_index();
 				++v_i;
 			}
-			v_tokens.f_paint(p, std::move(xs));
-			size_t n = v_tokens.v_text.f_size();
+			v_rows.v_tokens.f_paint(p, std::move(xs));
+			size_t n = v_rows.v_tokens.v_text.f_size();
 			if (v_i != v_eos) {
 				std::wostringstream s;
 				s << L"running: " << v_p * 100 / n << L'%';
@@ -183,7 +182,7 @@ int main(int argc, char* argv[])
 				v_rows.f_foldable(v_nesting_p, std::move(v_nesting.back().v_xs));
 				v_nesting.clear();
 				if (v_p < n) {
-					v_tokens.f_paint(v_p, {{0, n - v_p}});
+					v_rows.v_tokens.f_paint(v_p, {{0, n - v_p}});
 					v_p = n;
 				}
 				v_message.clear();
@@ -192,26 +191,31 @@ int main(int argc, char* argv[])
 
 		nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 		{
-			v_i = decltype(v_i)(v_tokens.v_text.f_begin(), v_tokens.v_text.f_end(), v_pattern);
-			v_p = v_nesting_p = 0;
+			v_i = decltype(v_i)(v_rows.v_tokens.v_text.f_begin(), v_rows.v_tokens.v_text.f_end(), v_pattern);
+			v_p = v_nesting_p = v_nesting_n = 0;
+			v_nesting.clear();
 			v_nesting.push_back({0});
 		};
-	} task{tokens, rows};
-	tokens.v_text.v_replaced >> task.v_replaced;
+	} task{rows};
+	text.v_replaced >> task.v_replaced;
 	task.v_replaced(0, 0, 0);
 	while (true) {
 		{
 			nata::curses::t_graphics g{target, attribute_control, attribute_folded, 0};
 			widget.f_render(g);
 		}
+		size_t& position = std::get<0>(widget.v_position);
 		if (task.v_message.empty()) {
+			auto line = text.f_lines().f_at_in_text(position).f_index();
+			size_t column = position - line.v_i1;
+			size_t x = std::get<1>(widget.v_position) - widget.v_line.v_x;
 			size_t n = widget.f_range();
-			mvprintw(widget.f_height(), 0, "%d,%d-%d %d%%", widget.v_line, widget.v_column, widget.f_x_in_line(), n > 0 ? widget.v_top * 100 / n : 100);
+			mvprintw(widget.f_height(), 0, "%d,%d-%d %d%%", line.v_i0, column, x, n > 0 ? widget.v_top * 100 / n : 100);
 		} else {
 			mvaddwstr(widget.f_height(), 0, task.v_message.c_str());
 		}
 		clrtobot();
-		move(widget.v_y - widget.v_top, widget.v_x);
+		move(widget.v_row.f_index().v_y - widget.v_top, std::get<1>(widget.v_position) - widget.v_row.f_index().v_x);
 		refresh();
 		timeout(task ? 0 : -1);
 		wint_t c;
@@ -222,49 +226,49 @@ int main(int argc, char* argv[])
 				target.v_resized();
 				break;
 			case KEY_DOWN:
-				if (widget.v_line < text.f_lines().f_size().v_i0 - 1) {
-					++widget.v_line;
+				if (widget.v_line.v_line < rows.f_size().v_line - 1) {
+					++widget.v_line.v_line;
 					widget.f_from_line();
 				}
 				break;
 			case KEY_UP:
-				if (widget.v_line > 0) {
-					--widget.v_line;
+				if (widget.v_line.v_line > 0) {
+					--widget.v_line.v_line;
 					widget.f_from_line();
 				}
 				break;
 			case KEY_LEFT:
-				if (widget.v_position > 0) {
+				if (position > 0) {
 					std::vector<decltype(rows)::t_foldings::t_iterator> folding;
-					size_t p = rows.f_leaf_at_in_text(--widget.v_position, folding);
-					if (folding.back()->v_x) widget.v_position -= p;
+					size_t p = rows.f_leaf_at_in_text(--position, folding);
+					if (folding.back()->v_x) position -= p;
 					widget.f_from_position(true);
 				}
 				break;
 			case KEY_RIGHT:
-				if (widget.v_position < text.f_size()) {
+				if (position < text.f_size()) {
 					std::vector<decltype(rows)::t_foldings::t_iterator> folding;
-					size_t p = rows.f_leaf_at_in_text(++widget.v_position, folding);
-					if (p > 0 && folding.back()->v_x) widget.v_position += folding.back().f_delta().v_i1 - p;
+					size_t p = rows.f_leaf_at_in_text(++position, folding);
+					if (p > 0 && folding.back()->v_x) position += folding.back().f_delta().v_i1 - p;
 					widget.f_from_position(true);
 				}
 				break;
 			case KEY_BACKSPACE:
-				if (widget.v_position > 0) text.f_replace(widget.v_position - 1, 1, &c, &c);
+				if (position > 0) text.f_replace(position - 1, 1, &c, &c);
 				break;
 			case KEY_F(1):
-				rows.f_folded(widget.v_position, true);
+				rows.f_folded(position, true);
 				break;
 			case KEY_F(2):
-				rows.f_folded(widget.v_position, false);
+				rows.f_folded(position, false);
 				break;
 			case KEY_ENTER:
 			case L'\r':
 				c = L'\n';
 			default:
-				text.f_replace(widget.v_position, 0, &c, &c + 1);
+				text.f_replace(position, 0, &c, &c + 1);
 			}
-			widget.f_into_view(rows.f_at_in_text(widget.v_position));
+			widget.f_into_view(widget.v_row);
 		}
 		task();
 	}

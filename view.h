@@ -104,7 +104,7 @@ struct t_rows
 	typedef T_foldings t_foldings;
 	struct t_row
 	{
-		bool v_head;
+		size_t v_line;
 		bool v_tail;
 		size_t v_text;
 		size_t v_width;
@@ -113,13 +113,14 @@ struct t_rows
 
 		bool operator==(const t_row& a_x) const
 		{
-			return v_head == a_x.v_head && v_tail == a_x.v_tail && v_text == a_x.v_text && v_width == a_x.v_width && v_ascent == a_x.v_ascent && v_height == a_x.v_height;
+			return v_line == a_x.v_line && v_tail == a_x.v_tail && v_text == a_x.v_text && v_width == a_x.v_width && v_ascent == a_x.v_ascent && v_height == a_x.v_height;
 		}
 	};
 	template<typename T>
 	struct t_index
 	{
 		T v_i;
+		T v_line;
 		T v_text;
 		T v_x;
 		T v_y;
@@ -127,20 +128,21 @@ struct t_rows
 		template<typename U>
 		operator t_index<U>() const
 		{
-			return {U(v_i), U(v_text), U(v_x), U(v_y)};
+			return {U(v_i), U(v_line), U(v_text), U(v_x), U(v_y)};
 		}
 		t_index<int> operator-() const
 		{
-			return {-int(v_i), -int(v_text), -int(v_x), -int(v_y)};
+			return {-int(v_i), -int(v_line), -int(v_text), -int(v_x), -int(v_y)};
 		}
 		bool operator==(const t_index& a_x) const
 		{
-			return v_i == a_x.v_i && v_text == a_x.v_text && v_x == a_x.v_x && v_y == a_x.v_y;
+			return v_i == a_x.v_i && v_line == a_x.v_line && v_text == a_x.v_text && v_x == a_x.v_x && v_y == a_x.v_y;
 		}
 		template<typename U>
 		t_index& operator+=(const t_index<U>& a_x)
 		{
 			v_i += a_x.v_i;
+			v_line += a_x.v_line;
 			v_text += a_x.v_text;
 			v_x += a_x.v_x;
 			v_y += a_x.v_y;
@@ -150,6 +152,7 @@ struct t_rows
 		t_index& operator-=(const t_index<U>& a_x)
 		{
 			v_i -= a_x.v_i;
+			v_line -= a_x.v_line;
 			v_text -= a_x.v_text;
 			v_x -= a_x.v_x;
 			v_y -= a_x.v_y;
@@ -158,12 +161,12 @@ struct t_rows
 		template<typename U>
 		t_index operator+(const t_index<U>& a_x) const
 		{
-			return {v_i + T(a_x.v_i), v_text + T(a_x.v_text), v_x + T(a_x.v_x), v_y + T(a_x.v_y)};
+			return {v_i + T(a_x.v_i), v_line + T(a_x.v_line), v_text + T(a_x.v_text), v_x + T(a_x.v_x), v_y + T(a_x.v_y)};
 		}
 		template<typename U>
 		t_index operator-(const t_index<U>& a_x) const
 		{
-			return {v_i - T(a_x.v_i), v_text - T(a_x.v_text), v_x - T(a_x.v_x), v_y - T(a_x.v_y)};
+			return {v_i - T(a_x.v_i), v_line - T(a_x.v_line), v_text - T(a_x.v_text), v_x - T(a_x.v_x), v_y - T(a_x.v_y)};
 		}
 	};
 
@@ -183,11 +186,12 @@ private:
 		template<typename T>
 		static constexpr t_index f_index(size_t a_n, const T& a_value)
 		{
-			return {a_n, a_value.v_text, a_value.v_width, a_value.v_height};
+			return {a_n, a_value.v_line, a_value.v_text, a_value.v_width, a_value.v_height};
 		}
 		template<typename T>
 		static constexpr void f_add(T& a_value, const t_delta& a_index)
 		{
+			a_value.v_line += a_index.v_line;
 			a_value.v_text += a_index.v_text;
 			a_value.v_width += a_index.v_x;
 			a_value.v_height += a_index.v_y;
@@ -196,12 +200,12 @@ private:
 		static constexpr T f_get(T* a_base, T* a_p)
 		{
 			auto d = f_delta(a_base, a_p);
-			return {a_p->v_head, a_p->v_tail, d.v_text, d.v_x, a_p->v_ascent, d.v_y};
+			return {d.v_line, a_p->v_tail, d.v_text, d.v_x, a_p->v_ascent, d.v_y};
 		}
 		template<typename T>
 		static constexpr t_index f_delta(T* a_base, T* a_p)
 		{
-			return a_p > a_base ? t_index{1, a_p->v_text - a_p[-1].v_text, a_p->v_width - a_p[-1].v_width, a_p->v_height - a_p[-1].v_height} : t_index{1, a_p->v_text, a_p->v_width, a_p->v_height};
+			return a_p > a_base ? t_index{1, a_p->v_line - a_p[-1].v_line, a_p->v_text - a_p[-1].v_text, a_p->v_width - a_p[-1].v_width, a_p->v_height - a_p[-1].v_height} : t_index{1, a_p->v_line, a_p->v_text, a_p->v_width, a_p->v_height};
 		}
 	};
 	typedef jumoku::t_array<t_row, A_leaf, A_branch, t_traits> t_array;
@@ -212,11 +216,11 @@ private:
 	std::tuple<size_t, size_t, size_t> f_replace(size_t a_p, size_t a_n0, size_t a_n1)
 	{
 		auto i = f_at_in_text(a_p);
-		if (i.f_index().v_text >= a_p && !i->v_head) --i;
-		bool head = i->v_head;
+		bool head = i.f_delta().v_line > 0;
+		if (i.f_index().v_text >= a_p && !head) head = (--i).f_delta().v_line > 0;
 		size_t p = a_p + a_n0;
 		auto j = f_at_in_text(p);
-		do ++j; while (j != f_end() && !j->v_head);
+		do ++j; while (j != f_end() && j.f_delta().v_line <= 0);
 		a_n1 += j.f_index().v_text - p;
 		if (j == f_end()) --a_n1;
 		size_t bottom = j.f_index().v_y;
@@ -232,7 +236,7 @@ private:
 		};
 		auto wrap = [&](bool next)
 		{
-			i = v_array.f_insert(i, t_row{head, next, text, width, ascent, ascent + descent});
+			i = v_array.f_insert(i, t_row{head ? 1u : 0u, next, text, width, ascent, ascent + descent});
 			++i;
 			head = next;
 			text = width = ascent = descent = 0;
@@ -303,7 +307,7 @@ private:
 		}
 		if (i == f_end()) {
 			cell(1, v_target.f_eof());
-			i = v_array.f_insert(i, t_row{head, true, text, width, ascent, ascent + descent});
+			i = v_array.f_insert(i, t_row{head ? 1u : 0u, true, text, width, ascent, ascent + descent});
 			++i;
 		}
 		return {y, bottom - y, i.f_index().v_y - y};
@@ -336,7 +340,7 @@ public:
 	t_rows(T_tokens& a_tokens, T_target& a_target) : v_tokens(a_tokens), v_target(a_target)
 	{
 		auto size = v_target.f_eof();
-		v_array.f_insert(f_end(), t_row{true, true, 1, std::get<0>(size), std::get<1>(size), std::get<1>(size) + std::get<2>(size)});
+		v_array.f_insert(f_end(), t_row{1, true, 1, std::get<0>(size), std::get<1>(size), std::get<1>(size) + std::get<2>(size)});
 		v_tokens.v_replaced >> v_tokens_replaced;
 		v_tokens.v_painted >> v_tokens_painted;
 		v_target.v_resized >> v_target_resized;
@@ -356,6 +360,13 @@ public:
 	t_iterator f_at(size_t a_p) const
 	{
 		return v_array.f_at(a_p);
+	}
+	t_iterator f_at_in_line(size_t a_p) const
+	{
+		return v_array.f_at(a_p, [](const auto& a_index)
+		{
+			return a_index.v_line;
+		});
 	}
 	t_iterator f_at_in_text(size_t a_p) const
 	{
@@ -462,7 +473,7 @@ public:
 				size_t p = first.f_index();
 				do {
 					size_t width = std::get<0>(v_target.f_folded());
-					if (!a_do(p, x, width)) return std::make_tuple(p, x, width);
+					if (!a_do(p, x, width)) return {p, x, width};
 					p += folding.back().f_delta().v_i1;
 					x += width;
 					f_next_leaf(folding);
@@ -476,7 +487,7 @@ public:
 			while (true) {
 				wchar_t c = *first;
 				size_t width = std::get<0>(c == L'\t' ? v_target.f_tab(x - a_i.f_index().v_x, token->v_x) : v_target.f_size(c, token->v_x));
-				if (!a_do(first.f_index(), x, width)) return std::make_tuple(first.f_index(), x, width);
+				if (!a_do(first.f_index(), x, width)) return {first.f_index(), x, width};
 				x += width;
 				if (--td <= 0) td = (++token).f_delta().v_i1;
 				if (++first == last) break;
@@ -488,7 +499,7 @@ public:
 			}
 		}
 		p = first.f_index();
-		return std::make_tuple(p, x, a_i->v_tail ? std::get<0>(p < v_tokens.v_text.f_size() ? v_target.f_eol(token->v_x) : v_target.f_eof()) : 0);
+		return {p, x, a_i->v_tail ? std::get<0>(p < v_tokens.v_text.f_size() ? v_target.f_eol(token->v_x) : v_target.f_eof()) : 0};
 	}
 };
 

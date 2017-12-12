@@ -12,7 +12,7 @@ void f_dump(const nata::t_rows<T_tokens, T_foldings, T_target, A_leaf, A_branch>
 {
 	for (auto i = a.f_begin(); i != a.f_end(); ++i) {
 		auto x = *i;
-		std::printf("%d, %d, %d, %d, %d, %d\n", x.v_head, x.v_tail, x.v_text, x.v_width, x.v_ascent, x.v_height);
+		std::printf("%d, %d, %d, %d, %d, %d\n", x.v_line, x.v_tail, x.v_text, x.v_width, x.v_ascent, x.v_height);
 	}
 }
 

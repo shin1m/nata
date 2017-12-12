@@ -18,14 +18,14 @@ int main(int argc, char* argv[])
 			{11, {}}
 		});
 		f_assert_equals(rows, {
-			{true, false, 9, 10, 2, 3},
-			{false, true, 5, 5, 2, 2},
-			{true, true, 10, 10, 2, 2}
+			{1, false, 9, 10, 2, 3},
+			{0, true, 5, 5, 2, 2},
+			{1, true, 10, 10, 2, 2}
 		});
 		rows.f_folded(7, true);
 		f_assert_equals(rows, {
-			{true, false, 7, 8, 2, 3},
-			{false, true, 17, 9, 2, 2}
+			{1, false, 7, 8, 2, 3},
+			{0, true, 17, 9, 2, 2}
 		});
 	});
 	setup([](auto& text, auto& rows)
@@ -37,29 +37,29 @@ int main(int argc, char* argv[])
 			{10, {}}
 		});
 		f_assert_equals(rows, {
-			{true, true, 6, 6, 2, 2},
-			{true, false, 10, 10, 2, 2},
-			{false, true, 5, 5, 2, 2}
+			{1, true, 6, 6, 2, 2},
+			{1, false, 10, 10, 2, 2},
+			{0, true, 5, 5, 2, 2}
 		});
 		rows.f_folded(9, true);
 		f_assert_equals(rows, {
-			{true, true, 6, 6, 2, 2},
-			{true, true, 15, 8, 2, 2}
+			{1, true, 6, 6, 2, 2},
+			{1, true, 15, 8, 2, 2}
 		});
 		rows.f_folded(2, true);
 		f_assert_equals(rows, {
-			{true, true, 21, 10, 2, 2}
+			{1, true, 21, 10, 2, 2}
 		});
 		rows.f_folded(9, false);
 		f_assert_equals(rows, {
-			{true, false, 14, 10, 2, 2},
-			{false, true, 7, 7, 2, 2}
+			{1, false, 14, 10, 2, 2},
+			{0, true, 7, 7, 2, 2}
 		});
 		rows.f_folded(2, false);
 		f_assert_equals(rows, {
-			{true, true, 6, 6, 2, 2},
-			{true, false, 10, 10, 2, 2},
-			{false, true, 5, 5, 2, 2}
+			{1, true, 6, 6, 2, 2},
+			{1, false, 10, 10, 2, 2},
+			{0, true, 5, 5, 2, 2}
 		});
 	});
 	setup([](auto& text, auto& rows)
@@ -73,29 +73,29 @@ int main(int argc, char* argv[])
 			}}
 		});
 		f_assert_equals(rows, {
-			{true, true, 6, 6, 2, 2},
-			{true, false, 10, 10, 2, 2},
-			{false, true, 5, 5, 2, 2}
+			{1, true, 6, 6, 2, 2},
+			{1, false, 10, 10, 2, 2},
+			{0, true, 5, 5, 2, 2}
 		});
 		rows.f_folded(9, true);
 		f_assert_equals(rows, {
-			{true, true, 6, 6, 2, 2},
-			{true, true, 15, 8, 2, 2}
+			{1, true, 6, 6, 2, 2},
+			{1, true, 15, 8, 2, 2}
 		});
 		rows.f_folded(2, true);
 		f_assert_equals(rows, {
-			{true, true, 21, 10, 2, 2}
+			{1, true, 21, 10, 2, 2}
 		});
 		rows.f_folded(9, false);
 		f_assert_equals(rows, {
-			{true, false, 14, 10, 2, 2},
-			{false, true, 7, 7, 2, 2}
+			{1, false, 14, 10, 2, 2},
+			{0, true, 7, 7, 2, 2}
 		});
 		rows.f_folded(2, false);
 		f_assert_equals(rows, {
-			{true, true, 6, 6, 2, 2},
-			{true, false, 10, 10, 2, 2},
-			{false, true, 5, 5, 2, 2}
+			{1, true, 6, 6, 2, 2},
+			{1, false, 10, 10, 2, 2},
+			{0, true, 5, 5, 2, 2}
 		});
 	});
 	setup([](auto& text, auto& rows)
@@ -112,9 +112,9 @@ int main(int argc, char* argv[])
 			}}
 		});
 		f_assert_equals(rows, {
-			{true, true, 6, 6, 2, 2},
-			{true, false, 10, 10, 2, 2},
-			{false, true, 5, 5, 2, 2}
+			{1, true, 6, 6, 2, 2},
+			{1, false, 10, 10, 2, 2},
+			{0, true, 5, 5, 2, 2}
 		});
 	});
 	setup([](auto& text, auto& rows)
