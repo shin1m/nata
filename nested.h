@@ -3,6 +3,7 @@
 
 #include "spans.h"
 #include <deque>
+#include <vector>
 
 namespace nata
 {
@@ -10,6 +11,7 @@ namespace nata
 template<typename T_traits, size_t A_leaf = 4096, size_t A_branch = 4096>
 struct t_nested : t_spans<typename T_traits::template t_span<A_leaf, A_branch>, A_leaf, A_branch>
 {
+	typedef typename T_traits::template t_value<A_leaf, A_branch> t_value;
 	typedef typename T_traits::template t_span<A_leaf, A_branch> t_span;
 	typedef typename t_spans<t_span, A_leaf, A_branch>::t_iterator t_iterator;
 
@@ -65,6 +67,44 @@ private:
 	}
 
 public:
+	template<typename T_enter>
+	size_t f_path_at_in_text(size_t a_p, std::vector<t_iterator>& a_path, T_enter a_enter) const
+	{
+		auto x = this;
+		while (true) {
+			auto i = x->f_at_in_text(a_p);
+			a_path.push_back(i);
+			a_p -= i.f_index().v_i1;
+			if (a_p <= 0 || !i->v_x || !a_enter(i->v_x)) break;
+			x = &i->v_x->v_nested;
+		}
+		return a_p;
+	}
+	template<typename T_enter>
+	void f_leaf(std::vector<t_iterator>& a_path, T_enter a_enter) const
+	{
+		if (a_path.back() == this->f_end()) return;
+		while (true) {
+			auto& i = a_path.back();
+			if (!i->v_x || !a_enter(i->v_x)) break;
+			a_path.push_back(i->v_x->v_nested.f_begin());
+		}
+	}
+	template<typename T_enter>
+	size_t f_leaf_at_in_text(size_t a_p, std::vector<t_iterator>& a_path, T_enter a_enter) const
+	{
+		a_p = f_path_at_in_text(a_p, a_path, a_enter);
+		if (a_p <= 0) f_leaf(a_path, a_enter);
+		return a_p;
+	}
+	void f_next(std::vector<t_iterator>& a_path) const
+	{
+		while (a_path.size() >= 2) {
+			if (++a_path.back() != a_path[a_path.size() - 2]->v_x->v_nested.f_end()) return;
+			a_path.pop_back();
+		}
+		++a_path.back();
+	}
 	t_iterator f_replace(size_t a_p, size_t a_n, std::deque<t_span>&& a_xs)
 	{
 		auto i = this->f_at_in_text(a_p);

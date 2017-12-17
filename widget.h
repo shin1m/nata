@@ -106,7 +106,7 @@ public:
 		size_t p = row.f_index().v_text;
 		auto text = v_rows.v_tokens.v_text.f_at(p);
 		std::vector<typename T_rows::t_foldings::t_iterator> folding;
-		size_t q = v_rows.f_leaf_at_in_text(p, folding);
+		size_t q = v_rows.f_leaf_at_in_text(p, folding, true);
 		size_t fd = folding.back().f_delta().v_i1 - q;
 		auto token = v_rows.v_tokens.f_at_in_text(p);
 		size_t td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
@@ -139,7 +139,7 @@ public:
 							rd.v_text -= d;
 							v_rows.f_next_leaf(folding);
 						} while (rd.v_text > 0 && folding.back()->v_x);
-						if (folding.back() == v_rows.f_foldings_end()) break;
+						if (folding.back() == v_rows.f_foldings().f_end()) break;
 						fd = folding.back().f_delta().v_i1;
 						token = v_rows.v_tokens.f_at_in_text(p);
 						td = token.f_index().v_i1 + token.f_delta().v_i1 - p;

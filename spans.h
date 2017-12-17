@@ -44,6 +44,10 @@ struct t_spans
 		{
 			return v_i0 == a_x.v_i0 && v_i1 == a_x.v_i1;
 		}
+		bool operator!=(const t_index& a_x) const
+		{
+			return !(*this == a_x);
+		}
 		template<typename U>
 		t_index& operator+=(const t_index<U>& a_x)
 		{

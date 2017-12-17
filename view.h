@@ -5,7 +5,6 @@
 #include "stretches.h"
 #include "nested.h"
 #include <numeric>
-#include <vector>
 
 namespace nata
 {
@@ -210,6 +209,12 @@ private:
 	};
 	typedef jumoku::t_array<t_row, A_leaf, A_branch, t_traits> t_array;
 
+	template<bool A_visible>
+	static constexpr bool f_enter(const std::shared_ptr<typename t_foldings::t_value>& a_x)
+	{
+		return !A_visible || !a_x->v_folded;
+	}
+
 	t_array v_array;
 	t_foldings v_foldings;
 
@@ -255,7 +260,7 @@ private:
 		};
 		p = i.f_index().v_text;
 		std::vector<typename t_foldings::t_iterator> folding;
-		size_t q = f_leaf_at_in_text(p, folding);
+		size_t q = f_leaf_at_in_text(p, folding, true);
 		size_t fd = folding.back().f_delta().v_i1 - q;
 		auto token = v_tokens.f_at_in_text(p);
 		size_t td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
@@ -389,53 +394,22 @@ public:
 			return a_index.v_y;
 		});
 	}
-	typename t_foldings::t_iterator f_foldings_begin() const
+	const t_foldings& f_foldings() const
 	{
-		return v_foldings.f_begin();
-	}
-	typename t_foldings::t_iterator f_foldings_end() const
-	{
-		return v_foldings.f_end();
+		return v_foldings;
 	}
 	size_t f_folding_at_in_text(size_t a_p, std::vector<typename t_foldings::t_iterator>& a_path, bool a_visible = false) const
 	{
-		auto x = &v_foldings;
-		while (true) {
-			auto i = x->f_at_in_text(a_p);
-			a_path.push_back(i);
-			a_p -= i.f_index().v_i1;
-			if (a_p <= 0 || !i->v_x || a_visible && i->v_x->v_folded) break;
-			x = &i->v_x->v_nested;
-		}
-		return a_p;
+		return v_foldings.f_path_at_in_text(a_p, a_path, a_visible ? f_enter<true> : f_enter<false>);
 	}
-	void f_leaf(std::vector<typename t_foldings::t_iterator>& a_path) const
+	size_t f_leaf_at_in_text(size_t a_p, std::vector<typename t_foldings::t_iterator>& a_path, bool a_visible = false) const
 	{
-		if (a_path.back() == v_foldings.f_end()) return;
-		while (true) {
-			auto& i = a_path.back();
-			if (!i->v_x || i->v_x->v_folded) break;
-			a_path.push_back(i->v_x->v_nested.f_begin());
-		}
-	}
-	size_t f_leaf_at_in_text(size_t a_p, std::vector<typename t_foldings::t_iterator>& a_path) const
-	{
-		a_p = f_folding_at_in_text(a_p, a_path, true);
-		if (a_p <= 0) f_leaf(a_path);
-		return a_p;
-	}
-	void f_next(std::vector<typename t_foldings::t_iterator>& a_path) const
-	{
-		while (a_path.size() >= 2) {
-			if (++a_path.back() != a_path[a_path.size() - 2]->v_x->v_nested.f_end()) return;
-			a_path.pop_back();
-		}
-		++a_path.back();
+		return v_foldings.f_leaf_at_in_text(a_p, a_path, a_visible ? f_enter<true> : f_enter<false>);
 	}
 	void f_next_leaf(std::vector<typename t_foldings::t_iterator>& a_path) const
 	{
-		f_next(a_path);
-		f_leaf(a_path);
+		v_foldings.f_next(a_path);
+		v_foldings.f_leaf(a_path, f_enter<true>);
 	}
 	void f_foldable(size_t a_p, std::deque<typename t_foldings::t_span>&& a_xs)
 	{
@@ -461,7 +435,7 @@ public:
 		size_t p = a_i.f_index().v_text;
 		size_t x = a_i.f_index().v_x;
 		std::vector<typename t_foldings::t_iterator> folding;
-		size_t q = f_leaf_at_in_text(p, folding);
+		size_t q = f_leaf_at_in_text(p, folding, true);
 		size_t fd = folding.back().f_delta().v_i1 - q;
 		auto token = v_tokens.f_at_in_text(p);
 		size_t td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
