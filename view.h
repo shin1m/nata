@@ -411,14 +411,15 @@ public:
 		v_foldings.f_next(a_path);
 		v_foldings.f_leaf(a_path, f_enter<true>);
 	}
-	void f_foldable(size_t a_p, std::deque<typename t_foldings::t_span>&& a_xs)
+	typename t_foldings::t_iterator f_foldable(size_t a_p, std::deque<typename t_foldings::t_span>&& a_xs)
 	{
 		size_t n = std::accumulate(a_xs.begin(), a_xs.end(), 0, [](size_t n, const auto& x)
 		{
 			return n + x.v_n;
 		});
-		v_foldings.f_replace(a_p, n, std::move(a_xs));
+		auto i = v_foldings.f_replace(a_p, n, std::move(a_xs));
 		v_tokens_painted(a_p, n);
+		return i;
 	}
 	void f_folded(size_t a_p, bool v_folded)
 	{
@@ -553,10 +554,12 @@ public:
 			if (v_nesting.back().v_xs.back().v_n == m) v_nesting.back().v_xs.back().v_x->v_folded = folded;
 		}
 		if (v_nesting.size() > 1) return;
-		v_rows.f_foldable(v_nesting_p, std::move(v_nesting.back().v_xs));
+		auto i = v_rows.f_foldable(v_nesting_p, std::move(v_nesting.back().v_xs));
 		v_nesting_p = v_p;
+		while (i.f_index().v_i1 < v_p) ++i;
 		v_path.clear();
-		v_path_p = v_p - v_rows.f_folding_at_in_text(v_p, v_path, false);
+		v_path.push_back(i);
+		v_path_p = i.f_index().v_i1;
 	}
 	void f_flush()
 	{
