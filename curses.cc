@@ -45,27 +45,16 @@ int main(int argc, char* argv[])
 		}
 	}
 	nata::t_widget<decltype(rows)> widget(rows, 16);
+	nata::t_folder<decltype(rows), size_t> folder(rows);
 	struct
 	{
-		struct t_block
-		{
-			size_t v_type;
-			size_t v_n = 0;
-			bool v_folded = false;
-			std::deque<decltype(rows)::t_foldings::t_span> v_xs;
-		};
-
 		decltype(rows)& v_rows;
+		decltype(folder)& v_folder;
 		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(if|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done)|for|in|break|continue|return)\\b)", std::regex_constants::ECMAScript | std::regex_constants::optimize};
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_eos;
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_i;
 		size_t v_p;
 		std::wstring v_message;
-		std::deque<t_block> v_nesting;
-		size_t v_nesting_p;
-		size_t v_nesting_n;
-		std::vector<decltype(rows)::t_foldings::t_iterator> v_path;
-		size_t v_path_p;
 
 		operator bool() const
 		{
@@ -87,12 +76,6 @@ int main(int argc, char* argv[])
 				}
 				xs.push_back({a, n});
 			};
-			auto plain = [&]
-			{
-				if (v_nesting_n <= 0) return;
-				v_nesting.back().v_xs.emplace_back(v_nesting_n);
-				v_nesting_n = 0;
-			};
 			size_t p = v_p;
 			for (size_t i = 0; i < c_tokens_paint_unit; ++i) {
 				if (v_i == v_eos) break;
@@ -103,42 +86,11 @@ int main(int argc, char* argv[])
 					m1.first != m1.second ? attribute_comment : attribute_keyword,
 					m0.second.f_index() - m0.first.f_index()
 				);
-				auto open = [&](size_t type)
-				{
-					plain();
-					while (v_path_p < m0.second.f_index()) {
-						while (v_path.back()->v_x) v_path.push_back(v_path.back()->v_x->v_nested.f_begin());
-						v_path_p += v_path.back().f_delta().v_i1;
-						v_rows.f_foldings().f_next(v_path);
-					}
-					if (v_path_p > m0.second.f_index() || !v_path.back()->v_x)
-						v_nesting.push_back({type});
-					else
-						v_nesting.push_back({type, v_path.back().f_delta().v_i1, v_path.back()->v_x->v_folded});
-				};
 				auto close = [&]
 				{
-					v_nesting_n += m0.first.f_index() - v_p;
-					plain();
-					auto xs = std::move(v_nesting.back().v_xs);
-					if (xs.empty()) {
-						v_nesting.pop_back();
-					} else {
-						size_t n = xs.front().v_n;
-						size_t m = v_nesting.back().v_n;
-						bool folded = v_nesting.back().v_folded;
-						xs.pop_front();
-						v_nesting.pop_back();
-						v_nesting.back().v_xs.emplace_back(n, std::move(xs));
-						if (v_nesting.back().v_xs.back().v_n == m) v_nesting.back().v_xs.back().v_x->v_folded = folded;
-					}
-					if (v_nesting.back().v_type == 0) {
-						v_rows.f_foldable(v_nesting_p, std::move(v_nesting.back().v_xs));
-						v_nesting_p = m0.first.f_index();
-						v_path.clear();
-						v_path_p = m0.second.f_index() - v_rows.f_folding_at_in_text(m0.second.f_index(), v_path, false);
-					}
-					v_nesting_n += m0.second.f_index() - m0.first.f_index();
+					v_folder.f_push(m0.first.f_index() - v_p);
+					v_folder.f_close();
+					v_folder.f_push(m0.second.f_index() - m0.first.f_index());
 				};
 				size_t type = 3;
 				for (; type < v_i->size(); ++type) {
@@ -147,29 +99,29 @@ int main(int argc, char* argv[])
 				}
 				switch (type) {
 				case 3:
-					if (v_nesting.back().v_type == 4) {
+					if (v_folder.f_tag() == 4) {
 						close();
-						open(4);
+						v_folder.f_open(4);
 					} else {
-						v_nesting_n += m0.second.f_index() - v_p;
+						v_folder.f_push(m0.second.f_index() - v_p);
 					}
 					break;
 				case 4:
 				case 5:
 				case 6:
-					v_nesting_n += m0.second.f_index() - v_p;
-					open(type);
+					v_folder.f_push(m0.second.f_index() - v_p);
+					v_folder.f_open(type);
 					break;
 				case 7:
 				case 8:
 				case 9:
-					if (v_nesting.back().v_type == type - 3)
+					if (v_folder.f_tag() == type - 3)
 						close();
 					else
-						v_nesting_n += m0.second.f_index() - v_p;
+						v_folder.f_push(m0.second.f_index() - v_p);
 					break;
 				default:
-					v_nesting_n += m0.second.f_index() - v_p;
+					v_folder.f_push(m0.second.f_index() - v_p);
 				}
 				v_p = m0.second.f_index();
 				++v_i;
@@ -181,23 +133,8 @@ int main(int argc, char* argv[])
 				s << L"running: " << v_p * 100 / n << L'%';
 				v_message = s.str();
 			} else {
-				v_nesting_n += n - v_p;
-				plain();
-				while (v_nesting.size() > 1) {
-					auto xs = std::move(v_nesting.back().v_xs);
-					v_nesting.pop_back();
-					if (!xs.empty() && !xs.front().v_x && !v_nesting.back().v_xs.empty() && !v_nesting.back().v_xs.back().v_x) {
-						v_nesting.back().v_xs.back().v_n += xs.front().v_n;
-						xs.pop_front();
-					}
-					v_nesting.back().v_xs.insert(v_nesting.back().v_xs.end(), xs.begin(), xs.end());
-				}
-				size_t m = std::accumulate(v_nesting.back().v_xs.begin(), v_nesting.back().v_xs.end(), 0, [](size_t n, const auto& x)
-				{
-					return n + x.v_n;
-				});
-				v_rows.f_foldable(v_nesting_p, std::move(v_nesting.back().v_xs));
-				v_nesting.clear();
+				v_folder.f_push(n - v_p);
+				v_folder.f_flush();
 				if (v_p < n) {
 					v_rows.v_tokens.f_paint(v_p, {{0, n - v_p}});
 					v_p = n;
@@ -209,13 +146,10 @@ int main(int argc, char* argv[])
 		nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 		{
 			v_i = decltype(v_i)(v_rows.v_tokens.v_text.f_begin(), v_rows.v_tokens.v_text.f_end(), v_pattern);
-			v_p = v_nesting_p = v_nesting_n = v_path_p = 0;
-			v_nesting.clear();
-			v_nesting.push_back({0});
-			v_path.clear();
-			v_path.push_back(v_rows.f_foldings().f_begin());
+			v_p = 0;
+			v_folder.f_reset();
 		};
-	} task{rows};
+	} task{rows, folder};
 	text.v_replaced >> task.v_replaced;
 	task.v_replaced(0, 0, 0);
 	while (true) {

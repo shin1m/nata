@@ -1,7 +1,6 @@
 #include "nested.h"
 #include "test_spans.h"
 #include <numeric>
-#include <vector>
 
 struct t_test_traits
 {
