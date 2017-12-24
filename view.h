@@ -33,7 +33,7 @@ public:
 	t_tokens(T_text& a_text) : v_text(a_text)
 	{
 		v_text.v_replaced >> v_text_replaced;
-		v_text_replaced(0, 0, v_text.f_size());
+		this->f_replace(0, 0, {{{}, v_text.f_size() + 1}});
 	}
 	using t_stretches::f_size;
 	using t_stretches::f_begin;
@@ -274,8 +274,7 @@ private:
 					cell(d, v_target.f_folded());
 					p += d;
 					f_next_leaf(folding);
-				} while (folding.back() != v_foldings.f_end() && folding.back()->v_x);
-				if (folding.back() == v_foldings.f_end()) break;
+				} while (folding.back()->v_x);
 				fd = folding.back().f_delta().v_i1;
 				token = v_tokens.f_at_in_text(p);
 				td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
@@ -344,11 +343,13 @@ public:
 
 	t_rows(T_tokens& a_tokens, T_target& a_target) : v_tokens(a_tokens), v_target(a_target)
 	{
-		auto size = v_target.f_eof();
-		v_array.f_insert(f_end(), t_row{1, true, 1, std::get<0>(size), std::get<1>(size), std::get<1>(size) + std::get<2>(size)});
 		v_tokens.v_replaced >> v_tokens_replaced;
 		v_tokens.v_painted >> v_tokens_painted;
 		v_target.v_resized >> v_target_resized;
+		auto size = v_target.f_eof();
+		v_array.f_insert(f_end(), t_row{1, true, 1, std::get<0>(size), std::get<1>(size), std::get<1>(size) + std::get<2>(size)});
+		v_foldings.f_replace(0, 0, {{v_tokens.v_text.f_size() + 1}});
+		f_replace(0, 0, v_tokens.v_text.f_size());
 	}
 	t_index<size_t> f_size() const
 	{
@@ -426,7 +427,7 @@ public:
 		std::vector<typename t_foldings::t_iterator> path;
 		f_folding_at_in_text(a_p, path);
 		auto& i = path.back();
-		if (i == v_foldings.f_end() || !i->v_x) return;
+		if (!i->v_x) return;
 		i->v_x->v_folded = v_folded;
 		v_tokens_painted(a_p, i.f_delta().v_i1);
 	}
@@ -452,8 +453,7 @@ public:
 					p += folding.back().f_delta().v_i1;
 					x += width;
 					f_next_leaf(folding);
-				} while (folding.back() != v_foldings.f_end() && folding.back()->v_x);
-				if (folding.back() == v_foldings.f_end()) break;
+				} while (folding.back()->v_x);
 				fd = folding.back().f_delta().v_i1;
 				token = v_tokens.f_at_in_text(p);
 				td = token.f_index().v_i1 + token.f_delta().v_i1 - p;

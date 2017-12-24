@@ -139,7 +139,6 @@ public:
 							rd.v_text -= d;
 							v_rows.f_next_leaf(folding);
 						} while (rd.v_text > 0 && folding.back()->v_x);
-						if (folding.back() == v_rows.f_foldings().f_end()) break;
 						fd = folding.back().f_delta().v_i1;
 						token = v_rows.v_tokens.f_at_in_text(p);
 						td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
