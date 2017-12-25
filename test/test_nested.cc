@@ -2,43 +2,10 @@
 #include "test_spans.h"
 #include <numeric>
 
-struct t_test_traits
+template<size_t A_leaf, size_t A_branch>
+struct t_test_value
 {
-	template<size_t A_leaf, size_t A_branch>
-	struct t_value
-	{
-		nata::t_nested<t_test_traits, A_leaf, A_branch> v_nested;
-	};
-	template<size_t A_leaf, size_t A_branch>
-	struct t_span
-	{
-		std::shared_ptr<t_value<A_leaf, A_branch>> v_x;
-		size_t v_n;
-
-		t_span(const std::shared_ptr<t_value<A_leaf, A_branch>>& a_x, size_t a_n) : v_x(std::move(a_x)), v_n(a_n)
-		{
-		}
-		t_span(std::shared_ptr<t_value<A_leaf, A_branch>>&& a_x) : v_x(std::move(a_x)), v_n(v_x->v_nested.f_size().v_i1)
-		{
-		}
-		t_span(size_t a_n) : v_n(a_n)
-		{
-		}
-		t_span(std::deque<t_span>&& a_xs)
-		{
-			v_x = std::make_shared<t_value<A_leaf, A_branch>>();
-			v_x->v_nested.f_replace(0, 0, std::move(a_xs));
-			v_n = v_x->v_nested.f_size().v_i1;
-		}
-		bool operator==(const t_span& a_x) const
-		{
-			return v_x == a_x.v_x && v_n == a_x.v_n;
-		}
-		t_span f_get(size_t a_n) const
-		{
-			return {v_x, a_n};
-		}
-	};
+	nata::t_nested<t_test_value, A_leaf, A_branch> v_nested;
 };
 
 struct t_test_span
@@ -76,8 +43,8 @@ void f_assert_equals(const T& a0, std::initializer_list<t_test_span> a1)
 	f_assert_equals<T, std::initializer_list<t_test_span>>(a0, a1);
 }
 
-template<typename T_traits, size_t A_leaf, size_t A_branch>
-void f_dump(const nata::t_nested<T_traits, A_leaf, A_branch>& a, const std::string& a_indent)
+template<template<size_t, size_t> typename T_value, size_t A_leaf, size_t A_branch>
+void f_dump(const nata::t_nested<T_value, A_leaf, A_branch>& a, const std::string& a_indent)
 {
 	for (auto i = a.f_begin(); i != a.f_end(); ++i) {
 		auto x = *i;
@@ -94,7 +61,7 @@ void f_dump(const nata::t_nested<T_traits, A_leaf, A_branch>& a, const std::stri
 int main(int argc, char* argv[])
 {
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		auto i = nested.f_replace(0, 0, {
 			{10}
 		});
@@ -112,7 +79,7 @@ int main(int argc, char* argv[])
 		assert(i == nested.f_begin());
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{10}
 		});
@@ -127,7 +94,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{10}
 		});
@@ -145,7 +112,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{1},
 			{{{2}}},
@@ -168,7 +135,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{1},
 			{{
@@ -198,7 +165,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{1},
 			{{{2}}},
@@ -216,7 +183,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{1},
 			{{
@@ -246,7 +213,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{1},
 			{{{2}}},
@@ -262,7 +229,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{1},
 			{{{2}}},
@@ -288,7 +255,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{1},
 			{{{2}}},
@@ -308,7 +275,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{1},
 			{{{4}}},
@@ -334,7 +301,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		auto i = nested.f_replace(0, 0, {
 			{10}
 		});
@@ -353,7 +320,7 @@ int main(int argc, char* argv[])
 		assert(i == nested.f_begin());
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{2},
 			{{{5}}},
@@ -372,7 +339,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{2},
 			{{{5}}},
@@ -384,7 +351,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{1},
 			{{{7}}},
@@ -409,7 +376,7 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		nata::t_nested<t_test_traits, 5, 5> nested;
+		nata::t_nested<t_test_value, 5, 5> nested;
 		nested.f_replace(0, 0, {
 			{1},
 			{{

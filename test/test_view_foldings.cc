@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 		std::wstring s = L"Hello,\tworld!\nGood bye.";
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_foldable(7, {
-			{11, {}}
+			{{{11}}}
 		});
 		f_assert_equals(rows, {
 			{1, false, 9, 10, 2, 3},
@@ -33,8 +33,8 @@ int main(int argc, char* argv[])
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_foldable(2, {
-			{7, {}},
-			{10, {}}
+			{{{7}}},
+			{{{10}}}
 		});
 		f_assert_equals(rows, {
 			{1, true, 6, 6, 2, 2},
@@ -67,9 +67,10 @@ int main(int argc, char* argv[])
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_foldable(1, {
-			{1, {
-				{7, {}},
-				{10, {}}
+			{{
+				{1},
+				{{{7}}},
+				{{{10}}}
 			}}
 		});
 		f_assert_equals(rows, {
@@ -103,11 +104,13 @@ int main(int argc, char* argv[])
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_foldable(2, {
-			{7, {}},
-			{1, {
-				{5, {}},
-				{2, {
-				    {2, {}}
+			{{{7}}},
+			{{
+				{1},
+				{{{5}}},
+				{{
+					{2},
+					{{{2}}}
 				}}
 			}}
 		});
@@ -122,8 +125,8 @@ int main(int argc, char* argv[])
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_foldable(2, {
-			{7, {}},
-			{10, {}}
+			{{{7}}},
+			{{{10}}}
 		});
 		{
 			std::vector<std::tuple<size_t, size_t, size_t>> xs;

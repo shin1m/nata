@@ -52,51 +52,6 @@ public:
 	}
 };
 
-struct t_foldable
-{
-	template<size_t A_leaf, size_t A_branch>
-	struct t_value
-	{
-		t_nested<t_foldable, A_leaf, A_branch> v_nested;
-		bool v_folded = false;
-	};
-	template<size_t A_leaf, size_t A_branch>
-	class t_span
-	{
-		friend struct t_nested<t_foldable, A_leaf, A_branch>;
-
-		static std::shared_ptr<t_value<A_leaf, A_branch>> f_x(size_t a_n, std::deque<t_span>&& a_xs)
-		{
-			a_xs.emplace_front(a_n);
-			auto x = std::make_shared<t_value<A_leaf, A_branch>>();
-			x->v_nested.f_replace(0, 0, std::move(a_xs));
-			return x;
-		}
-
-		t_span(const std::shared_ptr<t_value<A_leaf, A_branch>>& a_x, size_t a_n) : v_x(a_x), v_n(a_n)
-		{
-		}
-		t_span(std::shared_ptr<t_value<A_leaf, A_branch>>&& a_x) : v_x(std::move(a_x)), v_n(v_x->v_nested.f_size().v_i1)
-		{
-		}
-
-	public:
-		std::shared_ptr<t_value<A_leaf, A_branch>> v_x;
-		size_t v_n;
-
-		t_span(size_t a_n) : v_n(a_n)
-		{
-		}
-		t_span(size_t a_n, std::deque<t_span>&& a_xs) : t_span(f_x(a_n, std::move(a_xs)))
-		{
-		}
-		t_span f_get(size_t a_n) const
-		{
-			return {v_x, a_n};
-		}
-	};
-};
-
 template<typename T_tokens, typename T_foldings, typename T_target, size_t A_leaf = 4096, size_t A_branch = 4096>
 struct t_rows
 {
@@ -478,6 +433,13 @@ public:
 	}
 };
 
+template<size_t A_leaf, size_t A_branch>
+struct t_foldable
+{
+	t_nested<t_foldable, A_leaf, A_branch> v_nested;
+	bool v_folded = false;
+};
+
 template<typename T_rows, typename T_tag>
 class t_folder
 {
@@ -545,13 +507,11 @@ public:
 		if (xs.empty()) {
 			v_nesting.pop_back();
 		} else {
-			size_t n = xs.front().v_n;
-			size_t m = v_nesting.back().v_n;
+			size_t n = v_nesting.back().v_n;
 			bool folded = v_nesting.back().v_folded;
-			xs.pop_front();
 			v_nesting.pop_back();
-			v_nesting.back().v_xs.emplace_back(n, std::move(xs));
-			if (v_nesting.back().v_xs.back().v_n == m) v_nesting.back().v_xs.back().v_x->v_folded = folded;
+			v_nesting.back().v_xs.emplace_back(std::move(xs));
+			if (v_nesting.back().v_xs.back().v_n == n) v_nesting.back().v_xs.back().v_x->v_folded = folded;
 		}
 		if (v_nesting.size() > 1) return;
 		auto i = v_rows.f_foldable(v_nesting_p, std::move(v_nesting.back().v_xs));

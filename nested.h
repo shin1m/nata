@@ -8,11 +8,49 @@
 namespace nata
 {
 
-template<typename T_traits, size_t A_leaf = 4096, size_t A_branch = 4096>
-struct t_nested : t_spans<typename T_traits::template t_span<A_leaf, A_branch>, A_leaf, A_branch>
+template<template<size_t, size_t> typename T_value, size_t A_leaf, size_t A_branch>
+struct t_nested;
+
+template<template<size_t, size_t> typename T_value, size_t A_leaf, size_t A_branch>
+class t_nested_span
 {
-	typedef typename T_traits::template t_value<A_leaf, A_branch> t_value;
-	typedef typename T_traits::template t_span<A_leaf, A_branch> t_span;
+	friend struct t_nested<T_value, A_leaf, A_branch>;
+	typedef T_value<A_leaf, A_branch> t_value;
+
+	t_nested_span(const std::shared_ptr<t_value>& a_x, size_t a_n) : v_x(a_x), v_n(a_n)
+	{
+	}
+	t_nested_span(std::shared_ptr<t_value>&& a_x) : v_x(std::move(a_x)), v_n(v_x->v_nested.f_size().v_i1)
+	{
+	}
+
+public:
+	std::shared_ptr<t_value> v_x;
+	size_t v_n;
+
+	t_nested_span(size_t a_n) : v_n(a_n)
+	{
+	}
+	t_nested_span(std::deque<t_nested_span>&& a_xs) : v_x(std::make_shared<t_value>())
+	{
+		v_x->v_nested.f_replace(0, 0, std::move(a_xs));
+		v_n = v_x->v_nested.f_size().v_i1;
+	}
+	bool operator==(const t_nested_span& a_x) const
+	{
+		return v_x == a_x.v_x && v_n == a_x.v_n;
+	}
+	t_nested_span f_get(size_t a_n) const
+	{
+		return {v_x, a_n};
+	}
+};
+
+template<template<size_t, size_t> typename T_value, size_t A_leaf = 4096, size_t A_branch = 4096>
+struct t_nested : t_spans<t_nested_span<T_value, A_leaf, A_branch>, A_leaf, A_branch>
+{
+	typedef T_value<A_leaf, A_branch> t_value;
+	typedef t_nested_span<T_value, A_leaf, A_branch> t_span;
 	typedef typename t_spans<t_span, A_leaf, A_branch>::t_iterator t_iterator;
 
 private:
