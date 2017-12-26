@@ -7,7 +7,7 @@
 namespace nata
 {
 
-template<typename T_value, size_t A_leaf = 4096, size_t A_branch = 4096>
+template<typename T_value, size_t A_leaf, size_t A_branch>
 struct t_stretches : t_spans<t_span<T_value>, A_leaf, A_branch>
 {
 	typedef nata::t_span<T_value> t_span;

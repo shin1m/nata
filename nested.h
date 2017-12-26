@@ -9,12 +9,10 @@ namespace nata
 {
 
 template<template<size_t, size_t> typename T_value, size_t A_leaf, size_t A_branch>
-struct t_nested;
-
-template<template<size_t, size_t> typename T_value, size_t A_leaf, size_t A_branch>
 class t_nested_span
 {
-	friend struct t_nested<T_value, A_leaf, A_branch>;
+	template<template<size_t, size_t> typename, size_t, size_t>
+	friend struct t_nested;
 	typedef T_value<A_leaf, A_branch> t_value;
 
 	t_nested_span(const std::shared_ptr<t_value>& a_x, size_t a_n) : v_x(a_x), v_n(a_n)
@@ -46,7 +44,7 @@ public:
 	}
 };
 
-template<template<size_t, size_t> typename T_value, size_t A_leaf = 4096, size_t A_branch = 4096>
+template<template<size_t, size_t> typename T_value, size_t A_leaf, size_t A_branch>
 struct t_nested : t_spans<t_nested_span<T_value, A_leaf, A_branch>, A_leaf, A_branch>
 {
 	typedef T_value<A_leaf, A_branch> t_value;

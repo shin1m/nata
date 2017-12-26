@@ -22,7 +22,7 @@ struct t_span
 	}
 };
 
-template<typename T_span, size_t A_leaf = 4096, size_t A_branch = 4096>
+template<typename T_span, size_t A_leaf, size_t A_branch>
 struct t_spans
 {
 	template<typename T>

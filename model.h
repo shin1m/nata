@@ -21,7 +21,7 @@ struct t_line
 	}
 };
 
-template<size_t A_leaf = 4096, size_t A_branch = 4096>
+template<size_t A_leaf = 256, size_t A_branch = 256>
 struct t_lines : t_spans<t_line, A_leaf, A_branch>
 {
 	typedef t_line t_span;

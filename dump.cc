@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 			return {3, 1, 0};
 		}
 	} target;
-	nata::t_rows<decltype(tokens), nata::t_nested<nata::t_foldable, 5, 5>, decltype(target), 5, 5> rows(tokens, target);
+	nata::t_rows<decltype(tokens), decltype(target), nata::t_foldable<5, 5>, 5, 5> rows(tokens, target);
 	{
 		std::wstring s = L"Hello,\tworld!!\nGood bye.";
 		text.f_replace(0, 0, s.begin(), s.end());

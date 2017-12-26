@@ -1,4 +1,5 @@
 #include "test_rows.h"
+#include "folder.h"
 
 int main(int argc, char* argv[])
 {
@@ -7,7 +8,7 @@ int main(int argc, char* argv[])
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
 		nata::t_tokens<decltype(text), int, 5, 5> tokens(text);
 		t_test_target target;
-		nata::t_rows<decltype(tokens), nata::t_nested<nata::t_foldable, 5, 5>, decltype(target), 5, 5> rows(tokens, target);
+		nata::t_rows<decltype(tokens), decltype(target), nata::t_foldable<5, 5>, 5, 5> rows(tokens, target);
 		test(text, rows);
 	};
 	setup([](auto& text, auto& rows)

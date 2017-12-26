@@ -6,6 +6,7 @@ EXTRA_DIST = \
 	model.h \
 	view.h \
 	widget.h \
+	folder.h \
 	curses.h
 CLEANFILES = *.gcda *.gcno *.gcov
 SUBDIRS = test
