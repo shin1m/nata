@@ -33,9 +33,6 @@ int main(int argc, char* argv[])
 	init_pair(4, COLOR_YELLOW, -1);
 	constexpr attr_t attribute_keyword = COLOR_PAIR(4);
 	nata::t_text<nata::t_lines<c_lines_chunk, c_lines_chunk>, c_text_chunk, c_text_chunk> text;
-	nata::t_tokens<decltype(text), attr_t, c_tokens_chunk, c_tokens_chunk> tokens(text);
-	nata::curses::t_target target;
-	nata::t_rows<decltype(tokens), decltype(target), nata::t_foldable<c_foldings_chunk, c_foldings_chunk>, c_rows_chunk, c_rows_chunk> rows(tokens, target);
 	if (argc > 1) {
 		std::wifstream in(argv[1]);
 		in.imbue(std::locale(""));
@@ -45,6 +42,9 @@ int main(int argc, char* argv[])
 			text.f_replace(text.f_size(), 0, cs, cs + in.gcount());
 		}
 	}
+	nata::t_tokens<decltype(text), attr_t, c_tokens_chunk, c_tokens_chunk> tokens(text);
+	nata::curses::t_target target;
+	nata::t_rows<decltype(tokens), decltype(target), nata::t_foldable<c_foldings_chunk, c_foldings_chunk>, c_rows_chunk, c_rows_chunk> rows(tokens, target);
 	nata::t_widget<decltype(rows)> widget(rows, 16);
 	nata::t_folder<decltype(rows), size_t> folder(rows);
 	struct
