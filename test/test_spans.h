@@ -1,3 +1,6 @@
+#ifndef TEST__TEST_SPANS_H
+#define TEST__TEST_SPANS_H
+
 #include "spans.h"
 #include <cassert>
 
@@ -21,3 +24,5 @@ void f_dump(const nata::t_spans<T_value, A_leaf, A_branch>& a)
 		std::printf("%d, %d\n", x.v_x, x.v_n);
 	}
 }
+
+#endif

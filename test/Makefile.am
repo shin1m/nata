@@ -1,4 +1,4 @@
-EXTRA_DIST = test_spans.h test_rows.h
+EXTRA_DIST = test_spans.h test_rows.h test_nested.h
 CLEANFILES = *.gcda *.gcno *.gcov
 
 AM_CPPFLAGS = -I../.. -I..
@@ -22,5 +22,6 @@ check_PROGRAMS = \
 	test_lines \
 	test_text \
 	test_view \
-	test_view_foldings
+	test_foldings \
+	test_folder
 TESTS = $(check_PROGRAMS)

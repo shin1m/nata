@@ -62,6 +62,7 @@ struct t_foldable
 template<typename T_tokens, typename T_target, typename T_foldable = t_foldable<>, size_t A_leaf = 256, size_t A_branch = 256>
 struct t_rows
 {
+	template<typename, typename> friend class t_folder;
 	typedef decltype(T_foldable::v_nested) t_foldings;
 	struct t_row
 	{

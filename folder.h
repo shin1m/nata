@@ -15,6 +15,17 @@ class t_folder
 		size_t v_n = 0;
 		bool v_folded = false;
 		std::deque<typename T_rows::t_foldings::t_span> v_xs;
+		size_t v_dirty_begin = ~0;
+		size_t v_dirty_end = 0;
+
+		void f_dirty_begin(size_t a_p)
+		{
+			if (a_p < v_dirty_begin) v_dirty_begin = a_p;
+		}
+		void f_dirty_end(size_t a_p)
+		{
+			if (a_p > v_dirty_end) v_dirty_end = a_p;
+		}
 	};
 
 	T_rows& v_rows;
@@ -24,12 +35,41 @@ class t_folder
 	size_t v_nesting_p;
 	std::vector<typename T_rows::t_foldings::t_iterator> v_path;
 	size_t v_path_p;
+	size_t v_path_folded;
 
 	void f_plain()
 	{
 		if (v_n <= 0) return;
-		v_nesting.back().v_xs.emplace_back(v_n);
+		auto& b = v_nesting.back();
+		b.v_xs.emplace_back(v_n);
+		if (v_p < v_path_folded) b.f_dirty_begin(v_p);
+		v_p += v_n;
 		v_n = 0;
+		while (v_path_p < v_p) {
+			if (v_path_p <= v_path_folded) b.f_dirty_end(v_path_p);
+			while (v_path.back()->v_x) {
+				if (v_path.back()->v_x->v_folded && v_path_p >= v_path_folded) v_path_folded = v_path_p + v_path.back().f_delta().v_i1;
+				v_path.push_back(v_path.back()->v_x->v_nested.f_begin());
+			}
+			if (v_path_p < v_path_folded) b.f_dirty_begin(v_path_p);
+			v_path_p += v_path.back().f_delta().v_i1;
+			v_rows.f_foldings().f_next(v_path);
+		}
+		if (v_p <= v_path_folded) b.f_dirty_end(v_p);
+	}
+	typename T_rows::t_foldings::t_iterator f_foldable()
+	{
+		auto& b = v_nesting.back();
+		auto xs = std::move(b.v_xs);
+		size_t n = std::accumulate(xs.begin(), xs.end(), 0, [](size_t n, const auto& x)
+		{
+			return n + x.v_n;
+		});
+		auto i = v_rows.v_foldings.f_replace(v_nesting_p, n, std::move(xs));
+		if (b.v_dirty_begin < b.v_dirty_end) v_rows.v_tokens_painted(b.v_dirty_begin, b.v_dirty_end - b.v_dirty_begin);
+		v_nesting.clear();
+		v_path.clear();
+		return i;
 	}
 
 public:
@@ -38,15 +78,14 @@ public:
 	}
 	void f_reset()
 	{
-		v_p = v_n = v_nesting_p = v_path_p = 0;
+		v_p = v_n = v_nesting_p = v_path_p = v_path_folded = 0;
 		v_nesting.clear();
-		v_nesting.push_back({0});
+		v_nesting.push_back({{}});
 		v_path.clear();
 		v_path.push_back(v_rows.f_foldings().f_begin());
 	}
 	void f_push(size_t a_n)
 	{
-		v_p += a_n;
 		v_n += a_n;
 	}
 	const T_tag& f_tag() const
@@ -56,11 +95,6 @@ public:
 	void f_open(const T_tag& a_tag)
 	{
 		f_plain();
-		while (v_path_p < v_p) {
-			while (v_path.back()->v_x) v_path.push_back(v_path.back()->v_x->v_nested.f_begin());
-			v_path_p += v_path.back().f_delta().v_i1;
-			v_rows.f_foldings().f_next(v_path);
-		}
 		if (v_path_p > v_p || !v_path.back()->v_x)
 			v_nesting.push_back({a_tag});
 		else
@@ -73,35 +107,51 @@ public:
 		if (xs.empty()) {
 			v_nesting.pop_back();
 		} else {
-			size_t n = v_nesting.back().v_n;
-			bool folded = v_nesting.back().v_folded;
+			auto& b0 = v_nesting.back();
+			size_t n = b0.v_n;
+			bool folded = b0.v_folded;
+			size_t dbegin = b0.v_dirty_begin;
+			size_t dend = b0.v_dirty_end;
 			v_nesting.pop_back();
-			v_nesting.back().v_xs.emplace_back(std::move(xs));
-			if (v_nesting.back().v_xs.back().v_n == n) v_nesting.back().v_xs.back().v_x->v_folded = folded;
+			auto& b1 = v_nesting.back();
+			b1.v_xs.emplace_back(std::move(xs));
+			if (b1.v_xs.back().v_n == n)
+				b1.v_xs.back().v_x->v_folded = folded;
+			else
+				folded = false;
+			if (!folded) {
+				b1.f_dirty_begin(dbegin);
+				b1.f_dirty_end(dend);
+			}
 		}
 		if (v_nesting.size() > 1) return;
-		auto i = v_rows.f_foldable(v_nesting_p, std::move(v_nesting.back().v_xs));
+		auto i = f_foldable();
+		v_nesting.push_back({{}});
 		v_nesting_p = v_p;
 		while (i.f_index().v_i1 < v_p) ++i;
-		v_path.clear();
 		v_path.push_back(i);
 		v_path_p = i.f_index().v_i1;
+		v_path_folded = v_p;
 	}
 	void f_flush()
 	{
 		f_plain();
 		while (v_nesting.size() > 1) {
-			auto xs = std::move(v_nesting.back().v_xs);
+			auto& b0 = v_nesting.back();
+			auto xs = std::move(b0.v_xs);
+			size_t dbegin = b0.v_dirty_begin;
+			size_t dend = b0.v_dirty_end;
 			v_nesting.pop_back();
-			if (!xs.empty() && !xs.front().v_x && !v_nesting.back().v_xs.empty() && !v_nesting.back().v_xs.back().v_x) {
-				v_nesting.back().v_xs.back().v_n += xs.front().v_n;
+			auto& b1 = v_nesting.back();
+			if (!xs.empty() && !xs.front().v_x && !b1.v_xs.empty() && !b1.v_xs.back().v_x) {
+				b1.v_xs.back().v_n += xs.front().v_n;
 				xs.pop_front();
 			}
-			v_nesting.back().v_xs.insert(v_nesting.back().v_xs.end(), xs.begin(), xs.end());
+			b1.v_xs.insert(b1.v_xs.end(), xs.begin(), xs.end());
+			b1.f_dirty_begin(dbegin);
+			b1.f_dirty_end(dend);
 		}
-		v_rows.f_foldable(v_nesting_p, std::move(v_nesting.back().v_xs));
-		v_nesting.clear();
-		v_path.clear();
+		f_foldable();
 	}
 };
 
