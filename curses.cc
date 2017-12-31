@@ -1,5 +1,5 @@
-#include "view.h"
 #include "widget.h"
+#include "painter.h"
 #include "folder.h"
 #include "curses.h"
 #include <fstream>
@@ -11,14 +11,14 @@ constexpr size_t c_lines_chunk = 256;
 constexpr size_t c_tokens_chunk = 256;
 constexpr size_t c_foldings_chunk = 16;
 constexpr size_t c_rows_chunk = 256;
-constexpr size_t c_tokens_paint_unit = 256;
+constexpr size_t c_task_unit = 256;
 #else
 constexpr size_t c_text_chunk = 5;
 constexpr size_t c_lines_chunk = 5;
 constexpr size_t c_tokens_chunk = 5;
 constexpr size_t c_foldings_chunk = 5;
 constexpr size_t c_rows_chunk = 5;
-constexpr size_t c_tokens_paint_unit = 4;
+constexpr size_t c_task_unit = 4;
 #endif
 
 int main(int argc, char* argv[])
@@ -46,71 +46,56 @@ int main(int argc, char* argv[])
 	nata::curses::t_target target;
 	nata::t_rows<decltype(tokens), decltype(target), nata::t_foldable<c_foldings_chunk, c_foldings_chunk>, c_rows_chunk, c_rows_chunk> rows(tokens, target);
 	nata::t_widget<decltype(rows)> widget(rows, 16);
+	nata::t_painter<decltype(tokens)> painter(tokens);
 	nata::t_folder<decltype(rows), size_t> folder(rows);
 	struct
 	{
 		decltype(rows)& v_rows;
+		decltype(painter)& v_painter;
 		decltype(folder)& v_folder;
-		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(if|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done)|for|in|break|continue|return)\\b)", std::regex_constants::ECMAScript | std::regex_constants::optimize};
+		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(if|for|in|break|continue|return)|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done)\\b)", std::regex_constants::ECMAScript | std::regex_constants::optimize};
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_eos;
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_i;
-		size_t v_p;
 		std::wstring v_message;
 
 		operator bool() const
 		{
-			return v_p < v_rows.v_tokens.v_text.f_size();
+			return v_painter.f_p() < v_rows.v_tokens.v_text.f_size();
 		}
 		void operator()()
 		{
 			if (!*this) return;
-			std::deque<decltype(tokens)::t_span> xs;
-			auto push = [&](attr_t a, size_t n)
-			{
-				if (n <= 0) return;
-				if (!xs.empty()) {
-					auto& x = xs.back();
-					if (a == x.v_x) {
-						x.v_n += n;
-						return;
-					}
-				}
-				xs.push_back({a, n});
-			};
-			size_t p = v_p;
-			for (size_t i = 0; i < c_tokens_paint_unit; ++i) {
+			for (size_t i = 0; i < c_task_unit; ++i) {
 				if (v_i == v_eos) break;
-				auto& m0 = (*v_i)[0];
-				push(0, m0.first.f_index() - v_p);
-				auto& m1 = (*v_i)[1];
-				push(
-					m1.first != m1.second ? attribute_comment : attribute_keyword,
-					m0.second.f_index() - m0.first.f_index()
-				);
-				auto close = [&]
-				{
-					v_folder.f_push(m0.first.f_index() - v_p);
-					v_folder.f_close();
-					v_folder.f_push(m0.second.f_index() - m0.first.f_index());
-				};
-				size_t type = 3;
+				size_t type = 1;
 				for (; type < v_i->size(); ++type) {
 					auto& m = (*v_i)[type];
 					if (m.first != m.second) break;
 				}
+				auto& m = (*v_i)[0];
+				size_t a = m.first.f_index() - v_painter.f_p();
+				size_t b = m.second.f_index() - m.first.f_index();
+				v_painter.f_push(0, a);
+				v_painter.f_push(type == 1 ? attribute_comment : attribute_keyword, b);
+				auto close = [&]
+				{
+					v_folder.f_push(a);
+					v_folder.f_close();
+					v_folder.f_push(b);
+				};
 				switch (type) {
 				case 3:
 					if (v_folder.f_tag() == 4) {
 						close();
 						v_folder.f_open(4);
 					} else {
-						v_folder.f_push(m0.second.f_index() - v_p);
+						v_folder.f_push(a + b);
 					}
 					break;
 				case 4:
 				case 5:
 				case 6:
-					v_folder.f_push(m0.second.f_index() - v_p);
+					v_folder.f_push(a + b);
 					v_folder.f_open(type);
 					break;
 				case 7:
@@ -119,38 +104,36 @@ int main(int argc, char* argv[])
 					if (v_folder.f_tag() == type - 3)
 						close();
 					else
-						v_folder.f_push(m0.second.f_index() - v_p);
+						v_folder.f_push(a + b);
 					break;
 				default:
-					v_folder.f_push(m0.second.f_index() - v_p);
+					v_folder.f_push(a + b);
 				}
-				v_p = m0.second.f_index();
 				++v_i;
 			}
-			v_rows.v_tokens.f_paint(p, std::move(xs));
 			size_t n = v_rows.v_tokens.v_text.f_size();
-			if (v_i != v_eos) {
-				std::wostringstream s;
-				s << L"running: " << v_p * 100 / n << L'%';
-				v_message = s.str();
-			} else {
-				v_folder.f_push(n - v_p);
+			if (v_i == v_eos) {
+				n -= v_painter.f_p();
+				v_painter.f_push(0, n);
+				v_painter.f_flush();
+				v_folder.f_push(n);
 				v_folder.f_flush();
-				if (v_p < n) {
-					v_rows.v_tokens.f_paint(v_p, {{0, n - v_p}});
-					v_p = n;
-				}
 				v_message.clear();
+			} else {
+				v_painter.f_flush();
+				std::wostringstream s;
+				s << L"running: " << v_painter.f_p() * 100 / n << L'%';
+				v_message = s.str();
 			}
 		}
 
 		nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 		{
 			v_i = decltype(v_i)(v_rows.v_tokens.v_text.f_begin(), v_rows.v_tokens.v_text.f_end(), v_pattern);
-			v_p = 0;
+			v_painter.f_reset();
 			v_folder.f_reset();
 		};
-	} task{rows, folder};
+	} task{rows, painter, folder};
 	text.v_replaced >> task.v_replaced;
 	task.v_replaced(0, 0, 0);
 	while (true) {

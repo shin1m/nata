@@ -1,8 +1,9 @@
 #ifndef NATA__WIDGET_H
 #define NATA__WIDGET_H
 
-#include "spans.h"
+#include "stretches.h"
 #include "signal.h"
+#include <vector>
 
 namespace nata
 {
