@@ -13,6 +13,7 @@ class t_painter
 	size_t v_p;
 	std::deque<typename T_tokens::t_span> v_xs;
 	size_t v_xs_p;
+	typename T_tokens::t_iterator v_i;
 
 public:
 	t_painter(T_tokens& a_tokens) : v_tokens(a_tokens)
@@ -24,26 +25,36 @@ public:
 	}
 	void f_reset()
 	{
-		v_p = v_xs_p = 0;
+		v_p = 0;
 		v_xs.clear();
+		v_i = v_tokens.f_begin();
 	}
-	void f_push(decltype(T_tokens::t_span::v_x) a_x, size_t a_n)
+	void f_push(decltype(T_tokens::t_span::v_x) a_x, size_t a_n, size_t a_merge = 0)
 	{
-		if (a_n <= 0) return;
-		v_p += a_n;
-		if (!v_xs.empty()) {
-			auto& x = v_xs.back();
-			if (a_x == x.v_x) {
-				x.v_n += a_n;
-				return;
+		while (a_n > 0) {
+			size_t n = std::min(a_n, v_i.f_index().v_i1 + v_i.f_delta().v_i1 - v_p);
+			if (v_xs.empty()) {
+				if (a_x != v_i->v_x) {
+					v_xs.push_back({a_x, n});
+					v_xs_p = v_p;
+				}
+			} else if (a_x == v_i->v_x && n > a_merge) {
+				v_i = v_tokens.f_paint(v_xs_p, std::move(v_xs));
+			} else if (a_x == v_xs.back().v_x) {
+				v_xs.back().v_n += n;
+			} else {
+				v_xs.push_back({a_x, n});
 			}
+			v_p += n;
+			while (v_i.f_index().v_i1 + v_i.f_delta().v_i1 <= v_p) ++v_i;
+			a_n -= n;
 		}
-		v_xs.push_back({a_x, a_n});
 	}
 	void f_flush()
 	{
-		v_tokens.f_paint(v_xs_p, std::move(v_xs));
-		v_xs_p = v_p;
+		if (v_xs.empty()) return;
+		v_i = v_tokens.f_paint(v_xs_p, std::move(v_xs));
+		while (v_i.f_index().v_i1 + v_i.f_delta().v_i1 <= v_p) ++v_i;
 	}
 };
 

@@ -45,6 +45,11 @@ int main(int argc, char* argv[])
 	nata::t_tokens<decltype(text), attr_t, c_tokens_chunk, c_tokens_chunk> tokens(text);
 	nata::curses::t_target target;
 	nata::t_rows<decltype(tokens), decltype(target), nata::t_foldable<c_foldings_chunk, c_foldings_chunk>, c_rows_chunk, c_rows_chunk> rows(tokens, target);
+/*	nata::t_slot<size_t, size_t, size_t, size_t, size_t> rows_painted = [](auto a_p, auto a_n, auto a_y, auto a_h0, auto a_h1)
+	{
+		std::fprintf(stderr, "painted: (%d, %d), (%d, %d -> %d)\n", a_p, a_n, a_y, a_h0, a_h1);
+	};
+	rows.v_painted >> rows_painted;*/
 	nata::t_widget<decltype(rows)> widget(rows, 16);
 	nata::t_painter<decltype(tokens)> painter(tokens);
 	nata::t_folder<decltype(rows), size_t> folder(rows);
@@ -75,8 +80,8 @@ int main(int argc, char* argv[])
 				auto& m = (*v_i)[0];
 				size_t a = m.first.f_index() - v_painter.f_p();
 				size_t b = m.second.f_index() - m.first.f_index();
-				v_painter.f_push(0, a);
-				v_painter.f_push(type == 1 ? attribute_comment : attribute_keyword, b);
+				v_painter.f_push(0, a, 64);
+				v_painter.f_push(type == 1 ? attribute_comment : attribute_keyword, b, 64);
 				auto close = [&]
 				{
 					v_folder.f_push(a);
@@ -114,7 +119,7 @@ int main(int argc, char* argv[])
 			size_t n = v_rows.v_tokens.v_text.f_size();
 			if (v_i == v_eos) {
 				n -= v_painter.f_p();
-				v_painter.f_push(0, n);
+				v_painter.f_push(0, n, 64);
 				v_painter.f_flush();
 				v_folder.f_push(n);
 				v_folder.f_flush();

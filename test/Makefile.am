@@ -23,5 +23,6 @@ check_PROGRAMS = \
 	test_text \
 	test_view \
 	test_foldings \
+	test_painter \
 	test_folder
 TESTS = $(check_PROGRAMS)

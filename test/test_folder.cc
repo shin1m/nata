@@ -1,6 +1,6 @@
-#include "folder.h"
 #include "test_nested.h"
 #include "test_rows.h"
+#include "folder.h"
 
 int main(int argc, char* argv[])
 {
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
 			{2}
 		});
 	});
-	auto assert_not_painted = [&](auto& rows, auto& folder, auto action)
+	auto assert_not_painted = [&](auto& rows, auto action)
 	{
 		bool called = false;
 		nata::t_slot<size_t, size_t, size_t, size_t, size_t> painted = [&](auto, auto, auto, auto, auto)
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 		text.f_replace(0, 0, s.begin(), s.end());
 		folder.f_reset();
 		folder.f_push(4);
-		assert_not_painted(rows, folder, [&]
+		assert_not_painted(rows, [&]
 		{
 			folder.f_flush();
 		});
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 			{5}
 		});
 	});
-	auto assert_painted = [&](auto& rows, auto& folder, auto action, size_t a_p, size_t a_n)
+	auto assert_painted = [&](auto& rows, auto action, size_t a_p, size_t a_n)
 	{
 		bool called = false;
 		nata::t_slot<size_t, size_t, size_t, size_t, size_t> painted = [&](auto p, auto n, auto, auto, auto)
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
 		rows.f_folded(1, true);
 		folder.f_reset();
 		folder.f_push(5);
-		assert_painted(rows, folder, [&]
+		assert_painted(rows, [&]
 		{
 			folder.f_flush();
 		}, 1, 3);
@@ -182,12 +182,12 @@ int main(int argc, char* argv[])
 		folder.f_reset();
 		folder.f_open(0);
 		folder.f_push(3);
-		assert_painted(rows, folder, [&]
+		assert_painted(rows, [&]
 		{
 			folder.f_close();
 		}, 1, 2);
 		folder.f_push(2);
-		assert_not_painted(rows, folder, [&]
+		assert_not_painted(rows, [&]
 		{
 			folder.f_flush();
 		});
@@ -208,11 +208,11 @@ int main(int argc, char* argv[])
 		folder.f_push(2);
 		folder.f_open(0);
 		folder.f_push(3);
-		assert_painted(rows, folder, [&]
+		assert_painted(rows, [&]
 		{
 			folder.f_close();
 		}, 1, 3);
-		assert_not_painted(rows, folder, [&]
+		assert_not_painted(rows, [&]
 		{
 			folder.f_flush();
 		});
@@ -234,12 +234,12 @@ int main(int argc, char* argv[])
 		folder.f_push(2);
 		folder.f_open(0);
 		folder.f_push(1);
-		assert_painted(rows, folder, [&]
+		assert_painted(rows, [&]
 		{
 			folder.f_close();
 		}, 1, 2);
 		folder.f_push(2);
-		assert_not_painted(rows, folder, [&]
+		assert_not_painted(rows, [&]
 		{
 			folder.f_flush();
 		});
