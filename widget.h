@@ -95,10 +95,20 @@ public:
 	{
 		return v_region.f_size().v_i1;
 	}
+	size_t f_height__(size_t a_value)
+	{
+		size_t h = f_height();
+		if (a_value < h) {
+			v_region.f_replace(a_value, h - a_value, {});
+		} else {
+			v_region.f_replace(h, 0, {{true, a_value - h}});
+			f_top__(v_top);
+		}
+	}
 	size_t f_range() const
 	{
 		size_t height = f_height();
-		return std::max(v_rows.f_size().v_i, height) - height;
+		return std::max(v_rows.f_size().v_y, height) - height;
 	}
 	template<typename T_graphics>
 	void f_render(T_graphics& a_target)

@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 		std::fprintf(stderr, "painted: (%d, %d), (%d, %d -> %d)\n", a_p, a_n, a_y, a_h0, a_h1);
 	};
 	rows.v_painted >> rows_painted;*/
-	nata::t_widget<decltype(rows)> widget(rows, 16);
+	nata::t_widget<decltype(rows)> widget(rows, LINES - 1);
 	nata::t_painter<decltype(tokens)> painter(tokens);
 	nata::t_folder<decltype(rows), size_t> folder(rows);
 	struct
@@ -156,7 +156,10 @@ int main(int argc, char* argv[])
 		} else {
 			mvaddwstr(widget.f_height(), 0, task.v_message.c_str());
 		}
-		clrtobot();
+		if (widget.f_height() < LINES - 1)
+			clrtobot();
+		else
+			clrtoeol();
 		move(widget.v_row.f_index().v_y - widget.v_top, std::get<1>(widget.v_position) - widget.v_row.f_index().v_x);
 		refresh();
 		timeout(task ? 0 : -1);
@@ -165,6 +168,7 @@ int main(int argc, char* argv[])
 			if (c == 0x1b) break;
 			switch (c) {
 			case KEY_RESIZE:
+				widget.f_height__(LINES - 1);
 				target.v_resized();
 				break;
 			case KEY_DOWN:

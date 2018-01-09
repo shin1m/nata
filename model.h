@@ -21,7 +21,7 @@ struct t_line
 	}
 };
 
-template<size_t A_leaf = 256, size_t A_branch = 256>
+template<size_t A_leaf, size_t A_branch>
 struct t_lines : t_spans<t_line, A_leaf, A_branch>
 {
 	typedef t_line t_span;
@@ -54,7 +54,7 @@ struct t_lines : t_spans<t_line, A_leaf, A_branch>
 	}
 };
 
-template<typename T_lines = t_lines<>, size_t A_leaf = 4096, size_t A_branch = 4096>
+template<typename T_lines = t_lines<256, 256>, size_t A_leaf = 4096, size_t A_branch = 4096>
 class t_text : jumoku::t_array<wchar_t, A_leaf, A_branch>
 {
 	typedef jumoku::t_array<wchar_t, A_leaf, A_branch> t_array;

@@ -9,7 +9,7 @@ EXTRA_DIST = \
 	folder.h \
 	curses.h
 CLEANFILES = *.gcda *.gcno *.gcov
-SUBDIRS = test
+SUBDIRS = xemmai test
 
 AM_CPPFLAGS = -I..
 AM_CXXFLAGS =

@@ -2,6 +2,14 @@ AC_INIT([nata], [201801])
 AM_INIT_AUTOMAKE([foreign nostdinc dist-bzip2 no-dist-gzip])
 AC_CONFIG_SRCDIR([model.h])
 
+XEMMAI_USE=xemmai-201708
+PKG_CHECK_MODULES([XEMMAI], [${XEMMAI_USE}], [
+	XEMMAI_BIN_PATH=`pkg-config --variable=bin_path ${XEMMAI_USE}`
+	XEMMAI_MODULE_PATH=`pkg-config --variable=module_path ${XEMMAI_USE}`
+])
+AC_SUBST(XEMMAI_BIN_PATH)
+AC_SUBST(XEMMAI_MODULE_PATH)
+
 if test "${CXXFLAGS+set}" != set; then
 	CXXFLAGS=
 fi
@@ -37,6 +45,7 @@ AM_CONDITIONAL([PROFILE], [test x$profile = xtrue])
 AC_CONFIG_HEADERS([configure.h])
 AC_CONFIG_FILES([
 	Makefile
+	xemmai/Makefile
 	test/Makefile
 ])
 AC_OUTPUT
