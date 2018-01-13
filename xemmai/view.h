@@ -17,12 +17,15 @@ struct t_view : t_proxy
 {
 	static constexpr attr_t v_attribute_control = A_DIM | COLOR_PAIR(1);
 	static constexpr attr_t v_attribute_folded = A_DIM | COLOR_PAIR(2);
+	static constexpr attr_t v_attribute_selected = A_REVERSE;
+	static constexpr attr_t v_attribute_highlighted = COLOR_PAIR(4);
 
 	t_text& v_text;
 	::nata::t_tokens<::nata::t_text<>, attr_t> v_tokens;
 	::nata::curses::t_target v_target;
 	::nata::t_rows<decltype(v_tokens), decltype(v_target), ::nata::t_foldable<>> v_rows;
 	::nata::t_widget<decltype(v_rows)> v_widget;
+	wchar_t v_prefix = L'\0';
 
 	static t_scoped f_construct(t_object* a_class, t_text& a_text)
 	{
@@ -32,6 +35,8 @@ struct t_view : t_proxy
 	t_view(t_object* a_class, t_text& a_text) : t_proxy(a_class), v_text(a_text), v_tokens(v_text.v_text), v_rows(v_tokens, v_target), v_widget(v_rows, LINES - 1)
 	{
 		++v_text.v_n;
+		v_widget.f_add_overlay(v_attribute_highlighted);
+		v_widget.f_add_overlay(v_attribute_selected);
 	}
 	virtual void f_destroy();
 	void f_resize()
@@ -39,11 +44,31 @@ struct t_view : t_proxy
 		v_widget.f_height__(LINES - 1);
 		v_target.v_resized();
 	}
+	size_t f_overlays() const
+	{
+		return v_widget.f_overlays().size();
+	}
+	void f_add_overlay(attr_t a_attribute)
+	{
+		v_widget.f_add_overlay(a_attribute);
+	}
+	void f_remove_overlay(size_t a_i)
+	{
+		if (a_i > f_overlays()) t_throwable::f_throw(L"out of range.");
+		v_widget.f_remove_overlay(a_i);
+	}
+	void f_overlay(size_t a_i, size_t a_p, size_t a_n, bool a_on)
+	{
+		size_t n = v_text.f_size();
+		if (a_i > f_overlays() || a_p > n) t_throwable::f_throw(L"out of range.");
+		v_widget.f_overlay(a_i, a_p, std::min(a_n, n - a_p), a_on);
+	}
 	void f_render()
 	{
 		{
-			::nata::curses::t_graphics g{v_target, v_attribute_control, v_attribute_folded, 0};
+			::nata::curses::t_graphics g{v_target, v_attribute_control, v_attribute_folded, 0, L'0' + v_prefix};
 			v_widget.f_render(g);
+			v_prefix = (v_prefix + 1) % 10;
 		}
 		size_t position = std::get<0>(v_widget.v_position);
 		{
@@ -53,8 +78,8 @@ struct t_view : t_proxy
 			size_t n = v_widget.f_range();
 			mvprintw(v_widget.f_height(), 0, "%d,%d-%d %d%%", line.v_i0, column, x, n > 0 ? v_widget.v_top * 100 / n : 100);
 		}
-		clrtoeol();
-		move(v_widget.v_row.f_index().v_y - v_widget.v_top, std::get<1>(v_widget.v_position) - v_widget.v_row.f_index().v_x);
+		clrtobot();
+		v_target.f_move(std::get<1>(v_widget.v_position) - v_widget.v_row.f_index().v_x, v_widget.v_row.f_index().v_y - v_widget.v_top);
 		refresh();
 	}
 	size_t f_position() const
@@ -64,15 +89,7 @@ struct t_view : t_proxy
 	void f_position__(size_t a_value, bool a_forward)
 	{
 		if (a_value > v_text.f_size()) t_throwable::f_throw(L"out of range.");
-		size_t& position = std::get<0>(v_widget.v_position);
-		position = a_value;
-		std::vector<decltype(v_rows)::t_foldings::t_iterator> folding;
-		size_t p = v_rows.f_leaf_at_in_text(position, folding, true);
-		if (folding.back()->v_x && p > 0) {
-			position -= p;
-			if (a_forward) position += folding.back().f_delta().v_i1;
-		}
-		v_widget.f_from_position(true);
+		v_widget.f_position__(a_value, a_forward);
 	}
 	size_t f_line() const
 	{

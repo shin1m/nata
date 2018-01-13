@@ -44,6 +44,7 @@ void f_curses(const t_value& a_callable)
 	nata::curses::t_session session;
 	init_pair(1, COLOR_WHITE, -1);
 	init_pair(2, COLOR_BLACK, COLOR_WHITE);
+	init_pair(4, -1, COLOR_YELLOW);
 	a_callable();
 }
 
@@ -71,6 +72,16 @@ t_extension::t_extension(t_object* a_module) : xemmai::t_extension(a_module)
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_BACKSPACE"), f_as(KEY_BACKSPACE));
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_F1"), f_as(KEY_F(1)));
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_F2"), f_as(KEY_F(2)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F3"), f_as(KEY_F(3)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F4"), f_as(KEY_F(4)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F5"), f_as(KEY_F(5)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F6"), f_as(KEY_F(6)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F7"), f_as(KEY_F(7)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F8"), f_as(KEY_F(8)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F9"), f_as(KEY_F(9)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F10"), f_as(KEY_F(10)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F11"), f_as(KEY_F(11)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F12"), f_as(KEY_F(12)));
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_ENTER"), f_as(KEY_ENTER));
 }
 

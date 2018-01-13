@@ -8,17 +8,13 @@
 namespace nata
 {
 
-#if 0
-constexpr size_t c_region_chunk = 8;
-#else
-constexpr size_t c_region_chunk = 5;
-#endif
-
-template<typename T_rows>
+template<typename T_rows, typename T_region = t_stretches<bool, 8, 8>>
 class t_widget
 {
 	const T_rows& v_rows;
-	t_stretches<bool, c_region_chunk, c_region_chunk> v_region;
+	T_region v_region;
+	using t_attribute = decltype(v_rows.v_tokens.f_begin()->v_x);
+	std::vector<std::pair<t_attribute, std::unique_ptr<T_region>>> v_overlays;
 
 	void f_dirty(size_t a_y, size_t a_height, bool a_dirty)
 	{
@@ -28,14 +24,18 @@ class t_widget
 	{
 		size_t height = f_height();
 		size_t range = height - a_y;
-		if (a_delta >= range) {
-			f_dirty(a_y, range, true);
-			return;
-		}
 		if (a_delta < 0) {
+			if (-a_delta >= range) {
+				f_dirty(a_y, range, true);
+				return;
+			}
 			v_region.f_replace(height + a_delta, -a_delta, {});
 			v_region.f_replace(a_y, 0, {{true, size_t(-a_delta)}});
 		} else {
+			if (a_delta >= range) {
+				f_dirty(a_y, range, true);
+				return;
+			}
 			v_region.f_replace(a_y, a_delta, {});
 			v_region.f_replace(height - a_delta, 0, {{true, size_t(a_delta)}});
 		}
@@ -66,6 +66,7 @@ class t_widget
 	}
 	nata::t_slot<size_t, size_t, size_t, size_t, size_t, size_t> v_replaced = [this](auto a_p, auto a_n0, auto a_n1, auto a_y, auto a_h0, auto a_h1)
 	{
+		for (auto& x : v_overlays) x.second->f_replace(a_p, a_n0, {{false, a_n1}});
 		f_adjust(a_y, a_h0, a_h1);
 		size_t& p = std::get<0>(v_position);
 		if (p < a_p) return;
@@ -88,6 +89,7 @@ public:
 	t_widget(T_rows& a_rows, size_t a_height) : v_rows(a_rows)
 	{
 		v_region.f_replace(0, 0, {{true, a_height}});
+		v_row = v_rows.f_at_in_text(0);
 		a_rows.v_replaced >> v_replaced;
 		a_rows.v_painted >> v_painted;
 	}
@@ -110,6 +112,25 @@ public:
 		size_t height = f_height();
 		return std::max(v_rows.f_size().v_y, height) - height;
 	}
+	const decltype(v_overlays)& f_overlays() const
+	{
+		return v_overlays;
+	}
+	void f_add_overlay(const t_attribute& a_attribute)
+	{
+		v_overlays.emplace_back(a_attribute, std::make_unique<T_region>());
+		v_overlays.back().second->f_replace(0, 0, {{false, v_rows.v_tokens.v_text.f_size() + 1}});
+	}
+	void f_remove_overlay(size_t a_i)
+	{
+		v_overlays.erase(v_overlays.begin() + a_i);
+		f_dirty(0, f_height(), true);
+	}
+	void f_overlay(size_t a_i, size_t a_p, size_t a_n, bool a_on)
+	{
+		v_overlays[a_i].second->f_replace(a_p, a_n, {{a_on, a_n}});
+		f_dirty(0, f_height(), true);
+	}
 	template<typename T_graphics>
 	void f_render(T_graphics& a_target)
 	{
@@ -118,17 +139,35 @@ public:
 		auto text = v_rows.v_tokens.v_text.f_at(p);
 		std::vector<typename T_rows::t_foldings::t_iterator> folding;
 		size_t q = v_rows.f_leaf_at_in_text(p, folding, true);
-		size_t fd = folding.back().f_delta().v_i1 - q;
-		auto token = v_rows.v_tokens.f_at_in_text(p);
-		size_t td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
+		size_t fd;
+		decltype(v_rows.v_tokens.f_begin()) token;
+		size_t td;
+		std::vector<std::pair<typename T_region::t_iterator, size_t>> overlays{v_overlays.size()};
+		auto skip = [&](size_t p)
+		{
+			fd = folding.back().f_delta().v_i1;
+			token = v_rows.v_tokens.f_at_in_text(p);
+			td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
+			for (size_t i = 0; i < overlays.size(); ++i) {
+				auto o = v_overlays[i].second->f_at_in_text(p);
+				size_t od = o.f_index().v_i1 + o.f_delta().v_i1 - p;
+				overlays[i] = {std::move(o), od};
+			}
+		};
+		skip(p);
+		fd -= q;
 		auto next = [&](size_t d)
 		{
-			td -= d;
-			if (td <= 0) td = (++token).f_delta().v_i1;
 			fd -= d;
 			if (fd <= 0) {
 				v_rows.f_next_leaf(folding);
 				fd = folding.back().f_delta().v_i1;
+			}
+			td -= d;
+			if (td <= 0) td = (++token).f_delta().v_i1;
+			for (auto& x : overlays) {
+				x.second -= d;
+				if (x.second <= 0) x.second = (++x.first).f_delta().v_i1;
 			}
 		};
 		auto dirty = v_region.f_begin();
@@ -138,7 +177,7 @@ public:
 		while (dirty != dend) {
 			auto rd = row.f_delta();
 			if (row->v_tail) --rd.v_text;
-			auto run = [&](auto folded, auto puts)
+			auto run = [&](auto folded, auto put)
 			{
 				while (rd.v_text > 0) {
 					if (folding.back()->v_x) {
@@ -150,14 +189,13 @@ public:
 							rd.v_text -= d;
 							v_rows.f_next_leaf(folding);
 						} while (rd.v_text > 0 && folding.back()->v_x);
-						fd = folding.back().f_delta().v_i1;
-						token = v_rows.v_tokens.f_at_in_text(p);
-						td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
+						skip(p);
 						text = v_rows.v_tokens.v_text.f_at(p);
 					}
 					if (rd.v_text <= 0) break;
 					size_t d = std::min(fd, std::min(td, rd.v_text));
-					puts(d);
+					for (auto& x : overlays) if (x.second < d) d = x.second;
+					put(d);
 					next(d);
 					rd.v_text -= d;
 				}
@@ -165,12 +203,18 @@ public:
 			};
 			if (y + rd.v_y > dirty.f_index().v_i1) {
 				a_target.f_move(y);
+				auto attribute = [&](const t_attribute& a)
+				{
+					a_target.f_attribute(a);
+					for (size_t i = 0; i < overlays.size(); ++i) if (overlays[i].first->v_x) a_target.f_attribute(v_overlays[i].first);
+				};
 				run([&]
 				{
+					attribute({});
 					a_target.f_folded();
 				}, [&](size_t d)
 				{
-					a_target.f_attribute(token->v_x);
+					attribute(token->v_x);
 					for (size_t i = 0; i < d; ++i) {
 						wchar_t c = *text;
 						if (c == L'\t')
@@ -197,7 +241,7 @@ public:
 					a_target.f_wrap();
 				}
 			} else {
-				run([&] {}, [&](size_t d)
+				run([] {}, [&](size_t d)
 				{
 					for (size_t i = 0; i < d; ++i) ++text;
 				});
@@ -263,6 +307,18 @@ public:
 		});
 		size_t tx = std::get<1>(v_position) - v_line.v_x;
 		if (a_retarget || v_target < tx || std::get<0>(v_position) < v_rows.f_at_in_line(v_line.v_line + 1).f_index().v_text - 1 && v_target >= tx + std::get<2>(v_position)) v_target = tx;
+	}
+	void f_position__(size_t a_value, bool a_forward)
+	{
+		size_t& position = std::get<0>(v_position);
+		position = a_value;
+		std::vector<typename T_rows::t_foldings::t_iterator> folding;
+		size_t p = v_rows.f_leaf_at_in_text(position, folding, true);
+		if (folding.back()->v_x && p > 0) {
+			position -= p;
+			if (a_forward) position += folding.back().f_delta().v_i1;
+		}
+		f_from_position(true);
 	}
 };
 

@@ -22,7 +22,6 @@ struct t_session
 		noecho();
 		nonl();
 		idlok(stdscr, TRUE);
-		scrollok(stdscr, TRUE);
 		intrflush(stdscr, FALSE);
 		keypad(stdscr, TRUE);
 	}
@@ -38,7 +37,7 @@ struct t_target
 
 	size_t f_width() const
 	{
-		return COLS;
+		return COLS - 1;
 	}
 	std::tuple<size_t, size_t, size_t> f_size(wchar_t a_c, attr_t a_a) const
 	{
@@ -62,25 +61,34 @@ struct t_target
 	}
 	void f_scroll(size_t a_y, size_t a_height, int a_delta)
 	{
+		scrollok(stdscr, TRUE);
 		setscrreg(a_y, a_height - 1);
 		scrl(a_delta);
 		setscrreg(0, LINES - 1);
+		scrollok(stdscr, FALSE);
+	}
+	void f_move(size_t a_x, size_t a_y)
+	{
+		move(a_y, a_x + 1);
 	}
 };
 
 struct t_graphics
 {
-	const t_target& v_target;
+	t_target& v_target;
 	const attr_t v_attribute_control;
 	const attr_t v_attribute_folded;
 	size_t v_to;
-	size_t v_x = 0;
+	const wchar_t v_prefix;
+	size_t v_x;
 	cchar_t v_c{A_NORMAL, L" "};
 
 	void f_move(size_t a_y)
 	{
 		v_x = 0;
 		move(v_to + a_y, 0);
+		cchar_t cc{v_attribute_control, v_prefix};
+		add_wch(&cc);
 	}
 	void f_attribute(attr_t a_a)
 	{
@@ -132,6 +140,8 @@ struct t_graphics
 	void f_empty(size_t a_y)
 	{
 		move(v_to + a_y, 0);
+		cchar_t cc{v_attribute_control, v_prefix};
+		add_wch(&cc);
 		clrtoeol();
 	}
 };

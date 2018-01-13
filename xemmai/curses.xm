@@ -24,6 +24,20 @@ nata.curses(@() nata.main(@
 		else if c == nata.KEY_RIGHT
 			position = view.position(
 			if position < text.size(): view.position__(position + 1, true
+		else if c == nata.KEY_F3
+			position = view.position(
+			if position < text.size()
+				view.overlay(0, position, 1, true
+				view.position__(position + 1, true
+		else if c == nata.KEY_F4
+			view.overlay(0, 0, text.size(), false
+		else if c == nata.KEY_F5
+			position = view.position(
+			if position < text.size()
+				view.overlay(1, position, 1, true
+				view.position__(position + 1, true
+		else if c == nata.KEY_F6
+			view.overlay(1, 0, text.size(), false
 		else if c == nata.KEY_BACKSPACE
 			position = view.position(
 			if position > 0: text.replace(position - 1, 1, ""
