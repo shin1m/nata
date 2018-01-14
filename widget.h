@@ -129,7 +129,15 @@ public:
 	void f_overlay(size_t a_i, size_t a_p, size_t a_n, bool a_on)
 	{
 		v_overlays[a_i].second->f_replace(a_p, a_n, {{a_on, a_n}});
-		f_dirty(0, f_height(), true);
+		size_t bottom = v_top + f_height();
+		size_t y0 = v_rows.f_at_in_text(a_p).f_index().v_y;
+		if (y0 >= bottom) return;
+		auto row = v_rows.f_at_in_text(a_p + a_n);
+		size_t y1 = row.f_index().v_y + row.f_delta().v_y;
+		if (y1 <= v_top) return;
+		if (y0 < v_top) y0 = v_top;
+		if (y1 > bottom) y1 = bottom;
+		f_dirty(y0 - v_top, y1 - y0, true);
 	}
 	template<typename T_graphics>
 	void f_render(T_graphics& a_target)
@@ -206,7 +214,7 @@ public:
 				auto attribute = [&](const t_attribute& a)
 				{
 					a_target.f_attribute(a);
-					for (size_t i = 0; i < overlays.size(); ++i) if (overlays[i].first->v_x) a_target.f_attribute(v_overlays[i].first);
+					for (size_t i = 0; i < overlays.size(); ++i) if (overlays[i].first->v_x) a_target.f_overlay(v_overlays[i].first);
 				};
 				run([&]
 				{
@@ -233,6 +241,7 @@ public:
 						a_target.f_eof();
 						break;
 					}
+					attribute(token->v_x);
 					a_target.f_eol();
 					++text;
 					next(1);

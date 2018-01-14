@@ -82,6 +82,7 @@ struct t_graphics
 	const wchar_t v_prefix;
 	size_t v_x;
 	cchar_t v_c{A_NORMAL, L" "};
+	attr_t v_overlay;
 
 	void f_move(size_t a_y)
 	{
@@ -90,9 +91,14 @@ struct t_graphics
 		cchar_t cc{v_attribute_control, v_prefix};
 		add_wch(&cc);
 	}
-	void f_attribute(attr_t a_a)
+	void f_attribute(attr_t a_value)
 	{
-		v_c.attr = a_a;
+		v_c.attr = a_value;
+		v_overlay = A_NORMAL;
+	}
+	void f_overlay(attr_t a_value)
+	{
+		v_c.attr = v_overlay = a_value;
 	}
 	void f_put(wchar_t a_c)
 	{
@@ -102,39 +108,34 @@ struct t_graphics
 	}
 	void f_tab()
 	{
-		size_t w = std::get<0>(v_target.f_tab(v_x, v_c.attr));
-		if (v_x % 8 == 0) {
-			cchar_t cc{v_attribute_control, L"|"};
+		cchar_t cc{v_overlay == A_NORMAL ? v_attribute_control : v_overlay, L" "};
+		for (size_t w = std::get<0>(v_target.f_tab(v_x, v_c.attr)); w > 1; --w) {
 			add_wch(&cc);
 			++v_x;
-			--w;
 		}
-		v_c.chars[0] = L' ';
-		while (w > 0) {
-			add_wch(&v_c);
-			++v_x;
-			--w;
-		}
+		cc.chars[0] = L'|';
+		add_wch(&cc);
+		++v_x;
 	}
 	void f_wrap()
 	{
-		clrtoeol();
+		if (v_x < v_target.f_width()) clrtoeol();
 	}
 	void f_eol()
 	{
-		cchar_t cc{v_attribute_control, L"/"};
+		cchar_t cc{v_overlay == A_NORMAL ? v_attribute_control : v_overlay, L"/"};
 		add_wch(&cc);
-		clrtoeol();
+		f_wrap();
 	}
 	void f_eof()
 	{
 		cchar_t cc{v_attribute_control, L"<"};
 		add_wch(&cc);
-		clrtoeol();
+		f_wrap();
 	}
 	void f_folded()
 	{
-		cchar_t cc{v_attribute_folded, L"."};
+		cchar_t cc{v_overlay == A_NORMAL ? v_attribute_folded : v_overlay, L"."};
 		for (size_t i = 0; i < 3; ++i) add_wch(&cc);
 	}
 	void f_empty(size_t a_y)
@@ -142,7 +143,7 @@ struct t_graphics
 		move(v_to + a_y, 0);
 		cchar_t cc{v_attribute_control, v_prefix};
 		add_wch(&cc);
-		clrtoeol();
+		f_wrap();
 	}
 };
 

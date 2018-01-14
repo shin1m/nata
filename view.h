@@ -385,13 +385,13 @@ public:
 		v_tokens_painted(a_p, n);
 		return i;
 	}
-	void f_folded(size_t a_p, bool v_folded)
+	void f_folded(size_t a_p, bool a_folded)
 	{
 		std::vector<typename t_foldings::t_iterator> path;
 		f_folding_at_in_text(a_p, path);
 		auto& i = path.back();
 		if (!i->v_x) return;
-		i->v_x->v_folded = v_folded;
+		i->v_x->v_folded = a_folded;
 		v_tokens_painted(a_p, i.f_delta().v_i1);
 	}
 	template<typename T>

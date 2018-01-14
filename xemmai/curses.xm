@@ -24,6 +24,10 @@ nata.curses(@() nata.main(@
 		else if c == nata.KEY_RIGHT
 			position = view.position(
 			if position < text.size(): view.position__(position + 1, true
+		else if c == nata.KEY_F1
+			view.folded(view.position(), true
+		else if c == nata.KEY_F2
+			view.folded(view.position(), false
 		else if c == nata.KEY_F3
 			position = view.position(
 			if position < text.size()
@@ -37,6 +41,12 @@ nata.curses(@() nata.main(@
 				view.overlay(1, position, 1, true
 				view.position__(position + 1, true
 		else if c == nata.KEY_F6
+			view.overlay(1, 0, text.size(), false
+		else if c == nata.KEY_F7
+			view.foldable(true
+			view.overlay(1, 0, text.size(), false
+		else if c == nata.KEY_F8
+			view.foldable(false
 			view.overlay(1, 0, text.size(), false
 		else if c == nata.KEY_BACKSPACE
 			position = view.position(

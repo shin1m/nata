@@ -44,6 +44,31 @@ struct t_view : t_proxy
 		v_widget.f_height__(LINES - 1);
 		v_target.v_resized();
 	}
+	void f_foldable(size_t a_p, size_t a_n, bool a_foldable)
+	{
+		size_t n = v_text.f_size();
+		if (a_p > n) t_throwable::f_throw(L"out of range.");
+		if (a_foldable)
+			v_rows.f_foldable(a_p, {{{{std::min(a_n, n - a_p)}}}});
+		else
+			v_rows.f_foldable(a_p, {{std::min(a_n, n - a_p)}});
+	}
+	void f_foldable(bool a_foldable)
+	{
+		auto& overlay = *v_widget.f_overlays()[1].second;
+		if (a_foldable) {
+			for (auto i = overlay.f_begin(); i != overlay.f_end(); ++i)
+				if (i->v_x) v_rows.f_foldable(i.f_index().v_i1, {{{{i.f_delta().v_i1}}}});
+		} else {
+			for (auto i = overlay.f_begin(); i != overlay.f_end(); ++i)
+				if (i->v_x) v_rows.f_foldable(i.f_index().v_i1, {{i.f_delta().v_i1}});
+		}
+	}
+	void f_folded(size_t a_p, bool a_folded)
+	{
+		if (a_p > v_text.f_size()) t_throwable::f_throw(L"out of range.");
+		v_rows.f_folded(a_p, a_folded);
+	}
 	size_t f_overlays() const
 	{
 		return v_widget.f_overlays().size();
