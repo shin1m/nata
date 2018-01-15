@@ -24,8 +24,13 @@ nata.curses(@() nata.main(@
 		else if c == nata.KEY_RIGHT
 			position = view.position(
 			if position < text.size(): view.position__(position + 1, true
+		else if c == nata.KEY_BACKSPACE
+			position = view.position(
+			if position > 0
+				view.folded(position - 1, false
+				text.replace(position - 1, 1, ""
 		else if c == nata.KEY_F1
-			view.folded(view.position(), true
+			view.position__(view.folded(view.position(), true), false
 		else if c == nata.KEY_F2
 			view.folded(view.position(), false
 		else if c == nata.KEY_F3
@@ -48,9 +53,6 @@ nata.curses(@() nata.main(@
 		else if c == nata.KEY_F8
 			view.foldable(false
 			view.overlay(1, 0, text.size(), false
-		else if c == nata.KEY_BACKSPACE
-			position = view.position(
-			if position > 0: text.replace(position - 1, 1, ""
 		else
 			if c == nata.KEY_ENTER || c == 0xd: c = 0xa
 			text.replace(view.position(), 0, String.from_code(c

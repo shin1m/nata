@@ -64,10 +64,10 @@ struct t_view : t_proxy
 				if (i->v_x) v_rows.f_foldable(i.f_index().v_i1, {{i.f_delta().v_i1}});
 		}
 	}
-	void f_folded(size_t a_p, bool a_folded)
+	size_t f_folded(size_t a_p, bool a_folded)
 	{
 		if (a_p > v_text.f_size()) t_throwable::f_throw(L"out of range.");
-		v_rows.f_folded(a_p, a_folded);
+		return v_rows.f_folded(a_p, a_folded);
 	}
 	size_t f_overlays() const
 	{

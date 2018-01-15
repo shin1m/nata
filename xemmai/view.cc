@@ -35,7 +35,7 @@ void t_type_of<xemmaix::nata::t_view>::f_define(t_extension* a_extension)
 			t_member<void(t_view::*)(size_t, size_t, bool), &t_view::f_foldable>(),
 			t_member<void(t_view::*)(bool), &t_view::f_foldable>()
 		)
-		(L"folded", t_member<void(t_view::*)(size_t, bool), &t_view::f_folded>())
+		(L"folded", t_member<size_t(t_view::*)(size_t, bool), &t_view::f_folded>())
 		(L"overlays", t_member<size_t(t_view::*)() const, &t_view::f_overlays>())
 		(L"add_overlay", t_member<void(t_view::*)(attr_t), &t_view::f_add_overlay>())
 		(L"remove_overlay", t_member<void(t_view::*)(size_t), &t_view::f_remove_overlay>())

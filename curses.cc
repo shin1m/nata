@@ -196,10 +196,13 @@ int main(int argc, char* argv[])
 				if (position < text.f_size()) widget.f_position__(position + 1, true);
 				break;
 			case KEY_BACKSPACE:
-				if (position > 0) text.f_replace(position - 1, 1, &c, &c);
+				if (position > 0) {
+					rows.f_folded(--position, false);
+					text.f_replace(position, 1, &c, &c);
+				}
 				break;
 			case KEY_F(1):
-				rows.f_folded(position, true);
+				widget.f_position__(rows.f_folded(position, true), false);
 				break;
 			case KEY_F(2):
 				rows.f_folded(position, false);
