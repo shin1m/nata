@@ -108,14 +108,15 @@ struct t_graphics
 	}
 	void f_tab()
 	{
-		cchar_t cc{v_overlay == A_NORMAL ? v_attribute_control : v_overlay, L" "};
-		for (size_t w = std::get<0>(v_target.f_tab(v_x, v_c.attr)); w > 1; --w) {
+		cchar_t cc{v_overlay == A_NORMAL ? v_attribute_control : v_overlay, L"|"};
+		add_wch(&cc);
+		size_t w = std::get<0>(v_target.f_tab(v_x++, v_c.attr));
+		if (--w <= 0) return;
+		cc.chars[0] = L' ';
+		do {
 			add_wch(&cc);
 			++v_x;
-		}
-		cc.chars[0] = L'|';
-		add_wch(&cc);
-		++v_x;
+		} while (--w > 0);
 	}
 	void f_wrap()
 	{
