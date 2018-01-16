@@ -128,16 +128,31 @@ public:
 	}
 	void f_overlay(size_t a_i, size_t a_p, size_t a_n, bool a_on)
 	{
-		v_overlays[a_i].second->f_replace(a_p, a_n, {{a_on, a_n}});
-		size_t bottom = v_top + f_height();
-		size_t y0 = v_rows.f_at_in_text(a_p).f_index().v_y;
-		if (y0 >= bottom) return;
-		auto row = v_rows.f_at_in_text(a_p + a_n);
-		size_t y1 = row.f_index().v_y + row.f_delta().v_y;
-		if (y1 <= v_top) return;
-		if (y0 < v_top) y0 = v_top;
-		if (y1 > bottom) y1 = bottom;
-		f_dirty(y0 - v_top, y1 - y0, true);
+		auto& overlay = *v_overlays[a_i].second;
+		auto bottom = v_rows.f_at(v_top + f_height());
+		if (a_p < bottom.f_index().v_text) {
+			auto row = v_rows.f_at(v_top);
+			size_t q = a_p + a_n;
+			if (q > row.f_index().v_text) {
+				if (q > bottom.f_index().v_text) q = bottom.f_index().v_text;
+				size_t p = std::max(row.f_index().v_text, a_p);
+				auto i = overlay.f_at_in_text(p);
+				if (i->v_x == a_on) p = (++i).f_index().v_i1;
+				for (; p < q; p = (++i).f_index().v_i1) {
+					while (row.f_index().v_text + row.f_delta().v_text <= p) ++row;
+					size_t y = row.f_index().v_y;
+					p = (++i).f_index().v_i1;
+					if (p >= q) {
+						while (bottom.f_index().v_text >= q) --bottom;
+						f_dirty(y - v_top, (++bottom).f_index().v_y - y, true);
+						break;
+					}
+					while (row.f_index().v_text < p) ++row;
+					f_dirty(y - v_top, row.f_index().v_y - y, true);
+				}
+			}
+		}
+		overlay.f_replace(a_p, a_n, {{a_on, a_n}});
 	}
 	template<typename T_graphics>
 	void f_render(T_graphics& a_target)
