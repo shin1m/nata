@@ -31,12 +31,12 @@ int main(int argc, char* argv[])
 	init_pair(2, COLOR_BLACK, COLOR_WHITE);
 	constexpr attr_t attribute_folded = A_DIM | COLOR_PAIR(2);
 	constexpr attr_t attribute_selected = A_REVERSE;
-	init_pair(4, -1, COLOR_YELLOW);
-	constexpr attr_t attribute_highlighted = COLOR_PAIR(4);
-	init_pair(5, COLOR_BLUE, -1);
-	constexpr attr_t attribute_comment = COLOR_PAIR(5);
-	init_pair(6, COLOR_YELLOW, -1);
-	constexpr attr_t attribute_keyword = COLOR_PAIR(6);
+	init_pair(3, -1, COLOR_YELLOW);
+	constexpr attr_t attribute_highlighted = COLOR_PAIR(3);
+	init_pair(4, COLOR_BLUE, -1);
+	constexpr attr_t attribute_comment = COLOR_PAIR(4);
+	init_pair(5, COLOR_YELLOW, -1);
+	constexpr attr_t attribute_keyword = COLOR_PAIR(5);
 	nata::t_text<nata::t_lines<c_lines_chunk, c_lines_chunk>, c_text_chunk, c_text_chunk> text;
 	if (argc > 1) {
 		std::wifstream in(argv[1]);

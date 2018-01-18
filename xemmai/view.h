@@ -15,16 +15,13 @@ namespace nata
 
 struct t_view : t_proxy
 {
-	static constexpr attr_t v_attribute_control = A_DIM | COLOR_PAIR(1);
-	static constexpr attr_t v_attribute_folded = A_DIM | COLOR_PAIR(2);
-	static constexpr attr_t v_attribute_selected = A_REVERSE;
-	static constexpr attr_t v_attribute_highlighted = COLOR_PAIR(4);
-
 	t_text& v_text;
 	::nata::t_tokens<::nata::t_text<>, attr_t> v_tokens;
 	::nata::curses::t_target v_target;
 	::nata::t_rows<decltype(v_tokens), decltype(v_target), ::nata::t_foldable<>> v_rows;
 	::nata::t_widget<decltype(v_rows)> v_widget;
+	attr_t v_attribute_control = A_NORMAL;
+	attr_t v_attribute_folded = A_NORMAL;
 	wchar_t v_prefix = L'\0';
 
 	static t_scoped f_construct(t_object* a_class, t_text& a_text)
@@ -35,8 +32,6 @@ struct t_view : t_proxy
 	t_view(t_object* a_class, t_text& a_text) : t_proxy(a_class), v_text(a_text), v_tokens(v_text.v_text), v_rows(v_tokens, v_target), v_widget(v_rows, LINES - 1)
 	{
 		++v_text.v_n;
-		v_widget.f_add_overlay(v_attribute_highlighted);
-		v_widget.f_add_overlay(v_attribute_selected);
 	}
 	virtual void f_destroy();
 	void f_resize()
@@ -44,18 +39,22 @@ struct t_view : t_proxy
 		v_widget.f_height__(LINES - 1);
 		v_target.v_resized();
 	}
-	void f_foldable(size_t a_p, size_t a_n, bool a_foldable)
+	void f_attributes(attr_t a_control, attr_t a_folded)
 	{
-		size_t n = v_text.f_size();
-		if (a_p > n) t_throwable::f_throw(L"out of range.");
-		if (a_foldable)
-			v_rows.f_foldable(a_p, {{{{std::min(a_n, n - a_p)}}}});
-		else
-			v_rows.f_foldable(a_p, {{std::min(a_n, n - a_p)}});
+		v_attribute_control = a_control;
+		v_attribute_folded = a_folded;
 	}
-	void f_foldable(bool a_foldable)
+	void f_paint(size_t a_i, attr_t a_attribute)
 	{
-		auto& overlay = *v_widget.f_overlays()[1].second;
+		if (a_i > f_overlays()) t_throwable::f_throw(L"out of range.");
+		auto& overlay = *v_widget.f_overlays()[a_i].second;
+		for (auto i = overlay.f_begin(); i != overlay.f_end(); ++i)
+			if (i->v_x) v_rows.v_tokens.f_paint(i.f_index().v_i1, {{a_attribute, i.f_delta().v_i1}});
+	}
+	void f_foldable(size_t a_i, bool a_foldable)
+	{
+		if (a_i > f_overlays()) t_throwable::f_throw(L"out of range.");
+		auto& overlay = *v_widget.f_overlays()[a_i].second;
 		if (a_foldable) {
 			for (auto i = overlay.f_begin(); i != overlay.f_end(); ++i)
 				if (i->v_x) v_rows.f_foldable(i.f_index().v_i1, {{{{i.f_delta().v_i1}}}});
