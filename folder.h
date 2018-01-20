@@ -1,7 +1,8 @@
 #ifndef NATA__FOLDER_H
 #define NATA__FOLDER_H
 
-#include "view.h"
+#include <deque>
+#include <vector>
 
 namespace nata
 {

@@ -1,7 +1,7 @@
 #ifndef NATA__PAINTER_H
 #define NATA__PAINTER_H
 
-#include "view.h"
+#include <deque>
 
 namespace nata
 {

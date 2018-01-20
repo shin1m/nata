@@ -1,8 +1,8 @@
 #ifndef NATA__MODEL_H
 #define NATA__MODEL_H
 
-#include "spans.h"
 #include "signal.h"
+#include "spans.h"
 
 namespace nata
 {

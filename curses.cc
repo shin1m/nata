@@ -1,3 +1,5 @@
+#include "model.h"
+#include "rows.h"
 #include "widget.h"
 #include "painter.h"
 #include "folder.h"
@@ -209,21 +211,21 @@ int main(int argc, char* argv[])
 				break;
 			case KEY_F(3):
 				if (position < text.f_size()) {
-					widget.f_overlay(0, position, 1, true);
+					widget.f_overlays()[0].second->f_paint(position, {{true, 1}});
 					widget.f_position__(position + 1, true);
 				}
 				break;
 			case KEY_F(4):
-				widget.f_overlay(0, 0, text.f_size(), false);
+				widget.f_overlays()[0].second->f_paint(0, {{false, text.f_size()}});
 				break;
 			case KEY_F(5):
 				if (position < text.f_size()) {
-					widget.f_overlay(1, position, 1, true);
+					widget.f_overlays()[1].second->f_paint(position, {{true, 1}});
 					widget.f_position__(position + 1, true);
 				}
 				break;
 			case KEY_F(6):
-				widget.f_overlay(1, 0, text.f_size(), false);
+				widget.f_overlays()[1].second->f_paint(0, {{false, text.f_size()}});
 				break;
 			case KEY_ENTER:
 			case L'\r':

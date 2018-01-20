@@ -4,7 +4,8 @@ EXTRA_DIST = \
 	stretches.h \
 	nested.h \
 	model.h \
-	view.h \
+	tokens.h \
+	rows.h \
 	widget.h \
 	folder.h \
 	curses.h

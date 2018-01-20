@@ -21,7 +21,8 @@ check_PROGRAMS = \
 	test_nested \
 	test_lines \
 	test_text \
-	test_view \
+	test_tokens \
+	test_rows \
 	test_foldings \
 	test_painter \
 	test_folder

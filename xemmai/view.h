@@ -1,7 +1,7 @@
 #ifndef XEMMAIX__NATA__VIEW_H
 #define XEMMAIX__NATA__VIEW_H
 
-#include "../view.h"
+#include "../rows.h"
 #include "../widget.h"
 #include "../curses.h"
 #include "text.h"
@@ -85,7 +85,7 @@ struct t_view : t_proxy
 	{
 		size_t n = v_text.f_size();
 		if (a_i > f_overlays() || a_p > n) t_throwable::f_throw(L"out of range.");
-		v_widget.f_overlay(a_i, a_p, std::min(a_n, n - a_p), a_on);
+		v_widget.f_overlays()[a_i].second->f_paint(a_p, {{a_on, std::min(a_n, n - a_p)}});
 	}
 	void f_render()
 	{

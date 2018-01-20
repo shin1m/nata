@@ -1,5 +1,7 @@
-#include "view.h"
 #include "test_spans.h"
+#include "model.h"
+#include "tokens.h"
+#include "rows.h"
 
 template<typename T>
 void f_assert_equals(const T& a0, std::initializer_list<typename T::t_row> a1)

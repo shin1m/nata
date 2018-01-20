@@ -1,4 +1,6 @@
-#include "view.h"
+#include "model.h"
+#include "tokens.h"
+#include "rows.h"
 
 int main(int argc, char* argv[])
 {

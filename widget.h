@@ -1,20 +1,19 @@
 #ifndef NATA__WIDGET_H
 #define NATA__WIDGET_H
 
-#include "stretches.h"
-#include "signal.h"
+#include "tokens.h"
 #include <vector>
 
 namespace nata
 {
 
-template<typename T_rows, typename T_region = t_stretches<bool, 8, 8>>
+template<typename T_rows, typename T_region = t_stretches<bool, 8, 8>, typename T_overlay = t_tokens<std::decay_t<decltype(std::decay_t<decltype(T_rows::v_tokens)>::v_text)>, bool>>
 class t_widget
 {
 	const T_rows& v_rows;
 	T_region v_region;
 	using t_attribute = decltype(v_rows.v_tokens.f_begin()->v_x);
-	std::vector<std::pair<t_attribute, std::unique_ptr<T_region>>> v_overlays;
+	std::vector<std::pair<t_attribute, std::unique_ptr<T_overlay>>> v_overlays;
 
 	void f_dirty(size_t a_y, size_t a_height, bool a_dirty)
 	{
@@ -64,19 +63,30 @@ class t_widget
 		}
 		f_top__(v_top);
 	}
-	nata::t_slot<size_t, size_t, size_t, size_t, size_t, size_t> v_replaced = [this](auto a_p, auto a_n0, auto a_n1, auto a_y, auto a_h0, auto a_h1)
+	t_slot<size_t, size_t, size_t, size_t, size_t, size_t> v_replaced = [this](auto a_p, auto a_n0, auto a_n1, auto a_y, auto a_h0, auto a_h1)
 	{
-		for (auto& x : v_overlays) x.second->f_replace(a_p, a_n0, {{false, a_n1}});
 		f_adjust(a_y, a_h0, a_h1);
 		size_t& p = std::get<0>(v_position);
 		if (p < a_p) return;
 		if (p > a_p || a_n0 <= 0) p = (p < a_p + a_n0 ? a_p : p - a_n0) + a_n1;
 		f_from_position(v_row.f_index().v_y < a_y + a_h0);
 	};
-	nata::t_slot<size_t, size_t, size_t, size_t, size_t> v_painted = [this](auto, auto, auto a_y, auto a_h0, auto a_h1)
+	t_slot<size_t, size_t, size_t, size_t, size_t> v_painted = [this](auto, auto, auto a_y, auto a_h0, auto a_h1)
 	{
 		f_adjust(a_y, a_h0, a_h1);
 		f_from_position();
+	};
+	t_slot<size_t, size_t> v_overlay_painted = [this](auto a_p, auto a_n)
+	{
+		size_t bottom = v_top + f_height();
+		size_t y0 = v_rows.f_at_in_text(a_p).f_index().v_y;
+		if (y0 >= bottom) return;
+		auto row = v_rows.f_at_in_text(a_p + a_n);
+		size_t y1 = row.f_index().v_y + row.f_delta().v_y;
+		if (y1 <= v_top) return;
+		if (y0 < v_top) y0 = v_top;
+		if (y1 > bottom) y1 = bottom;
+		f_dirty(y0 - v_top, y1 - y0, true);
 	};
 
 public:
@@ -118,41 +128,13 @@ public:
 	}
 	void f_add_overlay(const t_attribute& a_attribute)
 	{
-		v_overlays.emplace_back(a_attribute, std::make_unique<T_region>());
-		v_overlays.back().second->f_replace(0, 0, {{false, v_rows.v_tokens.v_text.f_size() + 1}});
+		v_overlays.emplace_back(a_attribute, std::make_unique<T_overlay>(v_rows.v_tokens.v_text));
+		v_overlays.back().second->v_painted >> v_overlay_painted;
 	}
 	void f_remove_overlay(size_t a_i)
 	{
 		v_overlays.erase(v_overlays.begin() + a_i);
 		f_dirty(0, f_height(), true);
-	}
-	void f_overlay(size_t a_i, size_t a_p, size_t a_n, bool a_on)
-	{
-		auto& overlay = *v_overlays[a_i].second;
-		auto bottom = v_rows.f_at(v_top + f_height());
-		if (a_p < bottom.f_index().v_text) {
-			auto row = v_rows.f_at(v_top);
-			size_t q = a_p + a_n;
-			if (q > row.f_index().v_text) {
-				if (q > bottom.f_index().v_text) q = bottom.f_index().v_text;
-				size_t p = std::max(row.f_index().v_text, a_p);
-				auto i = overlay.f_at_in_text(p);
-				if (i->v_x == a_on) p = (++i).f_index().v_i1;
-				for (; p < q; p = (++i).f_index().v_i1) {
-					while (row.f_index().v_text + row.f_delta().v_text <= p) ++row;
-					size_t y = row.f_index().v_y;
-					p = (++i).f_index().v_i1;
-					if (p >= q) {
-						while (bottom.f_index().v_text >= q) --bottom;
-						f_dirty(y - v_top, (++bottom).f_index().v_y - y, true);
-						break;
-					}
-					while (row.f_index().v_text < p) ++row;
-					f_dirty(y - v_top, row.f_index().v_y - y, true);
-				}
-			}
-		}
-		overlay.f_replace(a_p, a_n, {{a_on, a_n}});
 	}
 	template<typename T_graphics>
 	void f_render(T_graphics& a_target)
@@ -165,7 +147,7 @@ public:
 		size_t fd;
 		decltype(v_rows.v_tokens.f_begin()) token;
 		size_t td;
-		std::vector<std::pair<typename T_region::t_iterator, size_t>> overlays{v_overlays.size()};
+		std::vector<std::pair<typename T_overlay::t_iterator, size_t>> overlays{v_overlays.size()};
 		auto skip = [&](size_t p)
 		{
 			fd = folding.back().f_delta().v_i1;
