@@ -126,12 +126,14 @@ struct t_graphics
 	{
 		cchar_t cc{v_overlay == A_NORMAL ? v_attribute_control : v_overlay, L"/"};
 		add_wch(&cc);
+		v_x += std::get<0>(v_target.f_eol(v_c.attr));
 		f_wrap();
 	}
 	void f_eof()
 	{
 		cchar_t cc{v_attribute_control, L"<"};
 		add_wch(&cc);
+		v_x += std::get<0>(v_target.f_eof());
 		f_wrap();
 	}
 	void f_folded()
@@ -144,7 +146,7 @@ struct t_graphics
 		move(v_to + a_y, 0);
 		cchar_t cc{v_attribute_control, v_prefix};
 		add_wch(&cc);
-		f_wrap();
+		clrtoeol();
 	}
 };
 
