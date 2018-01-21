@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 				auto& m = (*v_i)[0];
 				size_t a = m.first.f_index() - v_painter.f_p();
 				size_t b = m.second.f_index() - m.first.f_index();
-				v_painter.f_push(0, a, 64);
+				v_painter.f_push(A_NORMAL, a, 64);
 				v_painter.f_push(type == 1 ? attribute_comment : attribute_keyword, b, 64);
 				auto close = [&]
 				{
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
 			size_t n = v_rows.v_tokens.v_text.f_size();
 			if (v_i == v_eos) {
 				n -= v_painter.f_p();
-				v_painter.f_push(0, n, 64);
+				v_painter.f_push(A_NORMAL, n, 64);
 				v_painter.f_flush();
 				v_folder.f_push(n);
 				v_folder.f_flush();
@@ -174,6 +174,20 @@ int main(int argc, char* argv[])
 		wint_t c;
 		if (get_wch(&c) != ERR) {
 			if (c == 0x1b) break;
+			auto paint_overlay = [&](size_t i)
+			{
+				if (position >= text.f_size()) return;
+				widget.f_overlays()[i].second->f_paint(position, {{true, 1}});
+				widget.f_position__(position + 1, true);
+			};
+			auto clear_overlay = [&](size_t i)
+			{
+				auto& overlay = *widget.f_overlays()[i].second;
+				nata::t_painter<std::decay_t<decltype(overlay)>> painter(overlay);
+				painter.f_reset();
+				painter.f_push(false, text.f_size());
+				painter.f_flush();
+			};
 			switch (c) {
 			case KEY_RESIZE:
 				widget.f_height__(LINES - 1);
@@ -210,22 +224,16 @@ int main(int argc, char* argv[])
 				rows.f_folded(position, false);
 				break;
 			case KEY_F(3):
-				if (position < text.f_size()) {
-					widget.f_overlays()[0].second->f_paint(position, {{true, 1}});
-					widget.f_position__(position + 1, true);
-				}
+				paint_overlay(0);
 				break;
 			case KEY_F(4):
-				widget.f_overlays()[0].second->f_paint(0, {{false, text.f_size()}});
+				clear_overlay(0);
 				break;
 			case KEY_F(5):
-				if (position < text.f_size()) {
-					widget.f_overlays()[1].second->f_paint(position, {{true, 1}});
-					widget.f_position__(position + 1, true);
-				}
+				paint_overlay(1);
 				break;
 			case KEY_F(6):
-				widget.f_overlays()[1].second->f_paint(0, {{false, text.f_size()}});
+				clear_overlay(1);
 				break;
 			case KEY_ENTER:
 			case L'\r':
