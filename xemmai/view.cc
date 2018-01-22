@@ -8,6 +8,9 @@ namespace nata
 
 void t_view::f_destroy()
 {
+	delete v_widget;
+	delete v_rows;
+	delete v_tokens;
 	--v_text.v_n;
 	t_proxy::f_destroy();
 }

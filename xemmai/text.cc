@@ -9,6 +9,7 @@ namespace nata
 void t_text::f_destroy()
 {
 	if (v_n > 0) t_throwable::f_throw(L"still in use.");
+	delete v_text;
 	t_proxy::f_destroy();
 }
 

@@ -14,7 +14,7 @@ namespace nata
 struct t_text : t_proxy
 {
 	size_t v_n = 0;
-	::nata::t_text<> v_text;
+	::nata::t_text<>* v_text = new ::nata::t_text<>();
 
 	static t_scoped f_construct(t_object* a_class)
 	{
@@ -25,23 +25,23 @@ struct t_text : t_proxy
 	virtual void f_destroy();
 	size_t f_size() const
 	{
-		return v_text.f_size();
+		return v_text->f_size();
 	}
 	std::wstring f_slice(size_t a_p, size_t a_n) const
 	{
 		size_t n = f_size();
 		if (a_p > n) t_throwable::f_throw(L"out of range.");
-		return {v_text.f_at(a_p), v_text.f_at(a_p + std::min(a_n, n - a_p))};
+		return {v_text->f_at(a_p), v_text->f_at(a_p + std::min(a_n, n - a_p))};
 	}
 	void f_replace(size_t a_p, size_t a_n, const std::wstring& a_text)
 	{
 		size_t n = f_size();
 		if (a_p > n) t_throwable::f_throw(L"out of range.");
-		v_text.f_replace(a_p, std::min(a_n, n - a_p), a_text.begin(), a_text.end());
+		v_text->f_replace(a_p, std::min(a_n, n - a_p), a_text.begin(), a_text.end());
 	}
 	size_t f_lines() const
 	{
-		return v_text.f_lines().f_size().v_i0;
+		return v_text->f_lines().f_size().v_i0;
 	}
 };
 
