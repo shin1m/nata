@@ -16,6 +16,8 @@ AM_LDFLAGS += -pg
 endif
 nata_so_LDADD = $(XEMMAI_LIBS) -lncursesw -ltinfo
 nata_so_SOURCES = \
+	proxy.h \
+	proxy.cc \
 	text.h \
 	text.cc \
 	view.h \

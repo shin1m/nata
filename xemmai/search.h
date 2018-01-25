@@ -1,8 +1,8 @@
 #ifndef XEMMAIX__NATA__SEARCH_H
 #define XEMMAIX__NATA__SEARCH_H
 
-#include "text.h"
 #include <regex>
+#include "text.h"
 #include <xemmai/derived.h>
 
 namespace xemmaix

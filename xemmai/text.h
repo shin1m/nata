@@ -2,7 +2,7 @@
 #define XEMMAIX__NATA__TEXT_H
 
 #include "../model.h"
-#include "nata.h"
+#include "proxy.h"
 #include <xemmai/derived.h>
 
 namespace xemmaix

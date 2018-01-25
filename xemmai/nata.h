@@ -11,6 +11,10 @@
 
 #include <xemmai/convert.h>
 
+namespace nata
+{
+}
+
 namespace xemmaix
 {
 
@@ -79,43 +83,6 @@ public:
 	t_extension* f_extension() const
 	{
 		return v_extension;
-	}
-};
-
-class t_proxy : public t_entry
-{
-	t_session* v_session;
-	t_scoped v_object;
-	t_scoped v_owner;
-	size_t v_n = 1;
-
-protected:
-	t_proxy(t_object* a_class) : t_entry(t_session::f_instance()), v_session(t_session::f_instance()), v_object(t_object::f_allocate(a_class)), v_owner(v_object)
-	{
-		v_object.f_pointer__(this);
-	}
-	virtual void f_destroy() = 0;
-
-public:
-	virtual ~t_proxy() = default;
-	virtual void f_dispose();
-	void f_acquire()
-	{
-		++v_n;
-	}
-	void f_release()
-	{
-		if (--v_n > 0) return;
-		f_destroy();
-		v_owner = nullptr;
-	}
-	bool f_valid() const
-	{
-		return v_session == t_session::f_instance();
-	}
-	t_object* f_object() const
-	{
-		return v_object;
 	}
 };
 
@@ -207,25 +174,6 @@ inline t_object* t_extension::f_type<t_search>() const
 }
 
 }
-
-}
-
-namespace xemmai
-{
-
-template<>
-struct t_type_of<xemmaix::nata::t_proxy> : t_type
-{
-#include "cast.h"
-	typedef xemmaix::nata::t_extension t_extension;
-
-	static void f_define(t_extension* a_extension);
-
-	using t_type::t_type;
-	virtual t_type* f_derive(t_object* a_this);
-	virtual void f_finalize(t_object* a_this);
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
-};
 
 }
 
