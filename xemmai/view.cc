@@ -11,8 +11,7 @@ void t_view::f_destroy()
 	delete v_widget;
 	delete v_rows;
 	delete v_tokens;
-	--v_text.v_n;
-	t_proxy::f_destroy();
+	v_text.f_release();
 }
 
 }
@@ -25,9 +24,8 @@ namespace xemmai
 void t_type_of<xemmaix::nata::t_view>::f_define(t_extension* a_extension)
 {
 	using xemmaix::nata::t_view;
-	t_define<t_view, t_object>(a_extension, L"View")
+	t_define<t_view, xemmaix::nata::t_proxy>(a_extension, L"View")
 		(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_text&), xemmaix::nata::t_view::f_construct>())
-		(L"destroy", t_member<void(t_view::*)(), &t_view::f_destroy>())
 		(L"resize", t_member<void(t_view::*)(), &t_view::f_resize>())
 		(L"attributes", t_member<void(t_view::*)(attr_t, attr_t), &t_view::f_attributes>())
 		(L"paint", t_member<void(t_view::*)(size_t, attr_t), &t_view::f_paint>())
@@ -51,13 +49,6 @@ void t_type_of<xemmaix::nata::t_view>::f_define(t_extension* a_extension)
 t_type* t_type_of<xemmaix::nata::t_view>::f_derive(t_object* a_this)
 {
 	return new t_derived<t_type_of>(t_scoped(v_module), a_this);
-}
-
-void t_type_of<xemmaix::nata::t_view>::f_finalize(t_object* a_this)
-{
-	auto p = static_cast<xemmaix::nata::t_view*>(a_this->f_pointer());
-	assert(!p->f_object());
-	delete p;
 }
 
 t_scoped t_type_of<xemmaix::nata::t_view>::f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n)

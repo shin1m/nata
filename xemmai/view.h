@@ -31,7 +31,7 @@ struct t_view : t_proxy
 
 	t_view(t_object* a_class, t_text& a_text) : t_proxy(a_class), v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows, LINES - 1))
 	{
-		++v_text.v_n;
+		v_text.f_acquire();
 	}
 	virtual void f_destroy();
 	void f_resize()
@@ -148,16 +148,12 @@ namespace xemmai
 {
 
 template<>
-struct t_type_of<xemmaix::nata::t_view> : t_type
+struct t_type_of<xemmaix::nata::t_view> : t_type_of<xemmaix::nata::t_proxy>
 {
-#include "cast.h"
-	typedef xemmaix::nata::t_extension t_extension;
-
 	static void f_define(t_extension* a_extension);
 
-	using t_type::t_type;
+	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
 	virtual t_type* f_derive(t_object* a_this);
-	virtual void f_finalize(t_object* a_this);
 	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
 };
 

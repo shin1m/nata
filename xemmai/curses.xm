@@ -43,10 +43,13 @@ nata.curses(@() nata.main(@
 		else if c == nata.KEY_F2
 			view.folded(view.position(), false
 		else if c == nata.KEY_F3
-			position = view.position(
-			if position < text.size()
-				view.overlay(0, position, 1, true
-				view.position__(position + 1, true
+			search = nata.Search(text
+			try
+				search.pattern("all", nata.Search.ECMASCRIPT
+				while (match = search.next()).size() > 0
+					view.overlay(0, match[0][0], match[0][1], true
+			finally
+				search.dispose(
 		else if c == nata.KEY_F4
 			view.overlay(0, 0, text.size(), false
 		else if c == nata.KEY_F5

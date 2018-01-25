@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 		decltype(rows)& v_rows;
 		nata::t_painter<decltype(tokens)> v_painter{v_rows.v_tokens};
 		nata::t_folder<decltype(rows), size_t> v_folder{v_rows};
-		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(?:(if|for|in|break|continue|return)|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done))\\b)", std::regex_constants::ECMAScript | std::regex_constants::optimize};
+		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(?:(if|for|in|break|continue|return)|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done))\\b)", std::wregex::ECMAScript | std::wregex::optimize};
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_eos;
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_i;
 		std::wstring v_message;
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
 						s += {text.f_at(p), text.f_at(p + i.f_delta().v_i1)};
 					}
 					try {
-						search.v_pattern = s.c_str();
+						search.v_pattern = s;
 					} catch (std::regex_error& e) {
 						search.v_pattern = {};
 					}

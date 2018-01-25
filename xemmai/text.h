@@ -13,7 +13,6 @@ namespace nata
 
 struct t_text : t_proxy
 {
-	size_t v_n = 0;
 	::nata::t_text<>* v_text = new ::nata::t_text<>();
 
 	static t_scoped f_construct(t_object* a_class)
@@ -53,16 +52,12 @@ namespace xemmai
 {
 
 template<>
-struct t_type_of<xemmaix::nata::t_text> : t_type
+struct t_type_of<xemmaix::nata::t_text> : t_type_of<xemmaix::nata::t_proxy>
 {
-#include "cast.h"
-	typedef xemmaix::nata::t_extension t_extension;
-
 	static void f_define(t_extension* a_extension);
 
-	using t_type::t_type;
+	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
 	virtual t_type* f_derive(t_object* a_this);
-	virtual void f_finalize(t_object* a_this);
 	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
 };
 

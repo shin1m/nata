@@ -20,5 +20,7 @@ nata_so_SOURCES = \
 	text.cc \
 	view.h \
 	view.cc \
+	search.h \
+	search.cc \
 	nata.h \
 	nata.cc
