@@ -3,7 +3,6 @@
 
 #include <regex>
 #include "text.h"
-#include <xemmai/derived.h>
 
 namespace xemmaix
 {
@@ -21,7 +20,7 @@ struct t_search : t_proxy
 
 	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 	{
-		v_i = decltype(v_i)(v_p.f_begin(), v_p.f_end(), v_pattern);
+		v_i = {};
 	};
 	::nata::t_connection<decltype(v_replaced)>* v_connection;
 

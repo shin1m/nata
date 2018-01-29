@@ -63,7 +63,7 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_type
 		{
 			auto p = static_cast<T0*>(f_object(a_object)->f_pointer());
 			if (!p->f_valid()) t_throwable::f_throw(L"accessing from other thread.");
-			if (!p->f_object()) t_throwable::f_throw(L"already destroyed.");
+			if (!p->f_object()) t_throwable::f_throw(L"already disposed.");
 			return p;
 		}
 	};
