@@ -32,6 +32,8 @@ class t_view;
 class t_overlay;
 class t_overlay_iterator;
 class t_search;
+class t_painter;
+class t_folder;
 
 class t_entry
 {
@@ -98,6 +100,8 @@ class t_extension : public xemmai::t_extension
 	t_slot v_type_overlay;
 	t_slot v_type_overlay_iterator;
 	t_slot v_type_search;
+	t_slot v_type_painter;
+	t_slot v_type_folder;
 
 	template<typename T>
 	void f_type__(t_scoped&& a_type);
@@ -160,6 +164,18 @@ inline void t_extension::f_type__<t_search>(t_scoped&& a_type)
 }
 
 template<>
+inline void t_extension::f_type__<t_painter>(t_scoped&& a_type)
+{
+	v_type_painter = std::move(a_type);
+}
+
+template<>
+inline void t_extension::f_type__<t_folder>(t_scoped&& a_type)
+{
+	v_type_folder = std::move(a_type);
+}
+
+template<>
 inline const t_extension* t_extension::f_extension<t_extension>() const
 {
 	return this;
@@ -199,6 +215,18 @@ template<>
 inline t_object* t_extension::f_type<t_search>() const
 {
 	return v_type_search;
+}
+
+template<>
+inline t_object* t_extension::f_type<t_painter>() const
+{
+	return v_type_painter;
+}
+
+template<>
+inline t_object* t_extension::f_type<t_folder>() const
+{
+	return v_type_folder;
 }
 
 }

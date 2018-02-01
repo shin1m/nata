@@ -24,5 +24,9 @@ nata_so_SOURCES = \
 	view.cc \
 	search.h \
 	search.cc \
+	painter.h \
+	painter.cc \
+	folder.h \
+	folder.cc \
 	nata.h \
 	nata.cc

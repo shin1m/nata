@@ -1,6 +1,6 @@
-#include "text.h"
-#include "view.h"
 #include "search.h"
+#include "painter.h"
+#include "folder.h"
 
 namespace xemmaix
 {
@@ -67,6 +67,8 @@ t_extension::t_extension(t_object* a_module) : xemmai::t_extension(a_module)
 	t_type_of<t_overlay>::f_define(this);
 	t_type_of<t_overlay_iterator>::f_define(this);
 	t_type_of<t_search>::f_define(this);
+	t_type_of<t_painter>::f_define(this);
+	t_type_of<t_folder>::f_define(this);
 	f_define<void(*)(t_extension*, const t_value&), f_main>(this, L"main");
 	f_define<void(*)(const t_value&), f_curses>(this, L"curses");
 	f_define<void(*)(short, short, short), f_define_pair>(this, L"define_pair");
@@ -115,6 +117,7 @@ t_extension::t_extension(t_object* a_module) : xemmai::t_extension(a_module)
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_F11"), f_as(KEY_F(11)));
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_F12"), f_as(KEY_F(12)));
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_ENTER"), f_as(KEY_ENTER));
+	f_define<void(*)(int), timeout>(this, L"timeout");
 }
 
 void t_extension::f_scan(t_scan a_scan)
@@ -125,6 +128,8 @@ void t_extension::f_scan(t_scan a_scan)
 	a_scan(v_type_overlay);
 	a_scan(v_type_overlay_iterator);
 	a_scan(v_type_search);
+	a_scan(v_type_painter);
+	a_scan(v_type_folder);
 }
 
 }

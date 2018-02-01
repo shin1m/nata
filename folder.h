@@ -2,6 +2,7 @@
 #define NATA__FOLDER_H
 
 #include <deque>
+#include <numeric>
 #include <vector>
 
 namespace nata
@@ -84,6 +85,10 @@ public:
 		v_nesting.push_back({{}});
 		v_path.clear();
 		v_path.push_back(v_rows.f_foldings().f_begin());
+	}
+	size_t f_current() const
+	{
+		return v_p + v_n;
 	}
 	void f_push(size_t a_n)
 	{

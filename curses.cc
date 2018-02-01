@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 		std::wifstream in(argv[1]);
 		in.imbue(std::locale(""));
 		while (in.good()) {
-			wchar_t cs[8];
+			wchar_t cs[256];
 			in.read(cs, sizeof(cs) / sizeof(wchar_t));
 			text.f_replace(text.f_size(), 0, cs, cs + in.gcount());
 		}
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 
 		operator bool() const
 		{
-			return v_painter.f_p() < v_rows.v_tokens.v_text.f_size();
+			return v_painter.f_current() < v_rows.v_tokens.v_text.f_size();
 		}
 		void operator()()
 		{
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 					if (m.first != m.second) break;
 				}
 				auto& m = (*v_i)[0];
-				size_t a = m.first.f_index() - v_painter.f_p();
+				size_t a = m.first.f_index() - v_painter.f_current();
 				size_t b = m.second.f_index() - m.first.f_index();
 				v_painter.f_push(A_NORMAL, a, 64);
 				v_painter.f_push(type == 1 ? attribute_comment : attribute_keyword, b, 64);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
 			}
 			size_t n = v_rows.v_tokens.v_text.f_size();
 			if (v_i == v_eos) {
-				n -= v_painter.f_p();
+				n -= v_painter.f_current();
 				v_painter.f_push(A_NORMAL, n, 64);
 				v_painter.f_flush();
 				v_folder.f_push(n);
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 			} else {
 				v_painter.f_flush();
 				std::wostringstream s;
-				s << L"running: " << v_painter.f_p() * 100 / n << L'%';
+				s << L"running: " << v_painter.f_current() * 100 / n << L'%';
 				v_message = s.str();
 			}
 		}
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
 
 		operator bool() const
 		{
-			return v_painter.f_p() < v_overlay.v_text.f_size();
+			return v_painter.f_current() < v_overlay.v_text.f_size();
 		}
 		void operator()()
 		{
@@ -166,11 +166,11 @@ int main(int argc, char* argv[])
 			for (size_t i = 0; i < c_task_unit; ++i) {
 				if (v_i == v_eos) break;
 				auto& m = (*v_i)[0];
-				v_painter.f_push(false, m.first.f_index() - v_painter.f_p(), 64);
+				v_painter.f_push(false, m.first.f_index() - v_painter.f_current(), 64);
 				v_painter.f_push(true, m.second.f_index() - m.first.f_index(), 64);
 				++v_i;
 			}
-			if (v_i == v_eos) v_painter.f_push(false, v_overlay.v_text.f_size() - v_painter.f_p(), 64);
+			if (v_i == v_eos) v_painter.f_push(false, v_overlay.v_text.f_size() - v_painter.f_current(), 64);
 			v_painter.f_flush();
 		}
 

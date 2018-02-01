@@ -15,6 +15,8 @@ struct t_foldable
 	bool v_folded = false;
 };
 
+template<typename, typename> class t_folder;
+
 template<typename T_tokens, typename T_target, typename T_foldable = t_foldable<>, size_t A_leaf = 256, size_t A_branch = 256>
 struct t_rows
 {

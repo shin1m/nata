@@ -19,15 +19,15 @@ public:
 	t_painter(T_tokens& a_tokens) : v_tokens(a_tokens)
 	{
 	}
-	size_t f_p() const
-	{
-		return v_p;
-	}
 	void f_reset()
 	{
 		v_p = 0;
 		v_xs.clear();
 		v_i = v_tokens.f_begin();
+	}
+	size_t f_current() const
+	{
+		return v_p;
 	}
 	void f_push(decltype(T_tokens::t_span::v_x) a_x, size_t a_n, size_t a_merge = 0)
 	{
