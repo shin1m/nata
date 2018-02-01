@@ -50,7 +50,6 @@ nata.main(@() nata.curses(@
 		painter = nata.Painter(view
 		folder = nata.Folder(view
 		exports = Object(
-		exports.message = ""
 		exports.more = @() painter.current() < text.size()
 		exports.step = @
 			if !exports.more(): return
@@ -85,13 +84,13 @@ nata.main(@() nata.curses(@
 					folder.push(a + b
 			if match.size() > 0
 				painter.flush(
-				exports.message = "running: " + painter.current() * 100 / text.size() + "%"
+				view.message__("running: " + painter.current() * 100 / text.size() + "%"
 			else
 				painter.push(nata.A_NORMAL, -1, 64
 				painter.flush(
 				folder.push(-1
 				folder.flush(
-				exports.message = ""
+				view.message__(""
 		search.reset(
 		painter.reset(
 		folder.reset(

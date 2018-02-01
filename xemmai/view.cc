@@ -86,6 +86,7 @@ void t_type_of<xemmaix::nata::t_view>::f_define(t_extension* a_extension)
 		(L"rows", t_member<size_t(t_view::*)() const, &t_view::f_rows>())
 		(L"row", t_member<size_t(t_view::*)() const, &t_view::f_row>())
 		(L"into_view", t_member<void(t_view::*)(size_t), &t_view::f_into_view>())
+		(L"message__", t_member<void(t_view::*)(const std::wstring&), &t_view::f_message__>())
 	;
 }
 

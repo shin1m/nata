@@ -24,6 +24,7 @@ struct t_view : t_proxy
 	std::vector<t_overlay*> v_overlays;
 	attr_t v_attribute_control = A_NORMAL;
 	attr_t v_attribute_folded = A_NORMAL;
+	std::wstring v_message;
 	wchar_t v_prefix = L'\0';
 
 	static t_scoped f_construct(t_object* a_class, t_text& a_text)
@@ -71,12 +72,14 @@ struct t_view : t_proxy
 			v_prefix = (v_prefix + 1) % 10;
 		}
 		size_t position = std::get<0>(v_widget->v_position);
-		{
+		if (v_message.empty()) {
 			auto line = v_text.v_text->f_lines().f_at_in_text(position).f_index();
 			size_t column = position - line.v_i1;
 			size_t x = std::get<1>(v_widget->v_position) - v_widget->v_line.v_x;
 			size_t n = v_widget->f_range();
 			mvprintw(v_widget->f_height(), 0, "%d,%d-%d %d%%", line.v_i0, column, x, n > 0 ? v_widget->v_top * 100 / n : 100);
+		} else {
+			mvaddwstr(v_widget->f_height(), 0, v_message.c_str());
 		}
 		clrtobot();
 		v_target.f_move(std::get<1>(v_widget->v_position) - v_widget->v_row.f_index().v_x, v_widget->v_row.f_index().v_y - v_widget->v_top);
@@ -113,6 +116,10 @@ struct t_view : t_proxy
 	{
 		if (a_row >= f_rows()) t_throwable::f_throw(L"out of range.");
 		v_widget->f_into_view(v_rows->f_at(a_row));
+	}
+	void f_message__(const std::wstring& a_value)
+	{
+		v_message = a_value;
 	}
 };
 
