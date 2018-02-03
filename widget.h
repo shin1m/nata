@@ -2,6 +2,7 @@
 #define NATA__WIDGET_H
 
 #include "tokens.h"
+#include <sstream>
 #include <vector>
 
 namespace nata
@@ -12,7 +13,7 @@ class t_widget
 {
 	const T_rows& v_rows;
 	T_region v_region;
-	using t_attribute = decltype(v_rows.v_tokens.f_begin()->v_x);
+	using t_attribute = typename std::decay_t<decltype(v_rows.v_target)>::t_attribute;
 	std::vector<std::pair<t_attribute, std::unique_ptr<T_overlay>>> v_overlays;
 
 	void f_dirty(size_t a_y, size_t a_height, bool a_dirty)
@@ -208,7 +209,7 @@ public:
 			};
 			if (y + rd.v_y > dirty.f_index().v_i1) {
 				a_target.f_move(y);
-				auto attribute = [&](const t_attribute& a)
+				auto attribute = [&](const decltype(token->v_x)& a)
 				{
 					a_target.f_attribute(a);
 					for (size_t i = 0; i < overlays.size(); ++i) if (overlays[i].first->v_x) a_target.f_overlay(v_overlays[i].first);
@@ -325,6 +326,21 @@ public:
 			if (a_forward) position += folding.back().f_delta().v_i1;
 		}
 		f_from_position(true);
+	}
+	void f_status(const std::wstring& a_message)
+	{
+		if (a_message.empty()) {
+			size_t position = std::get<0>(v_position);
+			auto line = v_rows.v_tokens.v_text.f_lines().f_at_in_text(position).f_index();
+			size_t column = position - line.v_i1;
+			size_t x = std::get<1>(v_position) - v_line.v_x;
+			size_t n = f_range();
+			std::wostringstream s;
+			s << line.v_i0 << L',' << column << L'-' << x << L' ' << (n > 0 ? v_top * 100 / n : 100) << L'%';
+			v_rows.v_target.f_status(f_height(), s.str());
+		} else {
+			v_rows.v_target.f_status(f_height(), a_message);
+		}
 	}
 };
 

@@ -33,6 +33,12 @@ struct t_session
 
 struct t_target
 {
+	typedef attr_t t_attribute;
+
+	attr_t v_attribute_control = A_NORMAL;
+	attr_t v_attribute_folded = A_NORMAL;
+	wchar_t v_prefix = L'\0';
+
 	t_signal<> v_resized;
 
 	size_t f_width() const
@@ -71,24 +77,36 @@ struct t_target
 	{
 		move(a_y, a_x + 1);
 	}
+	void f_attributes(attr_t a_control, attr_t a_folded)
+	{
+		v_attribute_control = a_control;
+		v_attribute_folded = a_folded;
+	}
+	void f_status(size_t a_y, const std::wstring& a_message)
+	{
+		mvaddwstr(a_y, 0, a_message.c_str());
+		clrtobot();
+	}
 };
 
 struct t_graphics
 {
 	t_target& v_target;
-	const attr_t v_attribute_control;
-	const attr_t v_attribute_folded;
 	size_t v_to;
 	const wchar_t v_prefix;
 	size_t v_x;
 	cchar_t v_c{A_NORMAL, L" "};
 	attr_t v_overlay;
 
+	t_graphics(t_target& a_target, size_t a_to) : v_target(a_target), v_to(a_to), v_prefix(L'0' + v_target.v_prefix)
+	{
+		v_target.v_prefix = (v_target.v_prefix + 1) % 10;
+	}
 	void f_move(size_t a_y)
 	{
 		v_x = 0;
 		move(v_to + a_y, 0);
-		cchar_t cc{v_attribute_control, v_prefix};
+		cchar_t cc{v_target.v_attribute_control, v_prefix};
 		add_wch(&cc);
 	}
 	void f_attribute(attr_t a_value)
@@ -108,7 +126,7 @@ struct t_graphics
 	}
 	void f_tab()
 	{
-		cchar_t cc{v_overlay == A_NORMAL ? v_attribute_control : v_overlay, L"|"};
+		cchar_t cc{v_overlay == A_NORMAL ? v_target.v_attribute_control : v_overlay, L"|"};
 		add_wch(&cc);
 		size_t w = std::get<0>(v_target.f_tab(v_x++, v_c.attr));
 		if (--w <= 0) return;
@@ -124,27 +142,27 @@ struct t_graphics
 	}
 	void f_eol()
 	{
-		cchar_t cc{v_overlay == A_NORMAL ? v_attribute_control : v_overlay, L"/"};
+		cchar_t cc{v_overlay == A_NORMAL ? v_target.v_attribute_control : v_overlay, L"/"};
 		add_wch(&cc);
 		v_x += std::get<0>(v_target.f_eol(v_c.attr));
 		f_wrap();
 	}
 	void f_eof()
 	{
-		cchar_t cc{v_attribute_control, L"<"};
+		cchar_t cc{v_target.v_attribute_control, L"<"};
 		add_wch(&cc);
 		v_x += std::get<0>(v_target.f_eof());
 		f_wrap();
 	}
 	void f_folded()
 	{
-		cchar_t cc{v_overlay == A_NORMAL ? v_attribute_folded : v_overlay, L"."};
+		cchar_t cc{v_overlay == A_NORMAL ? v_target.v_attribute_folded : v_overlay, L"."};
 		for (size_t i = 0; i < 3; ++i) add_wch(&cc);
 	}
 	void f_empty(size_t a_y)
 	{
 		move(v_to + a_y, 0);
-		cchar_t cc{v_attribute_control, v_prefix};
+		cchar_t cc{v_target.v_attribute_control, v_prefix};
 		add_wch(&cc);
 		clrtoeol();
 	}

@@ -22,7 +22,7 @@ void t_type_of<xemmaix::nata::t_text>::f_define(t_extension* a_extension)
 {
 	using xemmaix::nata::t_text;
 	t_define<t_text, xemmaix::nata::t_proxy>(a_extension, L"Text")
-		(t_construct_with<t_scoped(*)(t_object*), xemmaix::nata::t_text::f_construct>())
+		(t_construct_with<t_scoped(*)(t_object*), t_text::f_construct>())
 		(L"size", t_member<size_t(t_text::*)() const, &t_text::f_size>())
 		(L"slice", t_member<std::wstring(t_text::*)(size_t, size_t) const, &t_text::f_slice>())
 		(L"replace", t_member<void(t_text::*)(size_t, size_t, const std::wstring&), &t_text::f_replace>())

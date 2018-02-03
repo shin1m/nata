@@ -3,8 +3,8 @@
 
 #include "../rows.h"
 #include "../widget.h"
-#include "../curses.h"
 #include "text.h"
+#include <xemmai/tuple.h>
 
 namespace xemmaix
 {
@@ -12,20 +12,18 @@ namespace xemmaix
 namespace nata
 {
 
-struct t_overlay;
+template<typename T_target> struct t_overlay;
 
+template<typename T_target>
 struct t_view : t_proxy
 {
 	t_text& v_text;
-	::nata::t_tokens<::nata::t_text<>, attr_t>* v_tokens;
-	::nata::curses::t_target v_target;
+	::nata::t_tokens<::nata::t_text<>, t_scoped>* v_tokens;
+	T_target v_target;
 	::nata::t_rows<std::decay_t<decltype(*v_tokens)>, decltype(v_target), ::nata::t_foldable<>>* v_rows;
 	::nata::t_widget<std::decay_t<decltype(*v_rows)>>* v_widget;
-	std::vector<t_overlay*> v_overlays;
-	attr_t v_attribute_control = A_NORMAL;
-	attr_t v_attribute_folded = A_NORMAL;
+	std::vector<t_overlay<T_target>*> v_overlays;
 	std::wstring v_message;
-	wchar_t v_prefix = L'\0';
 
 	static t_scoped f_construct(t_object* a_class, t_text& a_text)
 	{
@@ -36,21 +34,30 @@ struct t_view : t_proxy
 	{
 		v_text.f_acquire();
 	}
-	virtual void f_destroy();
-	virtual void f_dispose();
+	virtual void f_destroy()
+	{
+		delete v_widget;
+		delete v_rows;
+		delete v_tokens;
+		v_text.f_release();
+	}
+	virtual void f_dispose()
+	{
+		while (!v_overlays.empty()) v_overlays.back()->f_dispose();
+		t_proxy::f_dispose();
+	}
 	void f_resize()
 	{
 		v_widget->f_height__(LINES - 1);
 		v_target.v_resized();
 	}
-	void f_attributes(attr_t a_control, attr_t a_folded)
+	void f_attributes(const typename T_target::t_attribute& a_control, const typename T_target::t_attribute& a_folded)
 	{
-		v_attribute_control = a_control;
-		v_attribute_folded = a_folded;
+		v_target.f_attributes(a_control, a_folded);
 	}
-	void f_paint(size_t a_p, size_t a_n, attr_t a_attribute)
+	void f_paint(size_t a_p, size_t a_n, t_scoped&& a_token)
 	{
-		v_tokens->f_paint(a_p, {{a_attribute, a_n}});
+		v_tokens->f_paint(a_p, {{std::move(a_token), a_n}});
 	}
 	void f_foldable(size_t a_p, size_t a_n, bool a_foldable)
 	{
@@ -67,23 +74,11 @@ struct t_view : t_proxy
 	void f_render()
 	{
 		{
-			::nata::curses::t_graphics g{v_target, v_attribute_control, v_attribute_folded, 0, L'0' + v_prefix};
+			typename T_target::t_graphics g{v_target, 0};
 			v_widget->f_render(g);
-			v_prefix = (v_prefix + 1) % 10;
 		}
-		size_t position = std::get<0>(v_widget->v_position);
-		if (v_message.empty()) {
-			auto line = v_text.v_text->f_lines().f_at_in_text(position).f_index();
-			size_t column = position - line.v_i1;
-			size_t x = std::get<1>(v_widget->v_position) - v_widget->v_line.v_x;
-			size_t n = v_widget->f_range();
-			mvprintw(v_widget->f_height(), 0, "%d,%d-%d %d%%", line.v_i0, column, x, n > 0 ? v_widget->v_top * 100 / n : 100);
-		} else {
-			mvaddwstr(v_widget->f_height(), 0, v_message.c_str());
-		}
-		clrtobot();
+		v_widget->f_status(v_message);
 		v_target.f_move(std::get<1>(v_widget->v_position) - v_widget->v_row.f_index().v_x, v_widget->v_row.f_index().v_y - v_widget->v_top);
-		refresh();
 	}
 	size_t f_position() const
 	{
@@ -123,25 +118,36 @@ struct t_view : t_proxy
 	}
 };
 
+template<typename T_target>
 struct t_overlay : t_proxy
 {
-	t_view& v_view;
+	t_view<T_target>& v_view;
 	std::decay_t<decltype(*v_view.v_widget->f_overlays()[0].second)>* v_overlay;
 
-	static t_scoped f_construct(t_object* a_class, t_view& a_view, attr_t a_attribute)
+	static t_scoped f_construct(t_object* a_class, t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute)
 	{
 		return (new t_overlay(a_class, a_view, a_attribute))->f_object();
 	}
 
-	t_overlay(t_object* a_class, t_view& a_view, attr_t a_attribute) : t_proxy(a_class), v_view(a_view)
+	t_overlay(t_object* a_class, t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute) : t_proxy(a_class), v_view(a_view)
 	{
 		v_view.f_acquire();
 		v_view.v_widget->f_add_overlay(a_attribute);
 		v_overlay = v_view.v_widget->f_overlays().back().second.get();
 		v_view.v_overlays.push_back(this);
 	}
-	virtual void f_destroy();
-	virtual void f_dispose();
+	virtual void f_destroy()
+	{
+		v_view.f_release();
+	}
+	virtual void f_dispose()
+	{
+		auto& overlays = v_view.v_overlays;
+		auto i = std::find(overlays.begin(), overlays.end(), this);
+		v_view.v_widget->f_remove_overlay(i - overlays.begin());
+		overlays.erase(i);
+		t_proxy::f_dispose();
+	}
 	void f_paint(size_t a_p, size_t a_n, bool a_on)
 	{
 		size_t n = v_view.v_text.f_size();
@@ -150,10 +156,11 @@ struct t_overlay : t_proxy
 	}
 };
 
+template<typename T_target>
 struct t_overlay_iterator : t_proxy
 {
-	t_overlay& v_overlay;
-	std::decay_t<decltype(*v_overlay.v_overlay)>::t_iterator v_i;
+	t_overlay<T_target>& v_overlay;
+	typename std::decay_t<decltype(*v_overlay.v_overlay)>::t_iterator v_i;
 
 	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 	{
@@ -166,19 +173,39 @@ struct t_overlay_iterator : t_proxy
 	};
 	::nata::t_connection<decltype(v_painted)>* v_connection1;
 
-	static t_scoped f_construct(t_object* a_class, t_overlay& a_overlay)
+	static t_scoped f_construct(t_object* a_class, t_overlay<T_target>& a_overlay)
 	{
 		return (new t_overlay_iterator(a_class, a_overlay))->f_object();
 	}
 
-	t_overlay_iterator(t_object* a_class, t_overlay& a_overlay) : t_proxy(a_class), v_overlay(a_overlay), v_connection0(v_overlay.v_overlay->v_replaced >> v_replaced), v_connection1(v_overlay.v_overlay->v_painted >> v_painted)
+	t_overlay_iterator(t_object* a_class, t_overlay<T_target>& a_overlay) : t_proxy(a_class), v_overlay(a_overlay), v_connection0(v_overlay.v_overlay->v_replaced >> v_replaced), v_connection1(v_overlay.v_overlay->v_painted >> v_painted)
 	{
 		v_overlay.f_acquire();
 		v_i = v_overlay.v_overlay->f_begin();
 	}
-	virtual void f_destroy();
-	virtual void f_dispose();
-	t_scoped f_next();
+	virtual void f_destroy()
+	{
+		v_overlay.f_release();
+	}
+	virtual void f_dispose()
+	{
+		if (v_overlay.f_object()) {
+			delete v_connection0;
+			delete v_connection1;
+		}
+		t_proxy::f_dispose();
+	}
+	t_scoped f_next()
+	{
+		if (!v_overlay.f_object() || v_i == v_overlay.v_overlay->f_end()) return nullptr;
+		t_scoped p = t_tuple::f_instantiate(3);
+		auto& tuple = f_as<t_tuple&>(p);
+		tuple[0].f_construct(t_value(v_i->v_x));
+		tuple[1].f_construct(t_value(v_i.f_index().v_i1));
+		tuple[2].f_construct(t_value(v_i.f_delta().v_i1));
+		++v_i;
+		return p;
+	}
 };
 
 }
@@ -188,34 +215,92 @@ struct t_overlay_iterator : t_proxy
 namespace xemmai
 {
 
-template<>
-struct t_type_of<xemmaix::nata::t_view> : t_type_of<xemmaix::nata::t_proxy>
+template<typename T_target>
+struct t_type_of<xemmaix::nata::t_view<T_target>> : t_type_of<xemmaix::nata::t_proxy>
 {
-	static void f_define(t_extension* a_extension);
+	typedef typename T_target::t_extension t_extension;
+	using t_view = xemmaix::nata::t_view<T_target>;
+
+	static void f_define(t_extension* a_extension)
+	{
+		t_define<t_view, xemmaix::nata::t_proxy>(a_extension, L"View")
+			(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_text&), t_view::f_construct>())
+			(L"resize", t_member<void(t_view::*)(), &t_view::f_resize>())
+			(L"attributes", t_member<void(t_view::*)(const typename T_target::t_attribute&, const typename T_target::t_attribute&), &t_view::f_attributes>())
+			(L"paint", t_member<void(t_view::*)(size_t, size_t, t_scoped&&), &t_view::f_paint>())
+			(L"foldable", t_member<void(t_view::*)(size_t, size_t, bool), &t_view::f_foldable>())
+			(L"folded", t_member<size_t(t_view::*)(size_t, bool), &t_view::f_folded>())
+			(L"render", t_member<void(t_view::*)(), &t_view::f_render>())
+			(L"position", t_member<size_t(t_view::*)() const, &t_view::f_position>())
+			(L"position__", t_member<void(t_view::*)(size_t, bool), &t_view::f_position__>())
+			(L"line", t_member<size_t(t_view::*)() const, &t_view::f_line>())
+			(L"line__", t_member<void(t_view::*)(size_t), &t_view::f_line__>())
+			(L"rows", t_member<size_t(t_view::*)() const, &t_view::f_rows>())
+			(L"row", t_member<size_t(t_view::*)() const, &t_view::f_row>())
+			(L"into_view", t_member<void(t_view::*)(size_t), &t_view::f_into_view>())
+			(L"message__", t_member<void(t_view::*)(const std::wstring&), &t_view::f_message__>())
+		;
+	}
 
 	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive(t_object* a_this);
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
+	virtual t_type* f_derive(t_object* a_this)
+	{
+		return new t_derived<t_type_of>(t_scoped(v_module), a_this);
+	}
+	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n)
+	{
+		return t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_text&), t_view::f_construct>::template t_bind<t_view>::f_do(a_class, a_stack, a_n);
+	}
 };
 
-template<>
-struct t_type_of<xemmaix::nata::t_overlay> : t_type_of<xemmaix::nata::t_proxy>
+template<typename T_target>
+struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_type_of<xemmaix::nata::t_proxy>
 {
-	static void f_define(t_extension* a_extension);
+	typedef typename T_target::t_extension t_extension;
+	using t_overlay = xemmaix::nata::t_overlay<T_target>;
+
+	static void f_define(t_extension* a_extension)
+	{
+		t_define<t_overlay, xemmaix::nata::t_proxy>(a_extension, L"Overlay")
+			(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>())
+			(L"paint", t_member<void(t_overlay::*)(size_t, size_t, bool), &t_overlay::f_paint>())
+		;
+	}
 
 	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive(t_object* a_this);
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
+	virtual t_type* f_derive(t_object* a_this)
+	{
+		return new t_derived<t_type_of>(t_scoped(v_module), a_this);
+	}
+	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n)
+	{
+		return t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>::template t_bind<t_overlay>::f_do(a_class, a_stack, a_n);
+	}
 };
 
-template<>
-struct t_type_of<xemmaix::nata::t_overlay_iterator> : t_type_of<xemmaix::nata::t_proxy>
+template<typename T_target>
+struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_type_of<xemmaix::nata::t_proxy>
 {
-	static void f_define(t_extension* a_extension);
+	typedef typename T_target::t_extension t_extension;
+	using t_overlay_iterator = xemmaix::nata::t_overlay_iterator<T_target>;
+
+	static void f_define(t_extension* a_extension)
+	{
+		t_define<t_overlay_iterator, xemmaix::nata::t_proxy>(a_extension, L"OverlayIterator")
+			(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>())
+			(L"next", t_member<t_scoped(t_overlay_iterator::*)(), &t_overlay_iterator::f_next>())
+		;
+	}
 
 	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive(t_object* a_this);
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
+	virtual t_type* f_derive(t_object* a_this)
+	{
+		return new t_derived<t_type_of>(t_scoped(v_module), a_this);
+	}
+	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n)
+	{
+		return t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>::template t_bind<t_overlay_iterator>::f_do(a_class, a_stack, a_n);
+	}
 };
 
 }

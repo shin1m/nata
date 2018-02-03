@@ -1,6 +1,6 @@
 xemmaidir = $(XEMMAI_MODULE_PATH)
 
-xemmai_PROGRAMS = nata.so
+xemmai_PROGRAMS = nata.so natacurses.so
 AM_CPPFLAGS = -I$(top_srcdir)/.. $(XEMMAI_CFLAGS)
 AM_CXXFLAGS = -fPIC
 AM_LDFLAGS = -shared
@@ -14,19 +14,20 @@ if PROFILE
 AM_CXXFLAGS += -pg
 AM_LDFLAGS += -pg
 endif
-nata_so_LDADD = $(XEMMAI_LIBS) -lncursesw -ltinfo
+nata_so_LDADD = $(XEMMAI_LIBS)
 nata_so_SOURCES = \
 	proxy.h \
 	proxy.cc \
 	text.h \
 	text.cc \
-	view.h \
-	view.cc \
 	search.h \
 	search.cc \
-	painter.h \
-	painter.cc \
-	folder.h \
-	folder.cc \
 	nata.h \
 	nata.cc
+natacurses_so_LDADD = $(XEMMAI_LIBS) -lncursesw -ltinfo
+natacurses_so_SOURCES = \
+	view.h \
+	painter.h \
+	folder.h \
+	curses.h \
+	curses.cc

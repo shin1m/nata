@@ -29,9 +29,7 @@ int main(int argc, char* argv[])
 {
 	nata::curses::t_session session;
 	init_pair(1, COLOR_WHITE, -1);
-	constexpr attr_t attribute_control = A_DIM | COLOR_PAIR(1);
 	init_pair(2, COLOR_BLACK, COLOR_WHITE);
-	constexpr attr_t attribute_folded = A_DIM | COLOR_PAIR(2);
 	constexpr attr_t attribute_selected = A_REVERSE;
 	init_pair(3, -1, COLOR_YELLOW);
 	constexpr attr_t attribute_highlighted = COLOR_PAIR(3);
@@ -50,7 +48,7 @@ int main(int argc, char* argv[])
 		}
 	}
 	nata::t_tokens<decltype(text), attr_t, c_tokens_chunk, c_tokens_chunk> tokens(text);
-	nata::curses::t_target target;
+	nata::curses::t_target target{A_DIM | COLOR_PAIR(1), A_DIM | COLOR_PAIR(2)};
 	nata::t_rows<decltype(tokens), decltype(target), nata::t_foldable<c_foldings_chunk, c_foldings_chunk>, c_rows_chunk, c_rows_chunk> rows(tokens, target);
 /*	nata::t_slot<size_t, size_t, size_t, size_t, size_t> rows_painted = [](auto a_p, auto a_n, auto a_y, auto a_h0, auto a_h1)
 	{
@@ -182,26 +180,13 @@ int main(int argc, char* argv[])
 	} search{*widget.f_overlays()[0].second};
 	text.v_replaced >> search.v_replaced;
 	search.v_replaced(0, 0, 0);
-	wchar_t prefix = L'\0';
 	while (true) {
 		{
-			nata::curses::t_graphics g{target, attribute_control, attribute_folded, 0, L'0' + prefix};
+			nata::curses::t_graphics g{target, 0};
 			widget.f_render(g);
-			prefix = (prefix + 1) % 10;
 		}
-		size_t position = std::get<0>(widget.v_position);
-		if (syntax.v_message.empty()) {
-			auto line = text.f_lines().f_at_in_text(position).f_index();
-			size_t column = position - line.v_i1;
-			size_t x = std::get<1>(widget.v_position) - widget.v_line.v_x;
-			size_t n = widget.f_range();
-			mvprintw(widget.f_height(), 0, "%d,%d-%d %d%%", line.v_i0, column, x, n > 0 ? widget.v_top * 100 / n : 100);
-		} else {
-			mvaddwstr(widget.f_height(), 0, syntax.v_message.c_str());
-		}
-		clrtobot();
+		widget.f_status(syntax.v_message);
 		target.f_move(std::get<1>(widget.v_position) - widget.v_row.f_index().v_x, widget.v_row.f_index().v_y - widget.v_top);
-		refresh();
 		timeout(syntax || search ? 0 : -1);
 		wint_t c;
 		if (get_wch(&c) != ERR) {
@@ -213,6 +198,7 @@ int main(int argc, char* argv[])
 				painter.f_push(false, text.f_size());
 				painter.f_flush();
 			};
+			size_t position = std::get<0>(widget.v_position);
 			switch (c) {
 			case KEY_RESIZE:
 				widget.f_height__(LINES - 1);

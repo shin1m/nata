@@ -29,7 +29,7 @@ public:
 	{
 		return v_p;
 	}
-	void f_push(decltype(T_tokens::t_span::v_x) a_x, size_t a_n, size_t a_merge = 0)
+	void f_push(const decltype(T_tokens::t_span::v_x)& a_x, size_t a_n, size_t a_merge = 0)
 	{
 		while (a_n > 0) {
 			size_t n = std::min(a_n, v_i.f_index().v_i1 + v_i.f_delta().v_i1 - v_p);

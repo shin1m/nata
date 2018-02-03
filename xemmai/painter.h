@@ -10,12 +10,11 @@ namespace xemmaix
 namespace nata
 {
 
+template<typename T_target>
 struct t_painter : t_proxy
 {
-	typedef decltype(std::decay_t<decltype(*t_view::v_tokens)>::t_span::v_x) t_value;
-
-	t_view& v_view;
-	::nata::t_painter<std::decay_t<decltype(*t_view::v_tokens)>>* v_painter;
+	t_view<T_target>& v_view;
+	::nata::t_painter<std::decay_t<decltype(*t_view<T_target>::v_tokens)>>* v_painter;
 
 	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 	{
@@ -23,16 +22,21 @@ struct t_painter : t_proxy
 	};
 	::nata::t_connection<decltype(v_replaced)>* v_connection;
 
-	static t_scoped f_construct(t_object* a_class, t_view& a_view)
+	static t_scoped f_construct(t_object* a_class, t_view<T_target>& a_view)
 	{
 		return (new t_painter(a_class, a_view))->f_object();
 	}
 
-	t_painter(t_object* a_class, t_view& a_view) : t_proxy(a_class), v_view(a_view), v_painter(new std::decay_t<decltype(*v_painter)>(*v_view.v_tokens)), v_connection(v_view.v_text.v_text->v_replaced >> v_replaced)
+	t_painter(t_object* a_class, t_view<T_target>& a_view) : t_proxy(a_class), v_view(a_view), v_painter(new std::decay_t<decltype(*v_painter)>(*v_view.v_tokens)), v_connection(v_view.v_text.v_text->v_replaced >> v_replaced)
 	{
 		v_view.f_acquire();
 	}
-	virtual void f_destroy();
+	virtual void f_destroy()
+	{
+		delete v_connection;
+		delete v_painter;
+		v_view.f_release();
+	}
 	void f_reset()
 	{
 		v_painter->f_reset();
@@ -62,14 +66,35 @@ struct t_painter : t_proxy
 namespace xemmai
 {
 
-template<>
-struct t_type_of<xemmaix::nata::t_painter> : t_type_of<xemmaix::nata::t_proxy>
+template<typename T_target>
+struct t_type_of<xemmaix::nata::t_painter<T_target>> : t_type_of<xemmaix::nata::t_proxy>
 {
-	static void f_define(t_extension* a_extension);
+	typedef typename T_target::t_extension t_extension;
+	using t_painter = xemmaix::nata::t_painter<T_target>;
+
+	static void f_define(t_extension* a_extension)
+	{
+		t_define<t_painter, xemmaix::nata::t_proxy>(a_extension, L"Painter")
+			(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_view<T_target>&), t_painter::f_construct>())
+			(L"reset", t_member<void(t_painter::*)(), &t_painter::f_reset>())
+			(L"current", t_member<size_t(t_painter::*)() const, &t_painter::f_current>())
+			(L"push",
+				t_member<void(t_painter::*)(const t_value&, size_t), &t_painter::f_push>(),
+				t_member<void(t_painter::*)(const t_value&, size_t, size_t), &t_painter::f_push>()
+			)
+			(L"flush", t_member<void(t_painter::*)(), &t_painter::f_flush>())
+		;
+	}
 
 	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive(t_object* a_this);
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
+	virtual t_type* f_derive(t_object* a_this)
+	{
+		return new t_derived<t_type_of>(t_scoped(v_module), a_this);
+	}
+	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n)
+	{
+		return t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_view<T_target>&), t_painter::f_construct>::template t_bind<t_painter>::f_do(a_class, a_stack, a_n);
+	}
 };
 
 }
