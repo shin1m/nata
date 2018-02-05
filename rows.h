@@ -353,8 +353,10 @@ public:
 			p -= i.f_index().v_i1;
 			i = path[path.size() - 2];
 		}
-		i->v_x->v_folded = a_folded;
-		v_tokens_painted(p, i.f_delta().v_i1);
+		if (i->v_x->v_folded != a_folded) {
+			i->v_x->v_folded = a_folded;
+			v_tokens_painted(p, i.f_delta().v_i1);
+		}
 		return p;
 	}
 	template<typename T>
