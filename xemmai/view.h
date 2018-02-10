@@ -4,7 +4,6 @@
 #include "../rows.h"
 #include "../widget.h"
 #include "text.h"
-#include <xemmai/tuple.h>
 
 namespace xemmaix
 {
@@ -19,18 +18,28 @@ struct t_view : t_proxy
 {
 	t_text& v_text;
 	::nata::t_tokens<::nata::t_text<>, t_scoped>* v_tokens;
-	T_target v_target;
-	::nata::t_rows<std::decay_t<decltype(*v_tokens)>, decltype(v_target), ::nata::t_foldable<>>* v_rows;
+	T_target* v_target;
+	::nata::t_rows<std::decay_t<decltype(*v_tokens)>, std::decay_t<decltype(*v_target)>, ::nata::t_foldable<>>* v_rows;
 	::nata::t_widget<std::decay_t<decltype(*v_rows)>>* v_widget;
 	std::vector<t_overlay<T_target>*> v_overlays;
-	std::wstring v_message;
 
-	static t_scoped f_construct(t_object* a_class, t_text& a_text)
+	static t_scoped f_construct(t_object* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height)
 	{
-		return (new t_view(a_class, a_text))->f_object();
+		return (new t_view(a_class, a_text, a_x, a_y, a_width, a_height))->f_object();
+	}
+	static t_scoped f_tuple(const decltype(v_widget->v_line)& a_i)
+	{
+		t_scoped p = t_tuple::f_instantiate(5);
+		auto& tuple = f_as<t_tuple&>(p);
+		tuple[0].f_construct(t_value(a_i.v_i));
+		tuple[1].f_construct(t_value(a_i.v_line));
+		tuple[2].f_construct(t_value(a_i.v_text));
+		tuple[3].f_construct(t_value(a_i.v_x));
+		tuple[4].f_construct(t_value(a_i.v_y));
+		return p;
 	}
 
-	t_view(t_object* a_class, t_text& a_text) : t_proxy(a_class), v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows, LINES - 1))
+	t_view(t_object* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : t_proxy(a_class), v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_target(new T_target(a_x, a_y, a_width, a_height)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, *v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows))
 	{
 		v_text.f_acquire();
 	}
@@ -38,6 +47,7 @@ struct t_view : t_proxy
 	{
 		delete v_widget;
 		delete v_rows;
+		delete v_target;
 		delete v_tokens;
 		v_text.f_release();
 	}
@@ -46,14 +56,13 @@ struct t_view : t_proxy
 		while (!v_overlays.empty()) v_overlays.back()->f_dispose();
 		t_proxy::f_dispose();
 	}
-	void f_resize()
+	void f_move(size_t a_x, size_t a_y, size_t a_width, size_t a_height)
 	{
-		v_widget->f_height__(LINES - 1);
-		v_target.v_resized();
+		v_target->f_move(a_x, a_y, a_width, a_height);
 	}
 	void f_attributes(const typename T_target::t_attribute& a_control, const typename T_target::t_attribute& a_folded)
 	{
-		v_target.f_attributes(a_control, a_folded);
+		v_target->f_attributes(a_control, a_folded);
 	}
 	void f_paint(size_t a_p, size_t a_n, t_scoped&& a_token)
 	{
@@ -74,24 +83,44 @@ struct t_view : t_proxy
 	void f_render()
 	{
 		{
-			typename T_target::t_graphics g{v_target, 0};
+			typename T_target::t_graphics g(*v_target);
 			v_widget->f_render(g);
 		}
-		v_widget->f_status(v_message);
-		v_target.f_move(std::get<1>(v_widget->v_position) - v_widget->v_row.f_index().v_x, v_widget->v_row.f_index().v_y - v_widget->v_top);
+		v_target->f_cursor(std::get<1>(v_widget->v_position) - v_widget->v_row.f_index().v_x, v_widget->v_row.f_index().v_y - v_widget->v_top);
 	}
-	size_t f_position() const
+	t_scoped f_size() const
 	{
-		return std::get<0>(v_widget->v_position);
+		return f_tuple(v_rows->f_size());
+	}
+	size_t f_height() const
+	{
+		return v_widget->f_height();
+	}
+	size_t f_range() const
+	{
+		return v_widget->f_range();
+	}
+	size_t f_top() const
+	{
+		return v_widget->v_top;
+	}
+	t_scoped f_position() const
+	{
+		t_scoped p = t_tuple::f_instantiate(3);
+		auto& tuple = f_as<t_tuple&>(p);
+		tuple[0].f_construct(t_value(std::get<0>(v_widget->v_position)));
+		tuple[1].f_construct(t_value(std::get<1>(v_widget->v_position)));
+		tuple[2].f_construct(t_value(std::get<2>(v_widget->v_position)));
+		return p;
 	}
 	void f_position__(size_t a_value, bool a_forward)
 	{
 		if (a_value > v_text.f_size()) t_throwable::f_throw(L"out of range.");
 		v_widget->f_position__(a_value, a_forward);
 	}
-	size_t f_line() const
+	t_scoped f_line() const
 	{
-		return v_widget->v_line.v_line;
+		return f_tuple(v_widget->v_line);
 	}
 	void f_line__(size_t a_value)
 	{
@@ -99,22 +128,23 @@ struct t_view : t_proxy
 		v_widget->v_line.v_line = a_value;
 		v_widget->f_from_line();
 	}
-	size_t f_rows() const
+	void f_into_view(size_t a_y, size_t a_height)
 	{
-		return v_rows->f_size().v_i;
+		v_widget->f_into_view(a_y, a_height);
 	}
-	size_t f_row() const
+	void f_into_view(size_t a_p)
 	{
-		return v_widget->v_row.f_index().v_i;
+		v_widget->f_into_view(v_rows->f_at_in_text(a_p));
 	}
-	void f_into_view(size_t a_row)
+	intptr_t f_get()
 	{
-		if (a_row >= f_rows()) t_throwable::f_throw(L"out of range.");
-		v_widget->f_into_view(v_rows->f_at(a_row));
+		wint_t c;
+		if (v_target->f_get(c) == ERR) t_throwable::f_throw(L"get_wch");
+		return c;
 	}
-	void f_message__(const std::wstring& a_value)
+	void f_timeout(int a_delay)
 	{
-		v_message = a_value;
+		v_target->f_timeout(a_delay);
 	}
 };
 
@@ -224,21 +254,27 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_type_of<xemmaix::nata::t_p
 	static void f_define(t_extension* a_extension)
 	{
 		t_define<t_view, xemmaix::nata::t_proxy>(a_extension, L"View")
-			(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_text&), t_view::f_construct>())
-			(L"resize", t_member<void(t_view::*)(), &t_view::f_resize>())
+			(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>())
+			(L"move", t_member<void(t_view::*)(size_t, size_t, size_t, size_t), &t_view::f_move>())
 			(L"attributes", t_member<void(t_view::*)(const typename T_target::t_attribute&, const typename T_target::t_attribute&), &t_view::f_attributes>())
 			(L"paint", t_member<void(t_view::*)(size_t, size_t, t_scoped&&), &t_view::f_paint>())
 			(L"foldable", t_member<void(t_view::*)(size_t, size_t, bool), &t_view::f_foldable>())
 			(L"folded", t_member<size_t(t_view::*)(size_t, bool), &t_view::f_folded>())
 			(L"render", t_member<void(t_view::*)(), &t_view::f_render>())
-			(L"position", t_member<size_t(t_view::*)() const, &t_view::f_position>())
+			(L"size", t_member<t_scoped(t_view::*)() const, &t_view::f_size>())
+			(L"height", t_member<size_t(t_view::*)() const, &t_view::f_height>())
+			(L"range", t_member<size_t(t_view::*)() const, &t_view::f_range>())
+			(L"top", t_member<size_t(t_view::*)() const, &t_view::f_top>())
+			(L"position", t_member<t_scoped(t_view::*)() const, &t_view::f_position>())
 			(L"position__", t_member<void(t_view::*)(size_t, bool), &t_view::f_position__>())
-			(L"line", t_member<size_t(t_view::*)() const, &t_view::f_line>())
+			(L"line", t_member<t_scoped(t_view::*)() const, &t_view::f_line>())
 			(L"line__", t_member<void(t_view::*)(size_t), &t_view::f_line__>())
-			(L"rows", t_member<size_t(t_view::*)() const, &t_view::f_rows>())
-			(L"row", t_member<size_t(t_view::*)() const, &t_view::f_row>())
-			(L"into_view", t_member<void(t_view::*)(size_t), &t_view::f_into_view>())
-			(L"message__", t_member<void(t_view::*)(const std::wstring&), &t_view::f_message__>())
+			(L"into_view",
+				t_member<void(t_view::*)(size_t, size_t), &t_view::f_into_view>(),
+				t_member<void(t_view::*)(size_t), &t_view::f_into_view>()
+			)
+			(L"get", t_member<intptr_t(t_view::*)(), &t_view::f_get>())
+			(L"timeout", t_member<void(t_view::*)(int), &t_view::f_timeout>())
 		;
 	}
 
@@ -249,7 +285,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_type_of<xemmaix::nata::t_p
 	}
 	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_text&), t_view::f_construct>::template t_bind<t_view>::f_do(a_class, a_stack, a_n);
+		return t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>::template t_bind<t_view>::f_do(a_class, a_stack, a_n);
 	}
 };
 

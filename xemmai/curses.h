@@ -68,6 +68,7 @@ struct t_target : ::nata::curses::t_target
 {
 	typedef xemmaix::nata::curses::t_extension t_extension;
 
+	using ::nata::curses::t_target::t_target;
 	std::tuple<size_t, size_t, size_t> f_size(wchar_t a_c, const t_scoped& a_a) const
 	{
 		return ::nata::curses::t_target::f_size(a_c, {});
@@ -83,9 +84,7 @@ struct t_target : ::nata::curses::t_target
 
 	struct t_graphics : ::nata::curses::t_graphics
 	{
-		t_graphics(::nata::curses::t_target& a_target, size_t a_to) : ::nata::curses::t_graphics(a_target, a_to)
-		{
-		}
+		using ::nata::curses::t_graphics::t_graphics;
 		void f_attribute(const t_scoped& a_value);
 	};
 };

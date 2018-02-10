@@ -27,6 +27,7 @@ void t_type_of<xemmaix::nata::t_text>::f_define(t_extension* a_extension)
 		(L"slice", t_member<std::wstring(t_text::*)(size_t, size_t) const, &t_text::f_slice>())
 		(L"replace", t_member<void(t_text::*)(size_t, size_t, const std::wstring&), &t_text::f_replace>())
 		(L"lines", t_member<size_t(t_text::*)() const, &t_text::f_lines>())
+		(L"line_at_in_text", t_member<t_scoped(t_text::*)(size_t) const, &t_text::f_line_at_in_text>())
 	;
 }
 

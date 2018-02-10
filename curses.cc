@@ -25,6 +25,26 @@ constexpr size_t c_region_chunk = 5;
 constexpr size_t c_task_unit = 4;
 #endif
 
+typedef nata::t_text<nata::t_lines<c_lines_chunk, c_lines_chunk>, c_text_chunk, c_text_chunk> t_text;
+
+struct t_view
+{
+	t_text& v_text;
+	nata::t_tokens<t_text, attr_t, c_tokens_chunk, c_tokens_chunk> v_tokens{v_text};
+	nata::curses::t_target v_target;
+	nata::t_rows<decltype(v_tokens), decltype(v_target), nata::t_foldable<c_foldings_chunk, c_foldings_chunk>, c_rows_chunk, c_rows_chunk> v_rows{v_tokens, v_target};
+	nata::t_widget<decltype(v_rows), nata::t_stretches<bool, c_region_chunk, c_region_chunk>> v_widget{v_rows};
+
+	t_view(t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : v_text(a_text), v_target(a_x, a_y, a_width, a_height)
+	{
+	}
+	void f_render()
+	{
+		nata::curses::t_graphics g(v_target);
+		v_widget.f_render(g);
+	}
+};
+
 int main(int argc, char* argv[])
 {
 	nata::curses::t_session session;
@@ -37,7 +57,7 @@ int main(int argc, char* argv[])
 	constexpr attr_t attribute_comment = COLOR_PAIR(4);
 	init_pair(5, COLOR_YELLOW, -1);
 	constexpr attr_t attribute_keyword = COLOR_PAIR(5);
-	nata::t_text<nata::t_lines<c_lines_chunk, c_lines_chunk>, c_text_chunk, c_text_chunk> text;
+	t_text text;
 	if (argc > 1) {
 		std::wifstream in(argv[1]);
 		in.imbue(std::locale(""));
@@ -47,22 +67,23 @@ int main(int argc, char* argv[])
 			text.f_replace(text.f_size(), 0, cs, cs + in.gcount());
 		}
 	}
-	nata::t_tokens<decltype(text), attr_t, c_tokens_chunk, c_tokens_chunk> tokens(text);
-	nata::curses::t_target target{A_DIM | COLOR_PAIR(1), A_DIM | COLOR_PAIR(2)};
-	nata::t_rows<decltype(tokens), decltype(target), nata::t_foldable<c_foldings_chunk, c_foldings_chunk>, c_rows_chunk, c_rows_chunk> rows(tokens, target);
+	t_view view(text, 0, 0, COLS, LINES - 1);
+	view.v_target.f_attributes(A_DIM | COLOR_PAIR(1), A_DIM | COLOR_PAIR(2));
 /*	nata::t_slot<size_t, size_t, size_t, size_t, size_t> rows_painted = [](auto a_p, auto a_n, auto a_y, auto a_h0, auto a_h1)
 	{
 		std::fprintf(stderr, "painted: (%d, %d), (%d, %d -> %d)\n", a_p, a_n, a_y, a_h0, a_h1);
 	};
-	rows.v_painted >> rows_painted;*/
-	nata::t_widget<decltype(rows), nata::t_stretches<bool, c_region_chunk, c_region_chunk>> widget(rows, LINES - 1);
+	view.v_rows.v_painted >> rows_painted;*/
+	auto& widget = view.v_widget;
 	widget.f_add_overlay(attribute_highlighted);
 	widget.f_add_overlay(attribute_selected);
+	t_text status;
+	t_view strip(status, 0, LINES - 1, COLS, 1);
 	struct
 	{
-		decltype(rows)& v_rows;
-		nata::t_painter<decltype(tokens)> v_painter{v_rows.v_tokens};
-		nata::t_folder<decltype(rows), size_t> v_folder{v_rows};
+		decltype(view.v_rows)& v_rows;
+		nata::t_painter<decltype(view.v_tokens)> v_painter{v_rows.v_tokens};
+		nata::t_folder<decltype(view.v_rows), size_t> v_folder{v_rows};
 		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(?:(if|for|in|break|continue|return)|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done))\\b)", std::wregex::ECMAScript | std::wregex::optimize};
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_eos;
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_i;
@@ -143,7 +164,7 @@ int main(int argc, char* argv[])
 			v_painter.f_reset();
 			v_folder.f_reset();
 		};
-	} syntax{rows};
+	} syntax{view.v_rows};
 	text.v_replaced >> syntax.v_replaced;
 	syntax.v_replaced(0, 0, 0);
 	struct
@@ -181,15 +202,25 @@ int main(int argc, char* argv[])
 	text.v_replaced >> search.v_replaced;
 	search.v_replaced(0, 0, 0);
 	while (true) {
-		{
-			nata::curses::t_graphics g{target, 0};
-			widget.f_render(g);
+		view.f_render();
+		size_t position = std::get<0>(widget.v_position);
+		if (syntax.v_message.empty()) {
+			auto line = text.f_lines().f_at_in_text(position).f_index();
+			size_t column = position - line.v_i1;
+			size_t x = std::get<1>(widget.v_position) - widget.v_line.v_x;
+			size_t n = widget.f_range();
+			std::wostringstream ss;
+			ss << line.v_i0 << L',' << column << L'-' << x << L' ' << (n > 0 ? widget.v_top * 100 / n : 100) << L'%';
+			auto s = ss.str();
+			status.f_replace(0, status.f_size(), s.begin(), s.end());
+		} else {
+			status.f_replace(0, status.f_size(), syntax.v_message.begin(), syntax.v_message.end());
 		}
-		widget.f_status(syntax.v_message);
-		target.f_move(std::get<1>(widget.v_position) - widget.v_row.f_index().v_x, widget.v_row.f_index().v_y - widget.v_top);
-		timeout(syntax || search ? 0 : -1);
+		strip.f_render();
+		view.v_target.f_cursor(std::get<1>(widget.v_position) - widget.v_row.f_index().v_x, widget.v_row.f_index().v_y - widget.v_top);
+		view.v_target.f_timeout(syntax || search ? 0 : -1);
 		wint_t c;
-		if (get_wch(&c) != ERR) {
+		if (view.v_target.f_get(c) != ERR) {
 			if (c == 0x1b) break;
 			auto clear_overlay = [&](auto& overlay)
 			{
@@ -198,14 +229,13 @@ int main(int argc, char* argv[])
 				painter.f_push(false, text.f_size());
 				painter.f_flush();
 			};
-			size_t position = std::get<0>(widget.v_position);
 			switch (c) {
 			case KEY_RESIZE:
-				widget.f_height__(LINES - 1);
-				target.v_resized();
+				view.v_target.f_move(0, 0, COLS, LINES - 1);
+				strip.v_target.f_move(0, LINES - 1, COLS, 1);
 				break;
 			case KEY_DOWN:
-				if (widget.v_line.v_line < rows.f_size().v_line - 1) {
+				if (widget.v_line.v_line < view.v_rows.f_size().v_line - 1) {
 					++widget.v_line.v_line;
 					widget.f_from_line();
 				}
@@ -224,15 +254,15 @@ int main(int argc, char* argv[])
 				break;
 			case KEY_BACKSPACE:
 				if (position > 0) {
-					rows.f_folded(--position, false);
+					view.v_rows.f_folded(--position, false);
 					text.f_replace(position, 1, &c, &c);
 				}
 				break;
 			case KEY_F(1):
-				widget.f_position__(rows.f_folded(position, true), false);
+				widget.f_position__(view.v_rows.f_folded(position, true), false);
 				break;
 			case KEY_F(2):
-				rows.f_folded(position, false);
+				view.v_rows.f_folded(position, false);
 				break;
 			case KEY_F(3):
 				{

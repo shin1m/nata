@@ -2,7 +2,6 @@
 #define NATA__WIDGET_H
 
 #include "tokens.h"
-#include <sstream>
 #include <vector>
 
 namespace nata
@@ -31,13 +30,15 @@ class t_widget
 			}
 			v_region.f_replace(height + a_delta, -a_delta, {});
 			v_region.f_replace(a_y, 0, {{true, size_t(-a_delta)}});
-		} else {
+		} else if (a_delta > 0) {
 			if (a_delta >= range) {
 				f_dirty(a_y, range, true);
 				return;
 			}
 			v_region.f_replace(a_y, a_delta, {});
 			v_region.f_replace(height - a_delta, 0, {{true, size_t(a_delta)}});
+		} else {
+			return;
 		}
 		v_rows.v_target.f_scroll(a_y, height, a_delta);
 	}
@@ -64,6 +65,17 @@ class t_widget
 		}
 		f_top__(v_top);
 	}
+	t_slot<> v_resized = [this]
+	{
+		size_t h0 = f_height();
+		size_t h1 = v_rows.v_target.f_height();
+		if (h1 < h0) {
+			v_region.f_replace(h1, h0 - h1, {});
+		} else if (h1 > h0) {
+			v_region.f_replace(h0, 0, {{true, h1 - h0}});
+			f_top__(v_top);
+		}
+	};
 	t_slot<size_t, size_t, size_t, size_t, size_t, size_t> v_replaced = [this](auto a_p, auto a_n0, auto a_n1, auto a_y, auto a_h0, auto a_h1)
 	{
 		f_adjust(a_y, a_h0, a_h1);
@@ -97,26 +109,18 @@ public:
 	size_t v_target = 0;
 	typename T_rows::t_iterator v_row;
 
-	t_widget(T_rows& a_rows, size_t a_height) : v_rows(a_rows)
+	t_widget(T_rows& a_rows) : v_rows(a_rows)
 	{
-		v_region.f_replace(0, 0, {{true, a_height}});
+		size_t height = v_rows.v_target.f_height();
+		if (height > 0) v_region.f_replace(0, 0, {{true, height}});
 		v_row = v_rows.f_at_in_text(0);
+		v_rows.v_target.v_resized >> v_resized;
 		a_rows.v_replaced >> v_replaced;
 		a_rows.v_painted >> v_painted;
 	}
 	size_t f_height() const
 	{
 		return v_region.f_size().v_i1;
-	}
-	size_t f_height__(size_t a_value)
-	{
-		size_t h = f_height();
-		if (a_value < h) {
-			v_region.f_replace(a_value, h - a_value, {});
-		} else {
-			v_region.f_replace(h, 0, {{true, a_value - h}});
-			f_top__(v_top);
-		}
 	}
 	size_t f_range() const
 	{
@@ -326,21 +330,6 @@ public:
 			if (a_forward) position += folding.back().f_delta().v_i1;
 		}
 		f_from_position(true);
-	}
-	void f_status(const std::wstring& a_message)
-	{
-		if (a_message.empty()) {
-			size_t position = std::get<0>(v_position);
-			auto line = v_rows.v_tokens.v_text.f_lines().f_at_in_text(position).f_index();
-			size_t column = position - line.v_i1;
-			size_t x = std::get<1>(v_position) - v_line.v_x;
-			size_t n = f_range();
-			std::wostringstream s;
-			s << line.v_i0 << L',' << column << L'-' << x << L' ' << (n > 0 ? v_top * 100 / n : 100) << L'%';
-			v_rows.v_target.f_status(f_height(), s.str());
-		} else {
-			v_rows.v_target.f_status(f_height(), a_message);
-		}
 	}
 };
 

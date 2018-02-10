@@ -138,6 +138,7 @@ private:
 
 	t_array v_array;
 	t_foldings v_foldings;
+	size_t v_width;
 
 	std::tuple<size_t, size_t, size_t> f_replace(size_t a_p, size_t a_n0, size_t a_n1)
 	{
@@ -158,7 +159,7 @@ private:
 		size_t descent = 0;
 		auto overflow = [&](const auto& size)
 		{
-			return width + std::get<0>(size) > v_target.f_width() && text > 0;
+			return width + std::get<0>(size) > v_width && text > 0;
 		};
 		auto wrap = [&](bool next)
 		{
@@ -250,6 +251,8 @@ private:
 	};
 	t_slot<> v_target_resized = [this]
 	{
+		if (v_target.f_width() == v_width) return;
+		v_width = v_target.f_width();
 		v_tokens_painted(0, v_tokens.v_text.f_size());
 	};
 
@@ -262,7 +265,7 @@ public:
 	T_tokens& v_tokens;
 	T_target& v_target;
 
-	t_rows(T_tokens& a_tokens, T_target& a_target) : v_tokens(a_tokens), v_target(a_target)
+	t_rows(T_tokens& a_tokens, T_target& a_target) : v_width(a_target.f_width()), v_tokens(a_tokens), v_target(a_target)
 	{
 		v_tokens.v_replaced >> v_tokens_replaced;
 		v_tokens.v_painted >> v_tokens_painted;

@@ -57,11 +57,13 @@ attr_t f_color_pair(short a_pair)
 	return COLOR_PAIR(a_pair);
 }
 
-intptr_t f_get()
+t_scoped f_size()
 {
-	wint_t c;
-	if (get_wch(&c) == ERR) t_throwable::f_throw(L"get_wch");
-	return c;
+	t_scoped p = t_tuple::f_instantiate(2);
+	auto& tuple = f_as<t_tuple&>(p);
+	tuple[0].f_construct(t_value(COLS));
+	tuple[1].f_construct(t_value(LINES));
+	return p;
 }
 
 }
@@ -78,6 +80,7 @@ t_extension::t_extension(xemmai::t_object* a_module, t_scoped&& a_nata) : xemmai
 	f_define<void(*)(const t_value&), f_main>(this, L"main");
 	f_define<void(*)(short, short, short), f_define_pair>(this, L"define_pair");
 	f_define<attr_t(*)(short), f_color_pair>(this, L"color_pair");
+	f_define<t_scoped(*)(), f_size>(this, L"size");
 	a_module->f_put(t_symbol::f_instantiate(L"COLOR_BLACK"), f_as(COLOR_BLACK));
 	a_module->f_put(t_symbol::f_instantiate(L"COLOR_RED"), f_as(COLOR_RED));
 	a_module->f_put(t_symbol::f_instantiate(L"COLOR_GREEN"), f_as(COLOR_GREEN));
@@ -102,7 +105,6 @@ t_extension::t_extension(xemmai::t_object* a_module, t_scoped&& a_nata) : xemmai
 	a_module->f_put(t_symbol::f_instantiate(L"A_RIGHT"), f_as(A_RIGHT));
 	a_module->f_put(t_symbol::f_instantiate(L"A_TOP"), f_as(A_TOP));
 	a_module->f_put(t_symbol::f_instantiate(L"A_VERTICAL"), f_as(A_VERTICAL));
-	f_define<intptr_t(*)(), f_get>(this, L"get");
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_RESIZE"), f_as(KEY_RESIZE));
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_DOWN"), f_as(KEY_DOWN));
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_UP"), f_as(KEY_UP));
@@ -122,7 +124,6 @@ t_extension::t_extension(xemmai::t_object* a_module, t_scoped&& a_nata) : xemmai
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_F11"), f_as(KEY_F(11)));
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_F12"), f_as(KEY_F(12)));
 	a_module->f_put(t_symbol::f_instantiate(L"KEY_ENTER"), f_as(KEY_ENTER));
-	f_define<void(*)(int), timeout>(this, L"timeout");
 }
 
 void t_extension::f_scan(t_scan a_scan)
