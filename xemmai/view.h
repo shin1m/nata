@@ -66,14 +66,18 @@ struct t_view : t_proxy
 	}
 	void f_paint(size_t a_p, size_t a_n, t_scoped&& a_token)
 	{
-		v_tokens->f_paint(a_p, {{std::move(a_token), a_n}});
+		size_t n = v_text.f_size();
+		if (a_p > n) t_throwable::f_throw(L"out of range.");
+		v_tokens->f_paint(a_p, {{std::move(a_token), std::min(a_n, n - a_p)}});
 	}
 	void f_foldable(size_t a_p, size_t a_n, bool a_foldable)
 	{
+		size_t n = v_text.f_size();
+		if (a_p > n) t_throwable::f_throw(L"out of range.");
 		if (a_foldable)
-			v_rows->f_foldable(a_p, {{{{a_n}}}});
+			v_rows->f_foldable(a_p, {{{{std::min(a_n, n - a_p)}}}});
 		else
-			v_rows->f_foldable(a_p, {{a_n}});
+			v_rows->f_foldable(a_p, {{std::min(a_n, n - a_p)}});
 	}
 	size_t f_folded(size_t a_p, bool a_folded)
 	{
