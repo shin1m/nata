@@ -91,79 +91,92 @@ nata.main(@() natacurses.main(@
 					folder.push(a + b
 			if match.size() > 0
 				painter.flush(
-				:message = "running: " + painter.current() * 100 / text.size() + "%"
+				::message = "running: " + painter.current() * 100 / text.size() + "%"
 			else
 				painter.push(null, -1, 64
 				painter.flush(
 				folder.push(-1
 				folder.flush(
-				:message = ""
+				::message = ""
 		search.reset(
 		painter.reset(
 		folder.reset(
 		exports
 	)(
-	while true
+	done = false
+	actions = {
+		0x1b: @
+			:done = true
+		natacurses.KEY_RESIZE: @
+			size = natacurses.size(
+			view.move(0, 0, size[0], size[1] - 1
+			strip.move(0, size[1] - 1, size[0], 1
+		natacurses.KEY_DOWN: @
+			line = view.line()[1]
+			if line + 1 < view.size()[1]: view.line__(line + 1
+		natacurses.KEY_UP: @
+			line = view.line()[1]
+			if line > 0: view.line__(line - 1
+		natacurses.KEY_LEFT: @
+			position = view.position()[0]
+			if position > 0: view.position__(position - 1, false
+		natacurses.KEY_RIGHT: @
+			position = view.position()[0]
+			if position < text.size(): view.position__(position + 1, true
+		natacurses.KEY_BACKSPACE: @
+			position = view.position()[0]
+			if position > 0
+				view.folded(position - 1, false
+				text.replace(position - 1, 1, ""
+		natacurses.KEY_F1: @
+			view.position__(view.folded(view.position()[0], true), false
+		natacurses.KEY_F2: @
+			view.folded(view.position()[0], false
+		natacurses.KEY_F3: @
+			pattern = ""
+			each(selection, @(p, n) :pattern = pattern + text.slice(p, n
+			selection.paint(0, -1, false
+			if pattern != ""
+				with(nata.Search(text), @(search)
+					search.pattern(pattern, nata.Search.ECMASCRIPT
+					search.reset(
+					while (match = search.next()).size() > 0
+						highlight.paint(match[0][0], match[0][1], true
+		natacurses.KEY_F4: @
+			highlight.paint(0, -1, false
+		natacurses.KEY_F5: @
+			position = view.position()[0]
+			if position < text.size()
+				selection.paint(position, 1, true
+				view.position__(position + 1, true
+		natacurses.KEY_F6: @
+			selection.paint(0, -1, false
+	while !done
 		view.render(
-		position = view.position(
-		line = view.line(
 		if message == ""
-			line_in_text = text.line_at_in_text(position[0]
+			position = view.position(
+			line = text.line_at_in_text(position[0]
 			n = view.range(
 			status.replace(0, -1, "" +
-				line_in_text[0] + "," +
-				(position[0] - line_in_text[1]) + "-" +
-				(position[1] - line[3]) + " " +
+				line[0] + "," +
+				(position[0] - line[1]) + "-" +
+				(position[1] - view.line()[3]) + " " +
 				(n > 0 ? view.top() * 100 / n : 100) + "%"
 		else
 			status.replace(0, -1, message
 		strip.render(
 		view.timeout(syntax.more() ? 0 : -1
+		c = null
 		try
 			c = view.get(
-			if c == 0x1b
-				break
-			else if c == natacurses.KEY_RESIZE
-				size = natacurses.size(
-				view.move(0, 0, size[0], size[1] - 1
-				strip.move(0, size[1] - 1, size[0], 1
-			else if c == natacurses.KEY_DOWN
-				if line[1] + 1 < view.size()[1]: view.line__(line[1] + 1
-			else if c == natacurses.KEY_UP
-				if line[1] > 0: view.line__(line[1] - 1
-			else if c == natacurses.KEY_LEFT
-				if position[0] > 0: view.position__(position[0] - 1, false
-			else if c == natacurses.KEY_RIGHT
-				if position[0] < text.size(): view.position__(position[0] + 1, true
-			else if c == natacurses.KEY_BACKSPACE
-				if position[0] > 0
-					view.folded(position[0] - 1, false
-					text.replace(position[0] - 1, 1, ""
-			else if c == natacurses.KEY_F1
-				view.position__(view.folded(position[0], true), false
-			else if c == natacurses.KEY_F2
-				view.folded(position[0], false
-			else if c == natacurses.KEY_F3
-				pattern = ""
-				each(selection, @(p, n) :pattern = pattern + text.slice(p, n
-				selection.paint(0, text.size(), false
-				if pattern != ""
-					with(nata.Search(text), @(search)
-						search.pattern(pattern, nata.Search.ECMASCRIPT
-						search.reset(
-						while (match = search.next()).size() > 0
-							highlight.paint(match[0][0], match[0][1], true
-			else if c == natacurses.KEY_F4
-				highlight.paint(0, text.size(), false
-			else if c == natacurses.KEY_F5
-				if position[0] < text.size()
-					selection.paint(position[0], 1, true
-					view.position__(position[0] + 1, true
-			else if c == natacurses.KEY_F6
-				selection.paint(0, text.size(), false
-			else
+		catch Throwable t
+		if c !== null
+			action = null
+			try
+				action = actions[c]
+			catch Throwable t
 				if c == natacurses.KEY_ENTER || c == 0xd: c = 0xa
-				text.replace(position[0], 0, String.from_code(c
+				text.replace(view.position()[0], 0, String.from_code(c
+			if action !== null: action(
 			view.into_view(view.position()[0]
-		catch Throwable e
 		syntax.step(
