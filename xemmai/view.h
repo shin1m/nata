@@ -19,7 +19,7 @@ struct t_view : t_proxy
 	t_text& v_text;
 	::nata::t_tokens<::nata::t_text<>, t_scoped>* v_tokens;
 	T_target* v_target;
-	::nata::t_rows<std::decay_t<decltype(*v_tokens)>, std::decay_t<decltype(*v_target)>, ::nata::t_foldable<>>* v_rows;
+	::nata::t_rows<std::decay_t<decltype(*v_tokens)>, std::decay_t<decltype(*v_target)>>* v_rows;
 	::nata::t_widget<std::decay_t<decltype(*v_rows)>>* v_widget;
 	std::vector<t_overlay<T_target>*> v_overlays;
 
@@ -70,19 +70,19 @@ struct t_view : t_proxy
 		if (a_p > n) t_throwable::f_throw(L"out of range.");
 		v_tokens->f_paint(a_p, {{std::move(a_token), std::min(a_n, n - a_p)}});
 	}
-	void f_foldable(size_t a_p, size_t a_n, bool a_foldable)
+	void f_crease(size_t a_p, size_t a_n, bool a_on)
 	{
 		size_t n = v_text.f_size();
 		if (a_p > n) t_throwable::f_throw(L"out of range.");
-		if (a_foldable)
-			v_rows->f_foldable(a_p, {{{{std::min(a_n, n - a_p)}}}});
+		if (a_on)
+			v_rows->f_crease(a_p, {{{{std::min(a_n, n - a_p)}}}});
 		else
-			v_rows->f_foldable(a_p, {{std::min(a_n, n - a_p)}});
+			v_rows->f_crease(a_p, {{std::min(a_n, n - a_p)}});
 	}
-	size_t f_folded(size_t a_p, bool a_folded)
+	size_t f_folded(size_t a_p, bool a_on)
 	{
 		if (a_p > v_text.f_size()) t_throwable::f_throw(L"out of range.");
-		return v_rows->f_folded(a_p, a_folded);
+		return v_rows->f_folded(a_p, a_on);
 	}
 	void f_render()
 	{
@@ -262,7 +262,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_type_of<xemmaix::nata::t_p
 			(L"move", t_member<void(t_view::*)(size_t, size_t, size_t, size_t), &t_view::f_move>())
 			(L"attributes", t_member<void(t_view::*)(const typename T_target::t_attribute&, const typename T_target::t_attribute&), &t_view::f_attributes>())
 			(L"paint", t_member<void(t_view::*)(size_t, size_t, t_scoped&&), &t_view::f_paint>())
-			(L"foldable", t_member<void(t_view::*)(size_t, size_t, bool), &t_view::f_foldable>())
+			(L"crease", t_member<void(t_view::*)(size_t, size_t, bool), &t_view::f_crease>())
 			(L"folded", t_member<size_t(t_view::*)(size_t, bool), &t_view::f_folded>())
 			(L"render", t_member<void(t_view::*)(), &t_view::f_render>())
 			(L"size", t_member<t_scoped(t_view::*)() const, &t_view::f_size>())

@@ -2,7 +2,7 @@
 #include "rows.h"
 #include "widget.h"
 #include "painter.h"
-#include "folder.h"
+#include "creaser.h"
 #include "curses.h"
 #include <fstream>
 #include <regex>
@@ -11,7 +11,7 @@
 constexpr size_t c_text_chunk = 4096;
 constexpr size_t c_lines_chunk = 256;
 constexpr size_t c_tokens_chunk = 256;
-constexpr size_t c_foldings_chunk = 16;
+constexpr size_t c_creases_chunk = 16;
 constexpr size_t c_rows_chunk = 256;
 constexpr size_t c_region_chunk = 8;
 constexpr size_t c_task_unit = 256;
@@ -19,7 +19,7 @@ constexpr size_t c_task_unit = 256;
 constexpr size_t c_text_chunk = 5;
 constexpr size_t c_lines_chunk = 5;
 constexpr size_t c_tokens_chunk = 5;
-constexpr size_t c_foldings_chunk = 5;
+constexpr size_t c_creases_chunk = 5;
 constexpr size_t c_rows_chunk = 5;
 constexpr size_t c_region_chunk = 5;
 constexpr size_t c_task_unit = 4;
@@ -32,7 +32,7 @@ struct t_view
 	t_text& v_text;
 	nata::t_tokens<t_text, attr_t, c_tokens_chunk, c_tokens_chunk> v_tokens{v_text};
 	nata::curses::t_target v_target;
-	nata::t_rows<decltype(v_tokens), decltype(v_target), nata::t_foldable<c_foldings_chunk, c_foldings_chunk>, c_rows_chunk, c_rows_chunk> v_rows{v_tokens, v_target};
+	nata::t_rows<decltype(v_tokens), decltype(v_target), nata::t_creased<c_creases_chunk, c_creases_chunk>, c_rows_chunk, c_rows_chunk> v_rows{v_tokens, v_target};
 	nata::t_widget<decltype(v_rows), nata::t_stretches<bool, c_region_chunk, c_region_chunk>> v_widget{v_rows};
 
 	t_view(t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : v_text(a_text), v_target(a_x, a_y, a_width, a_height)
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 	{
 		decltype(view.v_rows)& v_rows;
 		nata::t_painter<decltype(view.v_tokens)> v_painter{v_rows.v_tokens};
-		nata::t_folder<decltype(view.v_rows), size_t> v_folder{v_rows};
+		nata::t_creaser<decltype(view.v_rows), size_t> v_creaser{v_rows};
 		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(?:(if|for|in|break|continue|return)|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done))\\b)", std::wregex::ECMAScript | std::wregex::optimize};
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_eos;
 		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_i;
@@ -110,35 +110,35 @@ int main(int argc, char* argv[])
 				v_painter.f_push(type == 1 ? attribute_comment : attribute_keyword, b, 64);
 				auto close = [&]
 				{
-					v_folder.f_push(a);
-					v_folder.f_close();
-					v_folder.f_push(b);
+					v_creaser.f_push(a);
+					v_creaser.f_close();
+					v_creaser.f_push(b);
 				};
 				switch (type) {
 				case 3:
-					if (v_folder.f_tag() == 4) {
+					if (v_creaser.f_tag() == 4) {
 						close();
-						v_folder.f_open(4);
+						v_creaser.f_open(4);
 					} else {
-						v_folder.f_push(a + b);
+						v_creaser.f_push(a + b);
 					}
 					break;
 				case 4:
 				case 5:
 				case 6:
-					v_folder.f_push(a + b);
-					v_folder.f_open(type);
+					v_creaser.f_push(a + b);
+					v_creaser.f_open(type);
 					break;
 				case 7:
 				case 8:
 				case 9:
-					if (v_folder.f_tag() == type - 3)
+					if (v_creaser.f_tag() == type - 3)
 						close();
 					else
-						v_folder.f_push(a + b);
+						v_creaser.f_push(a + b);
 					break;
 				default:
-					v_folder.f_push(a + b);
+					v_creaser.f_push(a + b);
 				}
 				++v_i;
 			}
@@ -147,8 +147,8 @@ int main(int argc, char* argv[])
 				n -= v_painter.f_current();
 				v_painter.f_push(A_NORMAL, n, 64);
 				v_painter.f_flush();
-				v_folder.f_push(n);
-				v_folder.f_flush();
+				v_creaser.f_push(n);
+				v_creaser.f_flush();
 				v_message.clear();
 			} else {
 				v_painter.f_flush();
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
 		{
 			v_i = decltype(v_i)(v_rows.v_tokens.v_text.f_begin(), v_rows.v_tokens.v_text.f_end(), v_pattern);
 			v_painter.f_reset();
-			v_folder.f_reset();
+			v_creaser.f_reset();
 		};
 	} syntax{view.v_rows};
 	text.v_replaced >> syntax.v_replaced;

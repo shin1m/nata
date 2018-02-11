@@ -3,7 +3,7 @@
 
 #include "../curses.h"
 #include "painter.h"
-#include "folder.h"
+#include "creaser.h"
 
 namespace xemmaix
 {
@@ -38,7 +38,7 @@ class t_extension : public xemmai::t_extension
 	t_slot v_type_overlay;
 	t_slot v_type_overlay_iterator;
 	t_slot v_type_painter;
-	t_slot v_type_folder;
+	t_slot v_type_creaser;
 
 	template<typename T>
 	void f_type__(t_scoped&& a_type);
@@ -120,9 +120,9 @@ inline void t_extension::f_type__<t_painter<t_target>>(t_scoped&& a_type)
 }
 
 template<>
-inline void t_extension::f_type__<t_folder<t_target>>(t_scoped&& a_type)
+inline void t_extension::f_type__<t_creaser<t_target>>(t_scoped&& a_type)
 {
-	v_type_folder = std::move(a_type);
+	v_type_creaser = std::move(a_type);
 }
 
 template<>
@@ -168,9 +168,9 @@ inline t_object* t_extension::f_type<t_painter<t_target>>() const
 }
 
 template<>
-inline t_object* t_extension::f_type<t_folder<t_target>>() const
+inline t_object* t_extension::f_type<t_creaser<t_target>>() const
 {
-	return v_type_folder;
+	return v_type_creaser;
 }
 
 }

@@ -23,7 +23,7 @@ check_PROGRAMS = \
 	test_text \
 	test_tokens \
 	test_rows \
-	test_foldings \
+	test_creases \
 	test_painter \
-	test_folder
+	test_creaser
 TESTS = $(check_PROGRAMS)

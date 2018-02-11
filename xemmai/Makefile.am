@@ -28,6 +28,6 @@ natacurses_so_LDADD = $(XEMMAI_LIBS) -lncursesw -ltinfo
 natacurses_so_SOURCES = \
 	view.h \
 	painter.h \
-	folder.h \
+	creaser.h \
 	curses.h \
 	curses.cc

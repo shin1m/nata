@@ -7,14 +7,14 @@ int main(int argc, char* argv[])
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
 		nata::t_tokens<decltype(text), int, 5, 5> tokens(text);
 		t_test_target target;
-		nata::t_rows<decltype(tokens), decltype(target), nata::t_foldable<5, 5>, 5, 5> rows(tokens, target);
+		nata::t_rows<decltype(tokens), decltype(target), nata::t_creased<5, 5>, 5, 5> rows(tokens, target);
 		test(text, rows);
 	};
 	setup([](auto& text, auto& rows)
 	{
 		std::wstring s = L"Hello,\tworld!\nGood bye.";
 		text.f_replace(0, 0, s.begin(), s.end());
-		rows.f_foldable(7, {
+		rows.f_crease(7, {
 			{{{11}}}
 		});
 		f_assert_equals(rows, {
@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
-		rows.f_foldable(2, {
+		rows.f_crease(2, {
 			{{{7}}},
 			{{{10}}}
 		});
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
-		rows.f_foldable(1, {
+		rows.f_crease(1, {
 			{{
 				{1},
 				{{{7}}},
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
-		rows.f_foldable(2, {
+		rows.f_crease(2, {
 			{{{7}}},
 			{{
 				{1},
@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
 		text.f_replace(0, 0, s.begin(), s.end());
-		rows.f_foldable(2, {
+		rows.f_crease(2, {
 			{{{7}}},
 			{{{10}}}
 		});

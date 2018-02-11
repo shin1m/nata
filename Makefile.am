@@ -7,7 +7,8 @@ EXTRA_DIST = \
 	tokens.h \
 	rows.h \
 	widget.h \
-	folder.h \
+	painter.h \
+	creaser.h \
 	curses.h
 CLEANFILES = *.gcda *.gcno *.gcov
 SUBDIRS = xemmai test

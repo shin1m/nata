@@ -147,15 +147,15 @@ public:
 		auto row = v_rows.f_at_in_y(v_top);
 		size_t p = row.f_index().v_text;
 		auto text = v_rows.v_tokens.v_text.f_at(p);
-		std::vector<typename T_rows::t_foldings::t_iterator> folding;
-		size_t q = v_rows.f_leaf_at_in_text(p, folding, true);
-		size_t fd;
+		std::vector<typename T_rows::t_creases::t_iterator> crease;
+		size_t q = v_rows.f_leaf_at_in_text(p, crease, true);
+		size_t cd;
 		decltype(v_rows.v_tokens.f_begin()) token;
 		size_t td;
 		std::vector<std::pair<typename T_overlay::t_iterator, size_t>> overlays{v_overlays.size()};
 		auto skip = [&](size_t p)
 		{
-			fd = folding.back().f_delta().v_i1;
+			cd = crease.back().f_delta().v_i1;
 			token = v_rows.v_tokens.f_at_in_text(p);
 			td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 			for (size_t i = 0; i < overlays.size(); ++i) {
@@ -165,13 +165,13 @@ public:
 			}
 		};
 		skip(p);
-		fd -= q;
+		cd -= q;
 		auto next = [&](size_t d)
 		{
-			fd -= d;
-			if (fd <= 0) {
-				v_rows.f_next_leaf(folding);
-				fd = folding.back().f_delta().v_i1;
+			cd -= d;
+			if (cd <= 0) {
+				v_rows.f_next_leaf(crease);
+				cd = crease.back().f_delta().v_i1;
 			}
 			td -= d;
 			if (td <= 0) td = (++token).f_delta().v_i1;
@@ -190,20 +190,20 @@ public:
 			auto run = [&](auto folded, auto put)
 			{
 				while (rd.v_text > 0) {
-					if (folding.back()->v_x) {
+					if (crease.back()->v_x) {
 						size_t p = text.f_index();
 						do {
 							folded();
-							size_t d = folding.back().f_delta().v_i1;
+							size_t d = crease.back().f_delta().v_i1;
 							p += d;
 							rd.v_text -= d;
-							v_rows.f_next_leaf(folding);
-						} while (rd.v_text > 0 && folding.back()->v_x);
+							v_rows.f_next_leaf(crease);
+						} while (rd.v_text > 0 && crease.back()->v_x);
 						skip(p);
 						text = v_rows.v_tokens.v_text.f_at(p);
 					}
 					if (rd.v_text <= 0) break;
-					size_t d = std::min(fd, std::min(td, rd.v_text));
+					size_t d = std::min(cd, std::min(td, rd.v_text));
 					for (auto& x : overlays) if (x.second < d) d = x.second;
 					put(d);
 					next(d);
@@ -323,11 +323,11 @@ public:
 	{
 		size_t& position = std::get<0>(v_position);
 		position = a_value;
-		std::vector<typename T_rows::t_foldings::t_iterator> folding;
-		size_t p = v_rows.f_leaf_at_in_text(position, folding, true);
-		if (folding.back()->v_x && p > 0) {
+		std::vector<typename T_rows::t_creases::t_iterator> crease;
+		size_t p = v_rows.f_leaf_at_in_text(position, crease, true);
+		if (crease.back()->v_x && p > 0) {
 			position -= p;
-			if (a_forward) position += folding.back().f_delta().v_i1;
+			if (a_forward) position += crease.back().f_delta().v_i1;
 		}
 		f_from_position(true);
 	}

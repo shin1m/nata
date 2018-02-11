@@ -55,7 +55,7 @@ nata.main(@() natacurses.main(@
 			"(#.*(?:\\n|$))|(?:\\b(?:(if|for|in|break|continue|return)|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done))\\b)"
 			nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
 		painter = natacurses.Painter(view
-		folder = natacurses.Folder(view
+		creaser = natacurses.Creaser(view
 		exports = Object(
 		exports.more = @() painter.current() < text.size()
 		exports.step = @
@@ -70,37 +70,37 @@ nata.main(@() natacurses.main(@
 				painter.push(null, a, 64
 				painter.push(type == 1 ? token_comment : token_keyword, b, 64
 				close = @
-					folder.push(a
-					folder.close(
-					folder.push(b
+					creaser.push(a
+					creaser.close(
+					creaser.push(b
 				if type == 3
-					if folder.tag() == 4
+					if creaser.tag() == 4
 						close(
-						folder.open(4
+						creaser.open(4
 					else
-						folder.push(a + b
+						creaser.push(a + b
 				else if type == 4 || type == 5 || type == 6
-					folder.push(a + b
-					folder.open(type
+					creaser.push(a + b
+					creaser.open(type
 				else if type == 7 || type == 8 || type == 9
-					if folder.tag() == type - 3
+					if creaser.tag() == type - 3
 						close(
 					else
-						folder.push(a + b
+						creaser.push(a + b
 				else
-					folder.push(a + b
+					creaser.push(a + b
 			if match.size() > 0
 				painter.flush(
 				::message = "running: " + painter.current() * 100 / text.size() + "%"
 			else
 				painter.push(null, -1, 64
 				painter.flush(
-				folder.push(-1
-				folder.flush(
+				creaser.push(-1
+				creaser.flush(
 				::message = ""
 		search.reset(
 		painter.reset(
-		folder.reset(
+		creaser.reset(
 		exports
 	)(
 	done = false

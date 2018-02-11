@@ -76,7 +76,7 @@ t_extension::t_extension(xemmai::t_object* a_module, t_scoped&& a_nata) : xemmai
 	t_type_of<t_overlay<t_target>>::f_define(this);
 	t_type_of<t_overlay_iterator<t_target>>::f_define(this);
 	t_type_of<t_painter<t_target>>::f_define(this);
-	t_type_of<t_folder<t_target>>::f_define(this);
+	t_type_of<t_creaser<t_target>>::f_define(this);
 	f_define<void(*)(const t_value&), f_main>(this, L"main");
 	f_define<void(*)(short, short, short), f_define_pair>(this, L"define_pair");
 	f_define<attr_t(*)(short), f_color_pair>(this, L"color_pair");
@@ -134,7 +134,7 @@ void t_extension::f_scan(t_scan a_scan)
 	a_scan(v_type_overlay);
 	a_scan(v_type_overlay_iterator);
 	a_scan(v_type_painter);
-	a_scan(v_type_folder);
+	a_scan(v_type_creaser);
 }
 
 }

@@ -9,19 +9,19 @@ namespace nata
 {
 
 template<size_t A_leaf = 16, size_t A_branch = 16>
-struct t_foldable
+struct t_creased
 {
-	t_nested<t_foldable, A_leaf, A_branch> v_nested;
+	t_nested<t_creased, A_leaf, A_branch> v_nested;
 	bool v_folded = false;
 };
 
-template<typename, typename> class t_folder;
+template<typename, typename> class t_creaser;
 
-template<typename T_tokens, typename T_target, typename T_foldable = t_foldable<>, size_t A_leaf = 256, size_t A_branch = 256>
+template<typename T_tokens, typename T_target, typename T_creased = t_creased<>, size_t A_leaf = 256, size_t A_branch = 256>
 struct t_rows
 {
-	template<typename, typename> friend class t_folder;
-	typedef decltype(T_foldable::v_nested) t_foldings;
+	template<typename, typename> friend class t_creaser;
+	typedef decltype(T_creased::v_nested) t_creases;
 	struct t_row
 	{
 		size_t v_line;
@@ -131,13 +131,13 @@ private:
 	typedef jumoku::t_array<t_row, A_leaf, A_branch, t_traits> t_array;
 
 	template<bool A_visible>
-	static constexpr bool f_enter(const std::shared_ptr<T_foldable>& a_x)
+	static constexpr bool f_enter(const std::shared_ptr<T_creased>& a_x)
 	{
 		return !A_visible || !a_x->v_folded;
 	}
 
 	t_array v_array;
-	t_foldings v_foldings;
+	t_creases v_creases;
 	size_t v_width;
 
 	std::tuple<size_t, size_t, size_t> f_replace(size_t a_p, size_t a_n0, size_t a_n1)
@@ -181,23 +181,23 @@ private:
 			advance(n, size);
 		};
 		p = i.f_index().v_text;
-		std::vector<typename t_foldings::t_iterator> folding;
-		size_t q = f_leaf_at_in_text(p, folding, true);
-		size_t fd = folding.back().f_delta().v_i1 - q;
+		std::vector<typename t_creases::t_iterator> crease;
+		size_t q = f_leaf_at_in_text(p, crease, true);
+		size_t cd = crease.back().f_delta().v_i1 - q;
 		auto token = v_tokens.f_at_in_text(p);
 		size_t td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 		auto first = v_tokens.v_text.f_at(p);
 		auto last = v_tokens.v_text.f_at(a_p + a_n1);
 		while (first != last) {
-			if (folding.back()->v_x) {
+			if (crease.back()->v_x) {
 				size_t p = first.f_index();
 				do {
-					size_t d = folding.back().f_delta().v_i1;
+					size_t d = crease.back().f_delta().v_i1;
 					cell(d, v_target.f_folded());
 					p += d;
-					f_next_leaf(folding);
-				} while (folding.back()->v_x);
-				fd = folding.back().f_delta().v_i1;
+					f_next_leaf(crease);
+				} while (crease.back()->v_x);
+				cd = crease.back().f_delta().v_i1;
 				token = v_tokens.f_at_in_text(p);
 				td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 				first = v_tokens.v_text.f_at(p);
@@ -224,9 +224,9 @@ private:
 				}
 				if (++first == last) break;
 				if (--td <= 0) td = (++token).f_delta().v_i1;
-				if (--fd <= 0) {
-					f_next_leaf(folding);
-					fd = folding.back().f_delta().v_i1;
+				if (--cd <= 0) {
+					f_next_leaf(crease);
+					cd = crease.back().f_delta().v_i1;
 					break;
 				}
 			}
@@ -240,7 +240,7 @@ private:
 	};
 	t_slot<size_t, size_t, size_t> v_tokens_replaced = [this](auto a_p, auto a_n0, auto a_n1)
 	{
-		v_foldings.f_replace(a_p, a_n0, {{a_n1}});
+		v_creases.f_replace(a_p, a_n0, {{a_n1}});
 		auto x = f_replace(a_p, a_n0, a_n1);
 		v_replaced(a_p, a_n0, a_n1, std::get<0>(x), std::get<1>(x), std::get<2>(x));
 	};
@@ -272,7 +272,7 @@ public:
 		v_target.v_resized >> v_target_resized;
 		auto size = v_target.f_eof();
 		v_array.f_insert(f_end(), t_row{1, true, 1, std::get<0>(size), std::get<1>(size), std::get<1>(size) + std::get<2>(size)});
-		v_foldings.f_replace(0, 0, {{v_tokens.v_text.f_size() + 1}});
+		v_creases.f_replace(0, 0, {{v_tokens.v_text.f_size() + 1}});
 		f_replace(0, 0, v_tokens.v_text.f_size());
 	}
 	t_index<size_t> f_size() const
@@ -319,45 +319,45 @@ public:
 			return a_index.v_y;
 		});
 	}
-	const t_foldings& f_foldings() const
+	const t_creases& f_creases() const
 	{
-		return v_foldings;
+		return v_creases;
 	}
-	size_t f_folding_at_in_text(size_t a_p, std::vector<typename t_foldings::t_iterator>& a_path, bool a_visible = false) const
+	size_t f_crease_at_in_text(size_t a_p, std::vector<typename t_creases::t_iterator>& a_path, bool a_visible = false) const
 	{
-		return v_foldings.f_path_at_in_text(a_p, a_path, a_visible ? f_enter<true> : f_enter<false>);
+		return v_creases.f_path_at_in_text(a_p, a_path, a_visible ? f_enter<true> : f_enter<false>);
 	}
-	size_t f_leaf_at_in_text(size_t a_p, std::vector<typename t_foldings::t_iterator>& a_path, bool a_visible = false) const
+	size_t f_leaf_at_in_text(size_t a_p, std::vector<typename t_creases::t_iterator>& a_path, bool a_visible = false) const
 	{
-		return v_foldings.f_leaf_at_in_text(a_p, a_path, a_visible ? f_enter<true> : f_enter<false>);
+		return v_creases.f_leaf_at_in_text(a_p, a_path, a_visible ? f_enter<true> : f_enter<false>);
 	}
-	void f_next_leaf(std::vector<typename t_foldings::t_iterator>& a_path) const
+	void f_next_leaf(std::vector<typename t_creases::t_iterator>& a_path) const
 	{
-		v_foldings.f_next(a_path);
-		v_foldings.f_leaf(a_path, f_enter<true>);
+		v_creases.f_next(a_path);
+		v_creases.f_leaf(a_path, f_enter<true>);
 	}
-	typename t_foldings::t_iterator f_foldable(size_t a_p, std::deque<typename t_foldings::t_span>&& a_xs)
+	typename t_creases::t_iterator f_crease(size_t a_p, std::deque<typename t_creases::t_span>&& a_xs)
 	{
 		size_t n = std::accumulate(a_xs.begin(), a_xs.end(), 0, [](size_t n, const auto& x)
 		{
 			return n + x.v_n;
 		});
-		auto i = v_foldings.f_replace(a_p, n, std::move(a_xs));
+		auto i = v_creases.f_replace(a_p, n, std::move(a_xs));
 		v_tokens_painted(a_p, n);
 		return i;
 	}
-	size_t f_folded(size_t a_p, bool a_folded)
+	size_t f_folded(size_t a_p, bool a_on)
 	{
-		std::vector<typename t_foldings::t_iterator> path;
-		size_t p = a_p - f_folding_at_in_text(a_p, path);
+		std::vector<typename t_creases::t_iterator> path;
+		size_t p = a_p - f_crease_at_in_text(a_p, path);
 		auto i = path.back();
 		if (!i->v_x) {
 			if (path.size() <= 1) return a_p;
 			p -= i.f_index().v_i1;
 			i = path[path.size() - 2];
 		}
-		if (i->v_x->v_folded != a_folded) {
-			i->v_x->v_folded = a_folded;
+		if (i->v_x->v_folded != a_on) {
+			i->v_x->v_folded = a_on;
 			v_tokens_painted(p, i.f_delta().v_i1);
 		}
 		return p;
@@ -367,25 +367,25 @@ public:
 	{
 		size_t p = a_i.f_index().v_text;
 		size_t x = a_i.f_index().v_x;
-		std::vector<typename t_foldings::t_iterator> folding;
-		size_t q = f_leaf_at_in_text(p, folding, true);
-		size_t fd = folding.back().f_delta().v_i1 - q;
+		std::vector<typename t_creases::t_iterator> crease;
+		size_t q = f_leaf_at_in_text(p, crease, true);
+		size_t cd = crease.back().f_delta().v_i1 - q;
 		auto token = v_tokens.f_at_in_text(p);
 		size_t td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 		auto first = v_tokens.v_text.f_at(p);
 		p += a_i.f_delta().v_text;
 		auto last = v_tokens.v_text.f_at(a_i->v_tail ? p - 1 : p);
 		while (first != last) {
-			if (folding.back()->v_x) {
+			if (crease.back()->v_x) {
 				size_t p = first.f_index();
 				do {
 					size_t width = std::get<0>(v_target.f_folded());
 					if (!a_do(p, x, width)) return {p, x, width};
-					p += folding.back().f_delta().v_i1;
+					p += crease.back().f_delta().v_i1;
 					x += width;
-					f_next_leaf(folding);
-				} while (folding.back()->v_x);
-				fd = folding.back().f_delta().v_i1;
+					f_next_leaf(crease);
+				} while (crease.back()->v_x);
+				cd = crease.back().f_delta().v_i1;
 				token = v_tokens.f_at_in_text(p);
 				td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 				first = v_tokens.v_text.f_at(p);
@@ -397,9 +397,9 @@ public:
 				x += width;
 				if (--td <= 0) td = (++token).f_delta().v_i1;
 				if (++first == last) break;
-				if (--fd <= 0) {
-					f_next_leaf(folding);
-					fd = folding.back().f_delta().v_i1;
+				if (--cd <= 0) {
+					f_next_leaf(crease);
+					cd = crease.back().f_delta().v_i1;
 					break;
 				}
 			}

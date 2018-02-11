@@ -1,5 +1,5 @@
-#ifndef NATA__FOLDER_H
-#define NATA__FOLDER_H
+#ifndef NATA__CREASER_H
+#define NATA__CREASER_H
 
 #include <deque>
 #include <numeric>
@@ -9,14 +9,14 @@ namespace nata
 {
 
 template<typename T_rows, typename T_tag>
-class t_folder
+class t_creaser
 {
 	struct t_block
 	{
 		T_tag v_tag;
 		size_t v_n = 0;
 		bool v_folded = false;
-		std::deque<typename T_rows::t_foldings::t_span> v_xs;
+		std::deque<typename T_rows::t_creases::t_span> v_xs;
 		size_t v_dirty_begin = ~0;
 		size_t v_dirty_end = 0;
 
@@ -35,7 +35,7 @@ class t_folder
 	size_t v_n;
 	std::deque<t_block> v_nesting;
 	size_t v_nesting_p;
-	std::vector<typename T_rows::t_foldings::t_iterator> v_path;
+	std::vector<typename T_rows::t_creases::t_iterator> v_path;
 	size_t v_path_p;
 	size_t v_path_folded;
 
@@ -55,11 +55,11 @@ class t_folder
 			}
 			if (v_path_p < v_path_folded) b.f_dirty_begin(v_path_p);
 			v_path_p += v_path.back().f_delta().v_i1;
-			v_rows.f_foldings().f_next(v_path);
+			v_rows.f_creases().f_next(v_path);
 		}
 		if (v_p <= v_path_folded) b.f_dirty_end(v_p);
 	}
-	typename T_rows::t_foldings::t_iterator f_foldable()
+	typename T_rows::t_creases::t_iterator f_foldable()
 	{
 		auto& b = v_nesting.back();
 		auto xs = std::move(b.v_xs);
@@ -67,7 +67,7 @@ class t_folder
 		{
 			return n + x.v_n;
 		});
-		auto i = v_rows.v_foldings.f_replace(v_nesting_p, n, std::move(xs));
+		auto i = v_rows.v_creases.f_replace(v_nesting_p, n, std::move(xs));
 		if (b.v_dirty_begin < b.v_dirty_end) v_rows.v_tokens_painted(b.v_dirty_begin, b.v_dirty_end - b.v_dirty_begin);
 		v_nesting.clear();
 		v_path.clear();
@@ -75,7 +75,7 @@ class t_folder
 	}
 
 public:
-	t_folder(T_rows& a_rows) : v_rows(a_rows)
+	t_creaser(T_rows& a_rows) : v_rows(a_rows)
 	{
 	}
 	void f_reset()
@@ -84,7 +84,7 @@ public:
 		v_nesting.clear();
 		v_nesting.push_back({{}});
 		v_path.clear();
-		v_path.push_back(v_rows.f_foldings().f_begin());
+		v_path.push_back(v_rows.f_creases().f_begin());
 	}
 	size_t f_current() const
 	{
