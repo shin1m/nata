@@ -26,14 +26,7 @@ struct t_view : t_proxy
 	}
 	static t_scoped f_tuple(const decltype(v_widget->v_line)& a_i)
 	{
-		t_scoped p = t_tuple::f_instantiate(5);
-		auto& tuple = f_as<t_tuple&>(p);
-		tuple[0].f_construct(t_value(a_i.v_i));
-		tuple[1].f_construct(t_value(a_i.v_line));
-		tuple[2].f_construct(t_value(a_i.v_text));
-		tuple[3].f_construct(t_value(a_i.v_x));
-		tuple[4].f_construct(t_value(a_i.v_y));
-		return p;
+		return nata::f_tuple(a_i.v_i, a_i.v_line, a_i.v_text, a_i.v_x, a_i.v_y);
 	}
 
 	t_view(t_object* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : t_proxy(a_class), v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_target(new T_target(a_x, a_y, a_width, a_height)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, *v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows))
@@ -107,12 +100,7 @@ struct t_view : t_proxy
 	}
 	t_scoped f_position() const
 	{
-		t_scoped p = t_tuple::f_instantiate(3);
-		auto& tuple = f_as<t_tuple&>(p);
-		tuple[0].f_construct(t_value(std::get<0>(v_widget->v_position)));
-		tuple[1].f_construct(t_value(std::get<1>(v_widget->v_position)));
-		tuple[2].f_construct(t_value(std::get<2>(v_widget->v_position)));
-		return p;
+		return nata::f_tuple(std::get<0>(v_widget->v_position), std::get<1>(v_widget->v_position), std::get<2>(v_widget->v_position));
 	}
 	void f_position__(size_t a_value, bool a_forward)
 	{
@@ -229,11 +217,7 @@ struct t_overlay_iterator : t_proxy
 	t_scoped f_next()
 	{
 		if (!v_overlay.f_object() || v_i == v_overlay.v_overlay->f_end()) return nullptr;
-		t_scoped p = t_tuple::f_instantiate(3);
-		auto& tuple = f_as<t_tuple&>(p);
-		tuple[0].f_construct(t_value(v_i->v_x));
-		tuple[1].f_construct(t_value(v_i.f_index().v_i1));
-		tuple[2].f_construct(t_value(v_i.f_delta().v_i1));
+		auto p = f_tuple(v_i->v_x, v_i.f_index().v_i1, v_i.f_delta().v_i1);
 		++v_i;
 		return p;
 	}

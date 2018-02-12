@@ -1,5 +1,4 @@
 #include "search.h"
-#include <xemmai/tuple.h>
 
 namespace xemmaix::nata
 {
@@ -16,11 +15,8 @@ t_scoped t_search::f_next()
 	auto& tuple = f_as<t_tuple&>(p);
 	for (size_t i = 0; i < v_i->size(); ++i) {
 		auto& m = (*v_i)[i];
-		t_scoped p = t_tuple::f_instantiate(2);
-		auto& t = f_as<t_tuple&>(p);
-		t[0].f_construct(t_value(m.first.f_index()));
-		t[1].f_construct(t_value(m.second.f_index() - m.first.f_index()));
-		tuple[i].f_construct(std::move(p));
+		size_t j = m.first.f_index();
+		tuple[i].f_construct(f_tuple(j, m.second.f_index() - j));
 	}
 	if (v_i != v_eos) ++v_i;
 	return p;

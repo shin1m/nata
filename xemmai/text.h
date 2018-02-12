@@ -4,7 +4,6 @@
 #include "../model.h"
 #include "proxy.h"
 #include <xemmai/derived.h>
-#include <xemmai/tuple.h>
 
 namespace xemmaix::nata
 {
@@ -45,13 +44,7 @@ struct t_text : t_proxy
 		size_t n = f_size();
 		if (a_p > n) t_throwable::f_throw(L"out of range.");
 		auto line = v_text->f_lines().f_at_in_text(a_p);
-		t_scoped p = t_tuple::f_instantiate(4);
-		auto& tuple = f_as<t_tuple&>(p);
-		tuple[0].f_construct(t_value(line.f_index().v_i0));
-		tuple[1].f_construct(t_value(line.f_index().v_i1));
-		tuple[2].f_construct(t_value(line.f_delta().v_i0));
-		tuple[3].f_construct(t_value(line.f_delta().v_i1));
-		return p;
+		return f_tuple(line.f_index().v_i0, line.f_index().v_i1, line.f_delta().v_i0, line.f_delta().v_i1);
 	}
 };
 

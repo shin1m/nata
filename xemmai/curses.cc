@@ -53,11 +53,7 @@ attr_t f_color_pair(short a_pair)
 
 t_scoped f_size()
 {
-	t_scoped p = t_tuple::f_instantiate(2);
-	auto& tuple = f_as<t_tuple&>(p);
-	tuple[0].f_construct(t_value(COLS));
-	tuple[1].f_construct(t_value(LINES));
-	return p;
+	return f_tuple(COLS, LINES);
 }
 
 }
