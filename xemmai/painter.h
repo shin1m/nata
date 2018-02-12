@@ -4,10 +4,7 @@
 #include "../painter.h"
 #include "view.h"
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 template<typename T_target>
@@ -58,8 +55,6 @@ struct t_painter : t_proxy
 		v_painter->f_flush();
 	}
 };
-
-}
 
 }
 

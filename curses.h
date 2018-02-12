@@ -4,10 +4,7 @@
 #include "signal.h"
 #include <ncurses.h>
 
-namespace nata
-{
-
-namespace curses
+namespace nata::curses
 {
 
 struct t_session
@@ -217,8 +214,6 @@ struct t_graphics
 		wclrtoeol(v_target.v_window);
 	}
 };
-
-}
 
 }
 

@@ -5,10 +5,7 @@
 #include "../widget.h"
 #include "text.h"
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 template<typename T_target> struct t_overlay;
@@ -241,8 +238,6 @@ struct t_overlay_iterator : t_proxy
 		return p;
 	}
 };
-
-}
 
 }
 

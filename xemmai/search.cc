@@ -1,10 +1,7 @@
 #include "search.h"
 #include <xemmai/tuple.h>
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 void t_search::f_destroy()
@@ -27,8 +24,6 @@ t_scoped t_search::f_next()
 	}
 	if (v_i != v_eos) ++v_i;
 	return p;
-}
-
 }
 
 }

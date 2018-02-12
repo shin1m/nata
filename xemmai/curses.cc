@@ -29,13 +29,7 @@ t_scoped t_type_of<xemmaix::nata::curses::t_token>::f_construct(t_object* a_clas
 
 }
 
-namespace xemmaix
-{
-
-namespace nata
-{
-
-namespace curses
+namespace xemmaix::nata::curses
 {
 
 namespace
@@ -135,10 +129,6 @@ void t_extension::f_scan(t_scan a_scan)
 	a_scan(v_type_overlay_iterator);
 	a_scan(v_type_painter);
 	a_scan(v_type_creaser);
-}
-
-}
-
 }
 
 }

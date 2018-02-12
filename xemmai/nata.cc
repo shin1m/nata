@@ -1,9 +1,6 @@
 #include "search.h"
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 void t_entry::f_dispose()
@@ -47,8 +44,6 @@ void t_extension::f_scan(t_scan a_scan)
 	a_scan(v_type_proxy);
 	a_scan(v_type_text);
 	a_scan(v_type_search);
-}
-
 }
 
 }

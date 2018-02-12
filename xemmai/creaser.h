@@ -4,10 +4,7 @@
 #include "../creaser.h"
 #include "view.h"
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 template<typename T_target>
@@ -66,8 +63,6 @@ struct t_creaser : t_proxy
 		v_creaser->f_flush();
 	}
 };
-
-}
 
 }
 

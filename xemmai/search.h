@@ -4,10 +4,7 @@
 #include <regex>
 #include "text.h"
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 struct t_search : t_proxy
@@ -44,8 +41,6 @@ struct t_search : t_proxy
 	}
 	t_scoped f_next();
 };
-
-}
 
 }
 

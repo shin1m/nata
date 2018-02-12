@@ -1,16 +1,11 @@
 #include "text.h"
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 void t_text::f_destroy()
 {
 	delete v_text;
-}
-
 }
 
 }

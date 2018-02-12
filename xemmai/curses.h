@@ -5,13 +5,7 @@
 #include "painter.h"
 #include "creaser.h"
 
-namespace xemmaix
-{
-
-namespace nata
-{
-
-namespace curses
+namespace xemmaix::nata::curses
 {
 
 struct t_token
@@ -175,10 +169,6 @@ inline t_object* t_extension::f_type<t_creaser<t_target>>() const
 
 }
 
-}
-
-}
-
 namespace xemmai
 {
 
@@ -197,22 +187,12 @@ struct t_type_of<xemmaix::nata::curses::t_token> : t_type
 
 }
 
-namespace xemmaix
-{
-
-namespace nata
-{
-
-namespace curses
+namespace xemmaix::nata::curses
 {
 
 inline void t_target::t_graphics::f_attribute(const t_scoped& a_value)
 {
 	::nata::curses::t_graphics::f_attribute(f_is<t_token>(a_value) ? f_as<t_token&>(a_value).v_attribute : t_attribute{});
-}
-
-}
-
 }
 
 }

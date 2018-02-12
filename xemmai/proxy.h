@@ -3,10 +3,7 @@
 
 #include "nata.h"
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 class t_proxy : public t_entry
@@ -45,8 +42,6 @@ public:
 		return v_object;
 	}
 };
-
-}
 
 }
 

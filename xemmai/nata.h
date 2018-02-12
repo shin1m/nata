@@ -15,10 +15,7 @@ namespace nata
 {
 }
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 using namespace ::nata;
@@ -157,8 +154,6 @@ template<>
 inline t_object* t_extension::f_type<t_search>() const
 {
 	return v_type_search;
-}
-
 }
 
 }

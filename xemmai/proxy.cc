@@ -1,9 +1,6 @@
 #include "proxy.h"
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 void t_proxy::f_dispose()
@@ -11,8 +8,6 @@ void t_proxy::f_dispose()
 	v_object = nullptr;
 	f_release();
 	t_entry::f_dispose();
-}
-
 }
 
 }

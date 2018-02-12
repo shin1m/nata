@@ -6,10 +6,7 @@
 #include <xemmai/derived.h>
 #include <xemmai/tuple.h>
 
-namespace xemmaix
-{
-
-namespace nata
+namespace xemmaix::nata
 {
 
 struct t_text : t_proxy
@@ -57,8 +54,6 @@ struct t_text : t_proxy
 		return p;
 	}
 };
-
-}
 
 }
 
