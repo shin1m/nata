@@ -13,7 +13,7 @@ EXTRA_DIST = \
 CLEANFILES = *.gcda *.gcno *.gcov
 SUBDIRS = xemmai test
 
-AM_CPPFLAGS = -I..
+AM_CPPFLAGS = -I.. $(NCURSES_CFLAGS)
 AM_CXXFLAGS =
 AM_LDFLAGS =
 if DEBUG
@@ -30,4 +30,4 @@ AM_DEFAULT_SOURCE_EXT = .cc
 bin_PROGRAMS = \
 	dump \
 	curses
-curses_LDFLAGS = -lncursesw -ltinfo
+curses_LDFLAGS = $(NCURSES_LIBS)

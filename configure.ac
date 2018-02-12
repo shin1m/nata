@@ -1,6 +1,6 @@
 AC_INIT([nata], [201802])
 AM_INIT_AUTOMAKE([foreign nostdinc dist-bzip2 no-dist-gzip])
-AC_CONFIG_SRCDIR([model.h])
+AC_CONFIG_SRCDIR([signal.h])
 
 XEMMAI_USE=xemmai-201708
 PKG_CHECK_MODULES([XEMMAI], [${XEMMAI_USE}], [
@@ -9,6 +9,7 @@ PKG_CHECK_MODULES([XEMMAI], [${XEMMAI_USE}], [
 ])
 AC_SUBST(XEMMAI_BIN_PATH)
 AC_SUBST(XEMMAI_MODULE_PATH)
+PKG_CHECK_MODULES([NCURSES], [ncurses])
 
 if test "${CXXFLAGS+set}" != set; then
 	CXXFLAGS=

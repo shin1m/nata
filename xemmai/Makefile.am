@@ -1,7 +1,7 @@
 xemmaidir = $(XEMMAI_MODULE_PATH)
 
 xemmai_PROGRAMS = nata.so natacurses.so
-AM_CPPFLAGS = -I$(top_srcdir)/.. $(XEMMAI_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/.. $(XEMMAI_CFLAGS) $(NCURSES_CFLAGS)
 AM_CXXFLAGS = -fPIC
 AM_LDFLAGS = -shared
 if DEBUG
@@ -24,7 +24,7 @@ nata_so_SOURCES = \
 	search.cc \
 	nata.h \
 	nata.cc
-natacurses_so_LDADD = $(XEMMAI_LIBS) -lncursesw -ltinfo
+natacurses_so_LDADD = $(XEMMAI_LIBS) $(NCURSES_LIBS)
 natacurses_so_SOURCES = \
 	view.h \
 	painter.h \
