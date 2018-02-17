@@ -3,6 +3,27 @@ io = Module("io"
 nata = Module("nata"
 natacurses = Module("natacurses"
 
+Session = Class() :: @
+	$__initialize = @
+		$logs = null
+		$undos = [
+		$redos = [
+	$begin = @() $logs = [
+	$log = @(x) $logs.push(x
+	$commit = @(message)
+		$redos.clear(
+		$undos.push('(message, $logs
+		$logs = null
+	$replay = @(message, logs)
+		$logs = [
+		while logs.size() > 0: logs.pop()(
+		e = '(message, $logs
+		$logs = null
+		e
+	$cancel = @() $replay(null, $logs
+	$undo = @() $redos.push($replay(*$undos.pop(
+	$redo = @() $undos.push($replay(*$redos.pop(
+
 read = @(text, path)
 	reader = io.Reader(io.File(path, "r"), "utf-8"
 	try
@@ -22,6 +43,37 @@ with = @(x, f)
 each = @(overlay, f)
 	with(natacurses.OverlayIterator(overlay), @(i)
 		while (x = i.next()) !== null: if x[0]: f(x[1], x[2]
+
+TextSession = Class(Session) :: @
+	Delta = Class() :: @
+		$__initialize = @(x, xs)
+			$x = x
+			$xs = xs
+		$__call = @() $x.replace(*$xs
+
+	$__initialize = @(text)
+		:$^__initialize[$](
+		$text = text
+	$replace = @(p, n, s)
+		$log(Delta($, '(p, s.size(), $text.slice(p, n
+		$text.replace(p, n, s
+	$merge = @(p, n, s)
+		m = $logs.size()
+		if m <= 0: return $replace(p, n, s
+		e = $logs[m - 1]
+		if e.@ !== Delta: return $replace(p, n, s
+		p0 = e.xs[0]
+		q0 = p0 + e.xs[1]
+		q = p + n
+		if q < p0 || p > q0: return $replace(p, n, s
+		if q > q0
+			x = s.size()
+			y = e.xs[2] + $text.slice(q0, q - q0
+		else
+			x = s.size() + q0 - q
+			y = e.xs[2]
+		e.xs = p < p0 ? '(p, x, $text.slice(p, p0 - p) + y) : '(p0, p - p0 + x, y)
+		$text.replace(p, n, s
 
 nata.main(@() natacurses.main(@
 	natacurses.define_pair(1, natacurses.COLOR_WHITE, -1
@@ -47,6 +99,22 @@ nata.main(@() natacurses.main(@
 	selection = natacurses.Overlay(view, natacurses.A_REVERSE
 	status = nata.Text(
 	strip = natacurses.View(status, 0, size[1] - 1, size[0], 1
+	session = TextSession(text
+	log_position = @(p) session.log(@
+		view.position__(p, false
+		session.log(@() log_position(p
+	last_position = 0
+	edit = @(x)
+		if session.logs === null
+			session.begin(
+			log_position(view.position()[0]
+		x(
+		:last_position = view.position()[0]
+	commit = @()
+		if session.logs === null: return
+		p = last_position
+		session.log(@() log_position(p
+		session.commit("edit"
 	message = ""
 	syntax = (@
 		UNIT = 4
@@ -105,6 +173,18 @@ nata.main(@() natacurses.main(@
 	)(
 	done = false
 	actions = {
+		0x19: @
+			commit(
+			try
+				session.redo(
+			catch Throwable t
+				:message = t.__string(
+		0x1a: @
+			commit(
+			try
+				session.undo(
+			catch Throwable t
+				:message = t.__string(
 		0x1b: @
 			:done = true
 		natacurses.KEY_RESIZE: @
@@ -112,9 +192,11 @@ nata.main(@() natacurses.main(@
 			view.move(0, 0, size[0], size[1] - 1
 			strip.move(0, size[1] - 1, size[0], 1
 		natacurses.KEY_DOWN: @
+			commit(
 			line = view.line()[1]
 			if line + 1 < view.size()[1]: view.line__(line + 1
 		natacurses.KEY_UP: @
+			commit(
 			line = view.line()[1]
 			if line > 0: view.line__(line - 1
 		natacurses.KEY_LEFT: @
@@ -127,7 +209,7 @@ nata.main(@() natacurses.main(@
 			position = view.position()[0]
 			if position > 0
 				view.folded(position - 1, false
-				text.replace(position - 1, 1, ""
+				edit(@() session.merge(position - 1, 1, ""
 		natacurses.KEY_F1: @
 			view.position__(view.folded(view.position()[0], true), false
 		natacurses.KEY_F2: @
@@ -152,7 +234,6 @@ nata.main(@() natacurses.main(@
 		natacurses.KEY_F6: @
 			selection.paint(0, -1, false
 	while !done
-		view.render(
 		if message == ""
 			position = view.position(
 			line = text.line_at_in_text(position[0]
@@ -161,9 +242,13 @@ nata.main(@() natacurses.main(@
 				line[0] + "," +
 				(position[0] - line[1]) + "-" +
 				(position[1] - view.line()[3]) + " " +
-				(n > 0 ? view.top() * 100 / n : 100) + "%"
+				(n > 0 ? view.top() * 100 / n : 100) + "% <" +
+				session.undos.size() +
+				(session.logs === null ? "" : "?" + session.logs.size()) +
+				(session.redos.size() > 0 ? "|" + session.redos.size() : "") + ">"
 		else
 			status.replace(0, -1, message
+		view.render(
 		strip.render(
 		view.timeout(syntax.more() ? 0 : -1
 		c = null
@@ -176,7 +261,7 @@ nata.main(@() natacurses.main(@
 				action = actions[c]
 			catch Throwable t
 				if c == natacurses.KEY_ENTER || c == 0xd: c = 0xa
-				text.replace(view.position()[0], 0, String.from_code(c
+				edit(@() session.merge(view.position()[0], 0, String.from_code(c
 			if action !== null: action(
 			view.into_view(view.position()[0]
 		syntax.step(
