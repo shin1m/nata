@@ -233,21 +233,20 @@ nata.main(@() natacurses.main(@
 				view.position__(position + 1, true
 		natacurses.KEY_F6: @
 			selection.paint(0, -1, false
+	update_status = @
+		position = view.position(
+		line = text.line_at_in_text(position[0]
+		n = view.range(
+		status.replace(0, -1, "" +
+			line[0] + "," +
+			(position[0] - line[1]) + "-" +
+			(position[1] - view.line()[3]) + " " +
+			(n > 0 ? view.top() * 100 / n : 100) + "% <" +
+			session.undos.size() +
+			(session.logs === null ? "" : "?" + session.logs.size()) +
+			(session.redos.size() > 0 ? "|" + session.redos.size() : "") + ">"
+	update_status(
 	while !done
-		if message == ""
-			position = view.position(
-			line = text.line_at_in_text(position[0]
-			n = view.range(
-			status.replace(0, -1, "" +
-				line[0] + "," +
-				(position[0] - line[1]) + "-" +
-				(position[1] - view.line()[3]) + " " +
-				(n > 0 ? view.top() * 100 / n : 100) + "% <" +
-				session.undos.size() +
-				(session.logs === null ? "" : "?" + session.logs.size()) +
-				(session.redos.size() > 0 ? "|" + session.redos.size() : "") + ">"
-		else
-			status.replace(0, -1, message
 		view.render(
 		strip.render(
 		view.timeout(syntax.more() ? 0 : -1
@@ -265,3 +264,7 @@ nata.main(@() natacurses.main(@
 			if action !== null: action(
 			view.into_view(view.position()[0]
 		syntax.step(
+		if message != ""
+			status.replace(0, -1, message
+		else if c !== null || !syntax.more()
+			update_status(
