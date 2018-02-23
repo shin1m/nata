@@ -1,7 +1,7 @@
 EXTRA_DIST = test_spans.h test_rows.h test_nested.h
 CLEANFILES = *.gcda *.gcno *.gcov
 
-AM_CPPFLAGS = -I../.. -I..
+AM_CPPFLAGS = -I$(top_srcdir)/.. -I..
 AM_CXXFLAGS =
 AM_LDFLAGS =
 if DEBUG
@@ -26,4 +26,14 @@ check_PROGRAMS = \
 	test_creases \
 	test_painter \
 	test_creaser
-TESTS = $(check_PROGRAMS)
+
+TEST_EXTENSIONS = .xm
+AM_TESTS_ENVIRONMENT = export XEMMAI_MODULE_PATH=$(top_builddir)/xemmai:$(XEMMAI_MODULE_PATH);
+XM_LOG_COMPILER = $(XEMMAI_BIN_PATH)
+AM_XM_LOG_FLAGS = --verbose
+scripts = \
+	xemmai-text.xm \
+	xemmai-search.xm
+EXTRA_DIST = $(scripts)
+
+TESTS = $(check_PROGRAMS) $(scripts)

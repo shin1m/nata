@@ -48,5 +48,6 @@ AC_CONFIG_FILES([
 	Makefile
 	xemmai/Makefile
 	test/Makefile
+	examples/Makefile
 ])
 AC_OUTPUT
