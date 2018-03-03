@@ -110,7 +110,7 @@ nata.main(@() natacurses.main(@
 			log_position(view.position()[0]
 		x(
 		:last_position = view.position()[0]
-	commit = @()
+	commit = @
 		if session.logs === null: return
 		p = last_position
 		session.log(@() log_position(p
