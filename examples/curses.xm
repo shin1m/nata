@@ -8,7 +8,7 @@ Session = Class() :: @
 		$logs = null
 		$undos = [
 		$redos = [
-	$begin = @() $logs = [
+	$begin = @ $logs = [
 	$log = @(x) $logs.push(x
 	$commit = @(message)
 		$redos.clear(
@@ -16,20 +16,21 @@ Session = Class() :: @
 		$logs = null
 	$replay = @(message, logs)
 		$logs = [
-		while logs.size() > 0: logs.pop()(
+		while logs.size() > 0
+			logs.pop()(
 		e = '(message, $logs
 		$logs = null
 		e
-	$cancel = @() $replay(null, $logs
-	$undo = @() $redos.push($replay(*$undos.pop(
-	$redo = @() $undos.push($replay(*$redos.pop(
+	$cancel = @ $replay(null, $logs
+	$undo = @ $redos.push($replay(*$undos.pop(
+	$redo = @ $undos.push($replay(*$redos.pop(
 
 read = @(text, path)
 	reader = io.Reader(io.File(path, "r"), "utf-8"
 	try
 		while true
 			s = reader.read(256
-			if s == "": break
+			s == "" && break
 			text.replace(text.size(), 0, s
 	finally
 		reader.close(
@@ -42,14 +43,15 @@ with = @(x, f)
 
 each = @(overlay, f)
 	with(natacurses.OverlayIterator(overlay), @(i)
-		while (x = i.next()) !== null: if x[0]: f(x[1], x[2]
+		while (x = i.next()) !== null
+			x[0] && f(x[1], x[2]
 
 TextSession = Class(Session) :: @
 	Delta = Class() :: @
 		$__initialize = @(x, xs)
 			$x = x
 			$xs = xs
-		$__call = @() $x.replace(*$xs
+		$__call = @ $x.replace(*$xs
 
 	$__initialize = @(text)
 		:$^__initialize[$](
@@ -59,13 +61,13 @@ TextSession = Class(Session) :: @
 		$text.replace(p, n, s
 	$merge = @(p, n, s)
 		m = $logs.size()
-		if m <= 0: return $replace(p, n, s
+		m <= 0 && return $replace(p, n, s
 		e = $logs[m - 1]
-		if e.@ !== Delta: return $replace(p, n, s
+		e.@ !== Delta && return $replace(p, n, s
 		p0 = e.xs[0]
 		q0 = p0 + e.xs[1]
 		q = p + n
-		if q < p0 || p > q0: return $replace(p, n, s
+		q < p0 || p > q0 && return $replace(p, n, s
 		if q > q0
 			x = s.size()
 			y = e.xs[2] + $text.slice(q0, q - q0
@@ -75,7 +77,7 @@ TextSession = Class(Session) :: @
 		e.xs = p < p0 ? '(p, x, $text.slice(p, p0 - p) + y) : '(p0, p - p0 + x, y)
 		$text.replace(p, n, s
 
-nata.main(@() natacurses.main(@
+nata.main(@ natacurses.main(@
 	natacurses.define_pair(1, natacurses.COLOR_WHITE, -1
 	natacurses.define_pair(2, natacurses.COLOR_BLACK, natacurses.COLOR_WHITE
 	natacurses.define_pair(3, -1, natacurses.COLOR_YELLOW
@@ -102,7 +104,7 @@ nata.main(@() natacurses.main(@
 	session = TextSession(text
 	log_position = @(p) session.log(@
 		view.position__(p, false
-		session.log(@() log_position(p
+		session.log(@ log_position(p
 	last_position = 0
 	edit = @(x)
 		if session.logs === null
@@ -110,10 +112,9 @@ nata.main(@() natacurses.main(@
 			log_position(view.position()[0]
 		x(
 		:last_position = view.position()[0]
-	commit = @
-		if session.logs === null: return
+	commit = @ if session.logs !== null
 		p = last_position
-		session.log(@() log_position(p
+		session.log(@ log_position(p
 		session.commit("edit"
 	message = ""
 	syntax = (@
@@ -125,11 +126,10 @@ nata.main(@() natacurses.main(@
 		painter = natacurses.Painter(view
 		creaser = natacurses.Creaser(view
 		exports = Object(
-		exports.more = @() painter.current() < text.size()
-		exports.step = @
-			if !exports.more(): return
+		exports.more = @ painter.current() < text.size()
+		exports.step = @ if exports.more()
 			for i = 0; i < UNIT; i = i + 1
-				if (match = search.next()).size() <= 0: break
+				(match = search.next()).size() > 0 || break
 				type = 1
 				while type < match.size() && match[type][1] <= 0
 					type = type + 1
@@ -194,22 +194,22 @@ nata.main(@() natacurses.main(@
 		natacurses.KEY_DOWN: @
 			commit(
 			line = view.line()[1]
-			if line + 1 < view.size()[1]: view.line__(line + 1
+			line + 1 < view.size()[1] && view.line__(line + 1
 		natacurses.KEY_UP: @
 			commit(
 			line = view.line()[1]
-			if line > 0: view.line__(line - 1
+			line > 0 && view.line__(line - 1
 		natacurses.KEY_LEFT: @
 			position = view.position()[0]
-			if position > 0: view.position__(position - 1, false
+			position > 0 && view.position__(position - 1, false
 		natacurses.KEY_RIGHT: @
 			position = view.position()[0]
-			if position < text.size(): view.position__(position + 1, true
+			position < text.size() && view.position__(position + 1, true
 		natacurses.KEY_BACKSPACE: @
 			position = view.position()[0]
 			if position > 0
 				view.folded(position - 1, false
-				edit(@() session.merge(position - 1, 1, ""
+				edit(@ session.merge(position - 1, 1, ""
 		natacurses.KEY_F1: @
 			view.position__(view.folded(view.position()[0], true), false
 		natacurses.KEY_F2: @
@@ -218,12 +218,12 @@ nata.main(@() natacurses.main(@
 			pattern = ""
 			each(selection, @(p, n) :pattern = pattern + text.slice(p, n
 			selection.paint(0, -1, false
-			if pattern != ""
-				with(nata.Search(text), @(search)
-					search.pattern(pattern, nata.Search.ECMASCRIPT
-					search.reset(
-					while (match = search.next()).size() > 0
-						highlight.paint(match[0][0], match[0][1], true
+			pattern == "" && return
+			with(nata.Search(text), @(search)
+				search.pattern(pattern, nata.Search.ECMASCRIPT
+				search.reset(
+				while (match = search.next()).size() > 0
+					highlight.paint(match[0][0], match[0][1], true
 		natacurses.KEY_F4: @
 			highlight.paint(0, -1, false
 		natacurses.KEY_F5: @
@@ -259,9 +259,9 @@ nata.main(@() natacurses.main(@
 			try
 				action = actions[c]
 			catch Throwable t
-				if c == natacurses.KEY_ENTER || c == 0xd: c = 0xa
-				edit(@() session.merge(view.position()[0], 0, String.from_code(c
-			if action !== null: action(
+				(c == natacurses.KEY_ENTER || c == 0xd) && (c = 0xa)
+				edit(@ session.merge(view.position()[0], 0, String.from_code(c
+			action !== null && action(
 			view.into_view(view.position()[0]
 		syntax.step(
 		if message != ""
