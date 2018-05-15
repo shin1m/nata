@@ -45,18 +45,19 @@ struct t_view
 	}
 };
 
+constexpr attr_t attribute_selected = A_REVERSE;
+constexpr attr_t attribute_highlighted = COLOR_PAIR(3);
+constexpr attr_t attribute_comment = COLOR_PAIR(4);
+constexpr attr_t attribute_keyword = COLOR_PAIR(5);
+
 int main(int argc, char* argv[])
 {
 	nata::curses::t_session session;
 	init_pair(1, COLOR_WHITE, -1);
 	init_pair(2, COLOR_BLACK, COLOR_WHITE);
-	constexpr attr_t attribute_selected = A_REVERSE;
 	init_pair(3, -1, COLOR_YELLOW);
-	constexpr attr_t attribute_highlighted = COLOR_PAIR(3);
 	init_pair(4, COLOR_BLUE, -1);
-	constexpr attr_t attribute_comment = COLOR_PAIR(4);
 	init_pair(5, COLOR_YELLOW, -1);
-	constexpr attr_t attribute_keyword = COLOR_PAIR(5);
 	t_text text;
 	if (argc > 1) {
 		std::wifstream in(argv[1]);
