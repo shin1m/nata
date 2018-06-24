@@ -20,7 +20,7 @@ struct t_view : t_proxy
 	::nata::t_widget<std::decay_t<decltype(*v_rows)>>* v_widget;
 	std::vector<t_overlay<T_target>*> v_overlays;
 
-	static t_scoped f_construct(t_object* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height)
+	static t_scoped f_construct(t_type* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height)
 	{
 		return (new t_view(a_class, a_text, a_x, a_y, a_width, a_height))->f_object();
 	}
@@ -29,7 +29,7 @@ struct t_view : t_proxy
 		return nata::f_tuple(a_i.v_i, a_i.v_line, a_i.v_text, a_i.v_x, a_i.v_y);
 	}
 
-	t_view(t_object* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : t_proxy(a_class), v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_target(new T_target(a_x, a_y, a_width, a_height)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, *v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows))
+	t_view(t_type* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : t_proxy(a_class), v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_target(new T_target(a_x, a_y, a_width, a_height)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, *v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows))
 	{
 		v_text.f_acquire();
 	}
@@ -143,12 +143,12 @@ struct t_overlay : t_proxy
 	t_view<T_target>& v_view;
 	std::decay_t<decltype(*v_view.v_widget->f_overlays()[0].second)>* v_overlay;
 
-	static t_scoped f_construct(t_object* a_class, t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute)
+	static t_scoped f_construct(t_type* a_class, t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute)
 	{
 		return (new t_overlay(a_class, a_view, a_attribute))->f_object();
 	}
 
-	t_overlay(t_object* a_class, t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute) : t_proxy(a_class), v_view(a_view)
+	t_overlay(t_type* a_class, t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute) : t_proxy(a_class), v_view(a_view)
 	{
 		v_view.f_acquire();
 		v_view.v_widget->f_add_overlay(a_attribute);
@@ -192,12 +192,12 @@ struct t_overlay_iterator : t_proxy
 	};
 	::nata::t_connection<decltype(v_painted)>* v_connection1;
 
-	static t_scoped f_construct(t_object* a_class, t_overlay<T_target>& a_overlay)
+	static t_scoped f_construct(t_type* a_class, t_overlay<T_target>& a_overlay)
 	{
 		return (new t_overlay_iterator(a_class, a_overlay))->f_object();
 	}
 
-	t_overlay_iterator(t_object* a_class, t_overlay<T_target>& a_overlay) : t_proxy(a_class), v_overlay(a_overlay), v_connection0(v_overlay.v_overlay->v_replaced >> v_replaced), v_connection1(v_overlay.v_overlay->v_painted >> v_painted)
+	t_overlay_iterator(t_type* a_class, t_overlay<T_target>& a_overlay) : t_proxy(a_class), v_overlay(a_overlay), v_connection0(v_overlay.v_overlay->v_replaced >> v_replaced), v_connection1(v_overlay.v_overlay->v_painted >> v_painted)
 	{
 		v_overlay.f_acquire();
 		v_i = v_overlay.v_overlay->f_begin();
@@ -237,7 +237,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_type_of<xemmaix::nata::t_p
 	static void f_define(t_extension* a_extension)
 	{
 		t_define<t_view, xemmaix::nata::t_proxy>(a_extension, L"View")
-			(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>())
+			(t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>())
 			(L"move", t_member<void(t_view::*)(size_t, size_t, size_t, size_t), &t_view::f_move>())
 			(L"attributes", t_member<void(t_view::*)(const typename T_target::t_attribute&, const typename T_target::t_attribute&), &t_view::f_attributes>())
 			(L"paint", t_member<void(t_view::*)(size_t, size_t, t_scoped&&), &t_view::f_paint>())
@@ -262,13 +262,13 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_type_of<xemmaix::nata::t_p
 	}
 
 	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive(t_object* a_this)
+	virtual t_type* f_derive()
 	{
-		return new t_derived<t_type_of>(t_scoped(v_module), a_this);
+		return new t_derived<t_type_of>(t_scoped(v_module), this);
 	}
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n)
+	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>::template t_bind<t_view>::f_do(a_class, a_stack, a_n);
+		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>::template t_bind<t_view>::f_do(this, a_stack, a_n);
 	}
 };
 
@@ -281,19 +281,19 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_type_of<xemmaix::nata::
 	static void f_define(t_extension* a_extension)
 	{
 		t_define<t_overlay, xemmaix::nata::t_proxy>(a_extension, L"Overlay")
-			(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>())
+			(t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>())
 			(L"paint", t_member<void(t_overlay::*)(size_t, size_t, bool), &t_overlay::f_paint>())
 		;
 	}
 
 	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive(t_object* a_this)
+	virtual t_type* f_derive()
 	{
-		return new t_derived<t_type_of>(t_scoped(v_module), a_this);
+		return new t_derived<t_type_of>(t_scoped(v_module), this);
 	}
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n)
+	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>::template t_bind<t_overlay>::f_do(a_class, a_stack, a_n);
+		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>::template t_bind<t_overlay>::f_do(this, a_stack, a_n);
 	}
 };
 
@@ -306,19 +306,19 @@ struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_type_of<xemmai
 	static void f_define(t_extension* a_extension)
 	{
 		t_define<t_overlay_iterator, xemmaix::nata::t_proxy>(a_extension, L"OverlayIterator")
-			(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>())
+			(t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>())
 			(L"next", t_member<t_scoped(t_overlay_iterator::*)(), &t_overlay_iterator::f_next>())
 		;
 	}
 
 	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive(t_object* a_this)
+	virtual t_type* f_derive()
 	{
-		return new t_derived<t_type_of>(t_scoped(v_module), a_this);
+		return new t_derived<t_type_of>(t_scoped(v_module), this);
 	}
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n)
+	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>::template t_bind<t_overlay_iterator>::f_do(a_class, a_stack, a_n);
+		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>::template t_bind<t_overlay_iterator>::f_do(this, a_stack, a_n);
 	}
 };
 

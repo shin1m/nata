@@ -38,7 +38,7 @@ inline bool operator==(const T& a_x, const t_test_span& a_y)
 }
 
 template<typename T>
-void f_assert_equals(const T& a0, std::initializer_list<t_test_span> a1)
+void f_assert_nested(const T& a0, std::initializer_list<t_test_span> a1)
 {
 	f_assert_equals<T, std::initializer_list<t_test_span>>(a0, a1);
 }

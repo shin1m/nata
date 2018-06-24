@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 		creaser.f_close();
 		creaser.f_push(5);
 		creaser.f_flush();
-		f_assert_equals(rows.f_creases(), {
+		f_assert_nested(rows.f_creases(), {
 			{7},
 			{{{11}}},
 			{6}
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 		creaser.f_close();
 		creaser.f_push(1);
 		creaser.f_flush();
-		f_assert_equals(rows.f_creases(), {
+		f_assert_nested(rows.f_creases(), {
 			{2},
 			{{{7}}},
 			{{{10}}},
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 		creaser.f_close();
 		creaser.f_push(1);
 		creaser.f_flush();
-		f_assert_equals(rows.f_creases(), {
+		f_assert_nested(rows.f_creases(), {
 			{1},
 			{{
 				{1},
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 		creaser.f_close();
 		creaser.f_push(1);
 		creaser.f_flush();
-		f_assert_equals(rows.f_creases(), {
+		f_assert_nested(rows.f_creases(), {
 			{2},
 			{{{7}}},
 			{{
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 		{
 			creaser.f_flush();
 		});
-		f_assert_equals(rows.f_creases(), {
+		f_assert_nested(rows.f_creases(), {
 			{5}
 		});
 	});
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 		{
 			creaser.f_flush();
 		}, 1, 3);
-		f_assert_equals(rows.f_creases(), {
+		f_assert_nested(rows.f_creases(), {
 			{6}
 		});
 	});
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
 		{
 			creaser.f_flush();
 		});
-		f_assert_equals(rows.f_creases(), {
+		f_assert_nested(rows.f_creases(), {
 			{{{3}}},
 			{3}
 		});
@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
 		{
 			creaser.f_flush();
 		});
-		f_assert_equals(rows.f_creases(), {
+		f_assert_nested(rows.f_creases(), {
 			{2},
 			{{{3}}},
 			{1}
@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
 		{
 			creaser.f_flush();
 		});
-		f_assert_equals(rows.f_creases(), {
+		f_assert_nested(rows.f_creases(), {
 			{2},
 			{{{1}}},
 			{3}

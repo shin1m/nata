@@ -17,13 +17,13 @@ int main(int argc, char* argv[])
 		rows.f_crease(7, {
 			{{{11}}}
 		});
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
 			{0, true, 5, 5, 2, 2},
 			{1, true, 10, 10, 2, 2}
 		});
 		rows.f_folded(7, true);
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 7, 8, 2, 3},
 			{0, true, 17, 9, 2, 2}
 		});
@@ -36,27 +36,27 @@ int main(int argc, char* argv[])
 			{{{7}}},
 			{{{10}}}
 		});
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 6, 6, 2, 2},
 			{1, false, 10, 10, 2, 2},
 			{0, true, 5, 5, 2, 2}
 		});
 		rows.f_folded(9, true);
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 6, 6, 2, 2},
 			{1, true, 15, 8, 2, 2}
 		});
 		rows.f_folded(2, true);
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 21, 10, 2, 2}
 		});
 		rows.f_folded(9, false);
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 14, 10, 2, 2},
 			{0, true, 7, 7, 2, 2}
 		});
 		rows.f_folded(2, false);
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 6, 6, 2, 2},
 			{1, false, 10, 10, 2, 2},
 			{0, true, 5, 5, 2, 2}
@@ -73,27 +73,27 @@ int main(int argc, char* argv[])
 				{{{10}}}
 			}}
 		});
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 6, 6, 2, 2},
 			{1, false, 10, 10, 2, 2},
 			{0, true, 5, 5, 2, 2}
 		});
 		rows.f_folded(9, true);
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 6, 6, 2, 2},
 			{1, true, 15, 8, 2, 2}
 		});
 		rows.f_folded(2, true);
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 21, 10, 2, 2}
 		});
 		rows.f_folded(9, false);
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 14, 10, 2, 2},
 			{0, true, 7, 7, 2, 2}
 		});
 		rows.f_folded(2, false);
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 6, 6, 2, 2},
 			{1, false, 10, 10, 2, 2},
 			{0, true, 5, 5, 2, 2}
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 				}}
 			}}
 		});
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 6, 6, 2, 2},
 			{1, false, 10, 10, 2, 2},
 			{0, true, 5, 5, 2, 2}

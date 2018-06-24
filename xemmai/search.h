@@ -21,12 +21,12 @@ struct t_search : t_proxy
 	};
 	::nata::t_connection<decltype(v_replaced)>* v_connection;
 
-	static t_scoped f_construct(t_object* a_class, t_text& a_text)
+	static t_scoped f_construct(t_type* a_class, t_text& a_text)
 	{
 		return (new t_search(a_class, a_text))->f_object();
 	}
 
-	t_search(t_object* a_class, t_text& a_text) : t_proxy(a_class), v_text(a_text), v_p(*v_text.v_text), v_connection(v_p.v_replaced >> v_replaced)
+	t_search(t_type* a_class, t_text& a_text) : t_proxy(a_class), v_text(a_text), v_p(*v_text.v_text), v_connection(v_p.v_replaced >> v_replaced)
 	{
 		v_text.f_acquire();
 	}
@@ -53,8 +53,8 @@ struct t_type_of<xemmaix::nata::t_search> : t_type_of<xemmaix::nata::t_proxy>
 	static void f_define(t_extension* a_extension);
 
 	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive(t_object* a_this);
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
+	virtual t_type* f_derive();
+	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n);
 };
 
 }

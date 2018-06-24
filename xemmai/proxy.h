@@ -14,7 +14,7 @@ class t_proxy : public t_entry
 	size_t v_n = 1;
 
 protected:
-	t_proxy(t_object* a_class) : t_entry(t_session::f_instance()), v_session(t_session::f_instance()), v_object(t_object::f_allocate(a_class)), v_owner(v_object)
+	t_proxy(t_type* a_class) : t_entry(t_session::f_instance()), v_session(t_session::f_instance()), v_object(t_object::f_allocate(a_class)), v_owner(v_object)
 	{
 		v_object.f_pointer__(this);
 	}
@@ -88,7 +88,7 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_type
 		static bool f_call(T1&& a_object)
 		{
 			auto p = f_object(std::forward<T1>(a_object));
-			return reinterpret_cast<size_t>(p) >= t_value::e_tag__OBJECT && dynamic_cast<t_type_of<typename t_fundamental<T0>::t_type>*>(f_as<t_type*>(p->f_type())) != nullptr;
+			return reinterpret_cast<size_t>(p) >= t_value::e_tag__OBJECT && dynamic_cast<t_type_of<typename t_fundamental<T0>::t_type>*>(p->f_type()) != nullptr;
 		}
 	};
 	template<typename T0>
@@ -106,7 +106,7 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_type
 			case t_value::e_tag__FLOAT:
 				return false;
 			default:
-				return dynamic_cast<t_type_of<typename t_fundamental<T0>::t_type>*>(f_as<t_type*>(p->f_type())) != nullptr;
+				return dynamic_cast<t_type_of<typename t_fundamental<T0>::t_type>*>(p->f_type()) != nullptr;
 			}
 		}
 	};
@@ -122,9 +122,9 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_type
 	static void f_define(t_extension* a_extension);
 
 	using t_type::t_type;
-	virtual t_type* f_derive(t_object* a_this);
+	virtual t_type* f_derive();
 	virtual void f_finalize(t_object* a_this);
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
+	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n);
 };
 
 }

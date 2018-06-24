@@ -83,14 +83,9 @@ public:
 
 class t_extension : public xemmai::t_extension
 {
-	template<typename T, typename T_super> friend class xemmai::t_define;
-
-	t_slot v_type_proxy;
-	t_slot v_type_text;
-	t_slot v_type_search;
-
-	template<typename T>
-	void f_type__(t_scoped&& a_type);
+	t_slot_of<t_type> v_type_proxy;
+	t_slot_of<t_type> v_type_text;
+	t_slot_of<t_type> v_type_search;
 
 public:
 	t_extension(t_object* a_module);
@@ -101,9 +96,14 @@ public:
 		return f_global();
 	}
 	template<typename T>
-	t_object* f_type() const
+	t_slot_of<t_type>& f_type_slot()
 	{
-		return f_global()->f_type<T>();
+		return f_global()->f_type_slot<T>();
+	}
+	template<typename T>
+	t_type* f_type() const
+	{
+		return const_cast<t_extension*>(this)->f_type_slot<T>();
 	}
 	template<typename T>
 	t_scoped f_as(T&& a_value) const
@@ -114,43 +114,25 @@ public:
 };
 
 template<>
-inline void t_extension::f_type__<t_proxy>(t_scoped&& a_type)
-{
-	v_type_proxy = std::move(a_type);
-}
-
-template<>
-inline void t_extension::f_type__<t_text>(t_scoped&& a_type)
-{
-	v_type_text = std::move(a_type);
-}
-
-template<>
-inline void t_extension::f_type__<t_search>(t_scoped&& a_type)
-{
-	v_type_search = std::move(a_type);
-}
-
-template<>
 inline const t_extension* t_extension::f_extension<t_extension>() const
 {
 	return this;
 }
 
 template<>
-inline t_object* t_extension::f_type<t_proxy>() const
+inline t_slot_of<t_type>& t_extension::f_type_slot<t_proxy>()
 {
 	return v_type_proxy;
 }
 
 template<>
-inline t_object* t_extension::f_type<t_text>() const
+inline t_slot_of<t_type>& t_extension::f_type_slot<t_text>()
 {
 	return v_type_text;
 }
 
 template<>
-inline t_object* t_extension::f_type<t_search>() const
+inline t_slot_of<t_type>& t_extension::f_type_slot<t_search>()
 {
 	return v_type_search;
 }

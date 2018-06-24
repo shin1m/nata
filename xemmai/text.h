@@ -12,7 +12,7 @@ struct t_text : t_proxy
 {
 	::nata::t_text<>* v_text = new ::nata::t_text<>();
 
-	static t_scoped f_construct(t_object* a_class)
+	static t_scoped f_construct(t_type* a_class)
 	{
 		return (new t_text(a_class))->f_object();
 	}
@@ -59,8 +59,8 @@ struct t_type_of<xemmaix::nata::t_text> : t_type_of<xemmaix::nata::t_proxy>
 	static void f_define(t_extension* a_extension);
 
 	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive(t_object* a_this);
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
+	virtual t_type* f_derive();
+	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n);
 };
 
 }

@@ -19,12 +19,12 @@ struct t_painter : t_proxy
 	};
 	::nata::t_connection<decltype(v_replaced)>* v_connection;
 
-	static t_scoped f_construct(t_object* a_class, t_view<T_target>& a_view)
+	static t_scoped f_construct(t_type* a_class, t_view<T_target>& a_view)
 	{
 		return (new t_painter(a_class, a_view))->f_object();
 	}
 
-	t_painter(t_object* a_class, t_view<T_target>& a_view) : t_proxy(a_class), v_view(a_view), v_painter(new std::decay_t<decltype(*v_painter)>(*v_view.v_tokens)), v_connection(v_view.v_text.v_text->v_replaced >> v_replaced)
+	t_painter(t_type* a_class, t_view<T_target>& a_view) : t_proxy(a_class), v_view(a_view), v_painter(new std::decay_t<decltype(*v_painter)>(*v_view.v_tokens)), v_connection(v_view.v_text.v_text->v_replaced >> v_replaced)
 	{
 		v_view.f_acquire();
 	}
@@ -70,7 +70,7 @@ struct t_type_of<xemmaix::nata::t_painter<T_target>> : t_type_of<xemmaix::nata::
 	static void f_define(t_extension* a_extension)
 	{
 		t_define<t_painter, xemmaix::nata::t_proxy>(a_extension, L"Painter")
-			(t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_view<T_target>&), t_painter::f_construct>())
+			(t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&), t_painter::f_construct>())
 			(L"reset", t_member<void(t_painter::*)(), &t_painter::f_reset>())
 			(L"current", t_member<size_t(t_painter::*)() const, &t_painter::f_current>())
 			(L"push",
@@ -82,13 +82,13 @@ struct t_type_of<xemmaix::nata::t_painter<T_target>> : t_type_of<xemmaix::nata::
 	}
 
 	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive(t_object* a_this)
+	virtual t_type* f_derive()
 	{
-		return new t_derived<t_type_of>(t_scoped(v_module), a_this);
+		return new t_derived<t_type_of>(t_scoped(v_module), this);
 	}
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n)
+	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_scoped(*)(t_object*, xemmaix::nata::t_view<T_target>&), t_painter::f_construct>::template t_bind<t_painter>::f_do(a_class, a_stack, a_n);
+		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&), t_painter::f_construct>::template t_bind<t_painter>::f_do(this, a_stack, a_n);
 	}
 };
 

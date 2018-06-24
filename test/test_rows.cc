@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 	};
 	setup([](auto& text, auto& rows)
 	{
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
 			{0, true, 5, 5, 2, 2},
 			{1, true, 10, 10, 2, 2}
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 	{
 		rows.v_target.v_width = 15;
 		rows.v_target.v_resized();
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 14, 15, 2, 3},
 			{1, true, 10, 10, 2, 2}
 		});
@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L".";
 		text.f_replace(5, 8, s.begin(), s.end());
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 7, 7, 2, 2},
 			{1, true, 10, 10, 2, 2}
 		});
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"Bye.";
 		text.f_replace(14, 9, s.begin(), s.end());
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
 			{0, true, 5, 5, 2, 2},
 			{1, true, 5, 5, 2, 2}
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"Hi";
 		text.f_replace(0, 5, s.begin(), s.end());
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 10, 10, 2, 3},
 			{0, true, 1, 1, 2, 2},
 			{1, true, 10, 10, 2, 2}
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"Hi ";
 		text.f_replace(0, 7, s.begin(), s.end());
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 10, 10, 2, 2},
 			{1, true, 10, 10, 2, 2}
 		});
@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"";
 		text.f_replace(10, 1, s.begin(), s.end());
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
 			{0, true, 4, 4, 2, 2},
 			{1, true, 10, 10, 2, 2}
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"DDDDDDDDD";
 		text.f_replace(11, 1, s.begin(), s.end());
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
 			{0, false, 10, 10, 2, 2},
 			{0, true, 3, 3, 2, 2},
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"\t\t";
 		text.f_replace(18, 1, s.begin(), s.end());
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
 			{0, true, 5, 5, 2, 2},
 			{1, false, 5, 8, 2, 3},
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"\n";
 		text.f_replace(0, 0, s.begin(), s.end());
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, true, 1, 1, 2, 2},
 			{1, false, 9, 10, 2, 3},
 			{0, true, 5, 5, 2, 2},
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L" ";
 		text.f_replace(9, 0, s.begin(), s.end());
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
 			{0, true, 6, 6, 2, 2},
 			{1, true, 10, 10, 2, 2}
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
 		rows.v_tokens.f_paint(7, {
 			{1, 5}
 		});
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 8, 10, 2, 3},
 			{0, true, 6, 10, 2, 3},
 			{1, true, 10, 10, 2, 2}
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
 		rows.v_tokens.f_paint(19, {
 			{2, 3}
 		});
-		f_assert_equals(rows, {
+		f_assert_rows(rows, {
 			{1, false, 8, 10, 2, 3},
 			{0, true, 6, 10, 2, 3},
 			{1, false, 6, 8, 2, 4},

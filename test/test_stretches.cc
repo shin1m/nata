@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 			{1, 11},
 			{2, 12}
 		});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 10},
 			{1, 11},
 			{2, 12}
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 			{0, 5}
 		});
 		auto i = stretches.f_replace(0, 2, {});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 3}
 		});
 		assert(i == stretches.f_begin());
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
 			{0, 5}
 		});
 		auto i = stretches.f_replace(1, 2, {});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 3}
 		});
 		assert(i == stretches.f_begin());
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 			{0, 5}
 		});
 		auto i = stretches.f_replace(3, 2, {});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 3}
 		});
 		assert(i == stretches.f_end());
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 			{0, 5}
 		});
 		auto i = stretches.f_replace(0, 5, {});
-		f_assert_equals(stretches, {});
+		f_assert_spans(stretches, {});
 		assert(i == stretches.f_begin());
 	}
 	{
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 			{0, 5}
 		});
 		auto i = stretches.f_replace(0, 12, {});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 3}
 		});
 		assert(i == stretches.f_begin());
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 			{0, 5}
 		});
 		auto i = stretches.f_replace(2, 12, {});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 3}
 		});
 		assert(i == stretches.f_begin());
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 			{0, 5}
 		});
 		auto i = stretches.f_replace(3, 12, {});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 3}
 		});
 		assert(i == stretches.f_end());
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 			{0, 5}
 		});
 		auto i = stretches.f_replace(5, 5, {});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 10}
 		});
 		assert(i == stretches.f_begin());
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
 			{2, 5},
 			{3, 5}
 		});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{2, 5},
 			{3, 5}
 		});
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
 		auto i = stretches.f_replace(0, 0, {
 			{0, 5}
 		});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 10}
 		});
 		assert(i == stretches.f_begin());
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
 		auto i = stretches.f_replace(2, 0, {
 			{0, 5}
 		});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 10}
 		});
 		assert(i == stretches.f_begin());
@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
 		auto i = stretches.f_replace(5, 0, {
 			{0, 5}
 		});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 10}
 		});
 		assert(i == stretches.f_begin());
@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
 			{0, 2},
 			{1, 2}
 		});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 6},
 			{1, 2},
 			{0, 1},
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 			{0, 2},
 			{1, 2}
 		});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 7},
 			{1, 7}
 		});
@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
 			{0, 2},
 			{1, 2}
 		});
-		f_assert_equals(stretches, {
+		f_assert_spans(stretches, {
 			{0, 5},
 			{1, 1},
 			{0, 2},

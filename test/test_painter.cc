@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 		painter.f_reset();
 		painter.f_push(0, 7);
 		painter.f_flush();
-		f_assert_equals(tokens, {
+		f_assert_spans(tokens, {
 			{0, 7}
 		});
 	});
@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 		painter.f_push(1, 5);
 		painter.f_push(0, 11);
 		painter.f_flush();
-		f_assert_equals(tokens, {
+		f_assert_spans(tokens, {
 			{0, 7},
 			{1, 5},
 			{0, 12}
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 		painter.f_push(1, 3);
 		painter.f_push(0, 1);
 		painter.f_flush();
-		f_assert_equals(tokens, {
+		f_assert_spans(tokens, {
 			{0, 7},
 			{1, 6},
 			{0, 6},

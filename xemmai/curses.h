@@ -23,19 +23,14 @@ struct t_token
 
 class t_extension : public xemmai::t_extension
 {
-	template<typename T, typename T_super> friend class xemmai::t_define;
-
 	t_slot v_module_nata;
 	xemmaix::nata::t_extension* v_nata;
-	t_slot v_type_token;
-	t_slot v_type_view;
-	t_slot v_type_overlay;
-	t_slot v_type_overlay_iterator;
-	t_slot v_type_painter;
-	t_slot v_type_creaser;
-
-	template<typename T>
-	void f_type__(t_scoped&& a_type);
+	t_slot_of<t_type> v_type_token;
+	t_slot_of<t_type> v_type_view;
+	t_slot_of<t_type> v_type_overlay;
+	t_slot_of<t_type> v_type_overlay_iterator;
+	t_slot_of<t_type> v_type_painter;
+	t_slot_of<t_type> v_type_creaser;
 
 public:
 	t_extension(xemmai::t_object* a_module, t_scoped&& a_nata);
@@ -46,9 +41,14 @@ public:
 		return f_global();
 	}
 	template<typename T>
-	t_object* f_type() const
+	t_slot_of<t_type>& f_type_slot()
 	{
-		return v_nata->f_type<T>();
+		return v_nata->f_type_slot<T>();
+	}
+	template<typename T>
+	t_type* f_type() const
+	{
+		return const_cast<t_extension*>(this)->f_type_slot<T>();
 	}
 	template<typename T>
 	t_scoped f_as(T&& a_value) const
@@ -84,42 +84,6 @@ struct t_target : ::nata::curses::t_target
 };
 
 template<>
-inline void t_extension::f_type__<t_token>(t_scoped&& a_type)
-{
-	v_type_token = std::move(a_type);
-}
-
-template<>
-inline void t_extension::f_type__<t_view<t_target>>(t_scoped&& a_type)
-{
-	v_type_view = std::move(a_type);
-}
-
-template<>
-inline void t_extension::f_type__<t_overlay<t_target>>(t_scoped&& a_type)
-{
-	v_type_overlay = std::move(a_type);
-}
-
-template<>
-inline void t_extension::f_type__<t_overlay_iterator<t_target>>(t_scoped&& a_type)
-{
-	v_type_overlay_iterator = std::move(a_type);
-}
-
-template<>
-inline void t_extension::f_type__<t_painter<t_target>>(t_scoped&& a_type)
-{
-	v_type_painter = std::move(a_type);
-}
-
-template<>
-inline void t_extension::f_type__<t_creaser<t_target>>(t_scoped&& a_type)
-{
-	v_type_creaser = std::move(a_type);
-}
-
-template<>
 inline const xemmaix::nata::t_extension* t_extension::f_extension<xemmaix::nata::t_extension>() const
 {
 	return v_nata;
@@ -132,37 +96,37 @@ inline const t_extension* t_extension::f_extension<t_extension>() const
 }
 
 template<>
-inline t_object* t_extension::f_type<t_token>() const
+inline t_slot_of<t_type>& t_extension::f_type_slot<t_token>()
 {
 	return v_type_token;
 }
 
 template<>
-inline t_object* t_extension::f_type<t_view<t_target>>() const
+inline t_slot_of<t_type>& t_extension::f_type_slot<t_view<t_target>>()
 {
 	return v_type_view;
 }
 
 template<>
-inline t_object* t_extension::f_type<t_overlay<t_target>>() const
+inline t_slot_of<t_type>& t_extension::f_type_slot<t_overlay<t_target>>()
 {
 	return v_type_overlay;
 }
 
 template<>
-inline t_object* t_extension::f_type<t_overlay_iterator<t_target>>() const
+inline t_slot_of<t_type>& t_extension::f_type_slot<t_overlay_iterator<t_target>>()
 {
 	return v_type_overlay_iterator;
 }
 
 template<>
-inline t_object* t_extension::f_type<t_painter<t_target>>() const
+inline t_slot_of<t_type>& t_extension::f_type_slot<t_painter<t_target>>()
 {
 	return v_type_painter;
 }
 
 template<>
-inline t_object* t_extension::f_type<t_creaser<t_target>>() const
+inline t_slot_of<t_type>& t_extension::f_type_slot<t_creaser<t_target>>()
 {
 	return v_type_creaser;
 }
@@ -180,9 +144,9 @@ struct t_type_of<xemmaix::nata::curses::t_token> : t_type
 	static void f_define(t_extension* a_extension);
 
 	using t_type::t_type;
-	virtual t_type* f_derive(t_object* a_this);
+	virtual t_type* f_derive();
 	virtual void f_finalize(t_object* a_this);
-	virtual t_scoped f_construct(t_object* a_class, t_stacked* a_stack, size_t a_n);
+	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n);
 };
 
 }

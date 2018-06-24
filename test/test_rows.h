@@ -4,7 +4,7 @@
 #include "rows.h"
 
 template<typename T>
-void f_assert_equals(const T& a0, std::initializer_list<typename T::t_row> a1)
+void f_assert_rows(const T& a0, std::initializer_list<typename T::t_row> a1)
 {
 	f_assert_equals<T, std::initializer_list<typename T::t_row>>(a0, a1);
 }

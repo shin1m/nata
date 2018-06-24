@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 	{
 		std::wstring s = L"Hello.";
 		text.f_replace(0, 0, s.begin(), s.end());
-		f_assert_equals(tokens, {
+		f_assert_spans(tokens, {
 			{0, 7}
 		});
 	});
@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 		tokens.f_paint(7, {
 			{1, 5}
 		});
-		f_assert_equals(tokens, {
+		f_assert_spans(tokens, {
 			{0, 7},
 			{1, 5},
 			{0, 12}
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 			{0, 6},
 			{1, 3}
 		});
-		f_assert_equals(tokens, {
+		f_assert_spans(tokens, {
 			{0, 7},
 			{1, 6},
 			{0, 6},
