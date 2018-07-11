@@ -229,7 +229,7 @@ namespace xemmai
 {
 
 template<typename T_target>
-struct t_type_of<xemmaix::nata::t_view<T_target>> : t_type_of<xemmaix::nata::t_proxy>
+struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix::nata::t_view<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
 	typedef typename T_target::t_extension t_extension;
 	using t_view = xemmaix::nata::t_view<T_target>;
@@ -261,11 +261,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_type_of<xemmaix::nata::t_p
 		;
 	}
 
-	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive()
-	{
-		return new t_derived<t_type_of>(t_scoped(v_module), this);
-	}
+	using t_type_of::t_base::t_base;
 	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n)
 	{
 		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>::template t_bind<t_view>::f_do(this, a_stack, a_n);
@@ -273,7 +269,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_type_of<xemmaix::nata::t_p
 };
 
 template<typename T_target>
-struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_type_of<xemmaix::nata::t_proxy>
+struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemmaix::nata::t_overlay<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
 	typedef typename T_target::t_extension t_extension;
 	using t_overlay = xemmaix::nata::t_overlay<T_target>;
@@ -286,11 +282,7 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_type_of<xemmaix::nata::
 		;
 	}
 
-	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive()
-	{
-		return new t_derived<t_type_of>(t_scoped(v_module), this);
-	}
+	using t_type_of::t_base::t_base;
 	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n)
 	{
 		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>::template t_bind<t_overlay>::f_do(this, a_stack, a_n);
@@ -298,7 +290,7 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_type_of<xemmaix::nata::
 };
 
 template<typename T_target>
-struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_type_of<xemmaix::nata::t_proxy>
+struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_derivable<t_bears<xemmaix::nata::t_overlay_iterator<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
 	typedef typename T_target::t_extension t_extension;
 	using t_overlay_iterator = xemmaix::nata::t_overlay_iterator<T_target>;
@@ -311,11 +303,7 @@ struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_type_of<xemmai
 		;
 	}
 
-	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive()
-	{
-		return new t_derived<t_type_of>(t_scoped(v_module), this);
-	}
+	using t_type_of::t_base::t_base;
 	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n)
 	{
 		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>::template t_bind<t_overlay_iterator>::f_do(this, a_stack, a_n);

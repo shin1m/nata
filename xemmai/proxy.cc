@@ -23,15 +23,10 @@ void t_type_of<xemmaix::nata::t_proxy>::f_define(t_extension* a_extension)
 	;
 }
 
-t_type* t_type_of<xemmaix::nata::t_proxy>::f_derive()
-{
-	return nullptr;
-}
-
 void t_type_of<xemmaix::nata::t_proxy>::f_finalize(t_object* a_this)
 {
 	auto p = static_cast<xemmaix::nata::t_proxy*>(a_this->f_pointer());
-	assert(!p->f_object());
+	assert(p->f_object() == nullptr);
 	delete p;
 }
 

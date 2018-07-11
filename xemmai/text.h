@@ -54,12 +54,11 @@ namespace xemmai
 {
 
 template<>
-struct t_type_of<xemmaix::nata::t_text> : t_type_of<xemmaix::nata::t_proxy>
+struct t_type_of<xemmaix::nata::t_text> : t_derivable<t_bears<xemmaix::nata::t_text, t_type_of<xemmaix::nata::t_proxy>>>
 {
 	static void f_define(t_extension* a_extension);
 
-	using t_type_of<xemmaix::nata::t_proxy>::t_type_of;
-	virtual t_type* f_derive();
+	using t_base::t_base;
 	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n);
 };
 

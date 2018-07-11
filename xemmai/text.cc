@@ -26,11 +26,6 @@ void t_type_of<xemmaix::nata::t_text>::f_define(t_extension* a_extension)
 	;
 }
 
-t_type* t_type_of<xemmaix::nata::t_text>::f_derive()
-{
-	return new t_derived<t_type_of>(t_scoped(v_module), this);
-}
-
 t_scoped t_type_of<xemmaix::nata::t_text>::f_construct(t_stacked* a_stack, size_t a_n)
 {
 	return t_construct_with<t_scoped(*)(t_type*), xemmaix::nata::t_text::f_construct>::t_bind<xemmaix::nata::t_text>::f_do(this, a_stack, a_n);
