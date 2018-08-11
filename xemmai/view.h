@@ -57,13 +57,13 @@ struct t_view : t_proxy
 	void f_paint(size_t a_p, size_t a_n, t_scoped&& a_token)
 	{
 		size_t n = v_text.f_size();
-		if (a_p > n) t_throwable::f_throw(L"out of range.");
+		if (a_p > n) f_throw(L"out of range.");
 		v_tokens->f_paint(a_p, {{std::move(a_token), std::min(a_n, n - a_p)}});
 	}
 	void f_crease(size_t a_p, size_t a_n, bool a_on)
 	{
 		size_t n = v_text.f_size();
-		if (a_p > n) t_throwable::f_throw(L"out of range.");
+		if (a_p > n) f_throw(L"out of range.");
 		if (a_on)
 			v_rows->f_crease(a_p, {{{{std::min(a_n, n - a_p)}}}});
 		else
@@ -71,7 +71,7 @@ struct t_view : t_proxy
 	}
 	size_t f_folded(size_t a_p, bool a_on)
 	{
-		if (a_p > v_text.f_size()) t_throwable::f_throw(L"out of range.");
+		if (a_p > v_text.f_size()) f_throw(L"out of range.");
 		return v_rows->f_folded(a_p, a_on);
 	}
 	void f_render()
@@ -104,7 +104,7 @@ struct t_view : t_proxy
 	}
 	void f_position__(size_t a_value, bool a_forward)
 	{
-		if (a_value > v_text.f_size()) t_throwable::f_throw(L"out of range.");
+		if (a_value > v_text.f_size()) f_throw(L"out of range.");
 		v_widget->f_position__(a_value, a_forward);
 	}
 	t_scoped f_line() const
@@ -113,7 +113,7 @@ struct t_view : t_proxy
 	}
 	void f_line__(size_t a_value)
 	{
-		if (a_value >= v_rows->f_size().v_line) t_throwable::f_throw(L"out of range.");
+		if (a_value >= v_rows->f_size().v_line) f_throw(L"out of range.");
 		v_widget->v_line.v_line = a_value;
 		v_widget->f_from_line();
 	}
@@ -128,7 +128,7 @@ struct t_view : t_proxy
 	intptr_t f_get()
 	{
 		wint_t c;
-		if (v_target->f_get(c) == ERR) t_throwable::f_throw(L"get_wch");
+		if (v_target->f_get(c) == ERR) f_throw(L"get_wch");
 		return c;
 	}
 	void f_timeout(int a_delay)
@@ -170,7 +170,7 @@ struct t_overlay : t_proxy
 	void f_paint(size_t a_p, size_t a_n, bool a_on)
 	{
 		size_t n = v_view.v_text.f_size();
-		if (a_p > n) t_throwable::f_throw(L"out of range.");
+		if (a_p > n) f_throw(L"out of range.");
 		v_overlay->f_paint(a_p, {{a_on, std::min(a_n, n - a_p)}});
 	}
 };
@@ -262,7 +262,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 	}
 
 	using t_type_of::t_base::t_base;
-	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n)
+	t_scoped f_do_construct(t_stacked* a_stack, size_t a_n)
 	{
 		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>::template t_bind<t_view>::f_do(this, a_stack, a_n);
 	}
@@ -283,7 +283,7 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemma
 	}
 
 	using t_type_of::t_base::t_base;
-	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n)
+	t_scoped f_do_construct(t_stacked* a_stack, size_t a_n)
 	{
 		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>::template t_bind<t_overlay>::f_do(this, a_stack, a_n);
 	}
@@ -304,7 +304,7 @@ struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_derivable<t_be
 	}
 
 	using t_type_of::t_base::t_base;
-	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n)
+	t_scoped f_do_construct(t_stacked* a_stack, size_t a_n)
 	{
 		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>::template t_bind<t_overlay_iterator>::f_do(this, a_stack, a_n);
 	}

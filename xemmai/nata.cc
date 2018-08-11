@@ -15,7 +15,7 @@ XEMMAI__PORTABLE__THREAD t_session* t_session::v_instance;
 #ifdef _WIN32
 t_session* t_session::f_instance()
 {
-	if (!v_instance) t_throwable::f_throw(L"must be inside main.");
+	if (!v_instance) f_throw(L"must be inside main.");
 	return v_instance;
 }
 #endif

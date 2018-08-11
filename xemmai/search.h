@@ -53,7 +53,7 @@ struct t_type_of<xemmaix::nata::t_search> : t_derivable<t_bears<xemmaix::nata::t
 	static void f_define(t_extension* a_extension);
 
 	using t_base::t_base;
-	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n);
+	t_scoped f_do_construct(t_stacked* a_stack, size_t a_n);
 };
 
 }

@@ -12,7 +12,7 @@ void t_type_of<xemmaix::nata::curses::t_token>::f_define(t_extension* a_extensio
 	;
 }
 
-t_scoped t_type_of<xemmaix::nata::curses::t_token>::f_construct(t_stacked* a_stack, size_t a_n)
+t_scoped t_type_of<xemmaix::nata::curses::t_token>::f_do_construct(t_stacked* a_stack, size_t a_n)
 {
 	return t_construct<attr_t>::t_bind<xemmaix::nata::curses::t_token>::f_do(this, a_stack, a_n);
 }
@@ -33,7 +33,7 @@ void f_main(const t_value& a_callable)
 
 void f_define_pair(short a_pair, short a_fore, short a_back)
 {
-	if (init_pair(a_pair, a_fore, a_back) == ERR) t_throwable::f_throw(L"init_pair");
+	if (init_pair(a_pair, a_fore, a_back) == ERR) f_throw(L"init_pair");
 }
 
 attr_t f_color_pair(short a_pair)

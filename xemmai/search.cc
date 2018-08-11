@@ -49,7 +49,7 @@ void t_type_of<xemmaix::nata::t_search>::f_define(t_extension* a_extension)
 	;
 }
 
-t_scoped t_type_of<xemmaix::nata::t_search>::f_construct(t_stacked* a_stack, size_t a_n)
+t_scoped t_type_of<xemmaix::nata::t_search>::f_do_construct(t_stacked* a_stack, size_t a_n)
 {
 	return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_text&), xemmaix::nata::t_search::f_construct>::t_bind<xemmaix::nata::t_search>::f_do(this, a_stack, a_n);
 }

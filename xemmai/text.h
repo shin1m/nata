@@ -26,13 +26,13 @@ struct t_text : t_proxy
 	std::wstring f_slice(size_t a_p, size_t a_n) const
 	{
 		size_t n = f_size();
-		if (a_p > n) t_throwable::f_throw(L"out of range.");
+		if (a_p > n) f_throw(L"out of range.");
 		return {v_text->f_at(a_p), v_text->f_at(a_p + std::min(a_n, n - a_p))};
 	}
 	void f_replace(size_t a_p, size_t a_n, const std::wstring& a_text)
 	{
 		size_t n = f_size();
-		if (a_p > n) t_throwable::f_throw(L"out of range.");
+		if (a_p > n) f_throw(L"out of range.");
 		v_text->f_replace(a_p, std::min(a_n, n - a_p), a_text.begin(), a_text.end());
 	}
 	size_t f_lines() const
@@ -42,7 +42,7 @@ struct t_text : t_proxy
 	t_scoped f_line_at_in_text(size_t a_p) const
 	{
 		size_t n = f_size();
-		if (a_p > n) t_throwable::f_throw(L"out of range.");
+		if (a_p > n) f_throw(L"out of range.");
 		auto line = v_text->f_lines().f_at_in_text(a_p);
 		return f_tuple(line.f_index().v_i0, line.f_index().v_i1, line.f_delta().v_i0, line.f_delta().v_i1);
 	}
@@ -59,7 +59,7 @@ struct t_type_of<xemmaix::nata::t_text> : t_derivable<t_bears<xemmaix::nata::t_t
 	static void f_define(t_extension* a_extension);
 
 	using t_base::t_base;
-	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n);
+	t_scoped f_do_construct(t_stacked* a_stack, size_t a_n);
 };
 
 }

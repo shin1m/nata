@@ -58,8 +58,8 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_underivable<t_bears<xemmaix::nata::
 		static T0* f_call(T1&& a_object)
 		{
 			auto p = static_cast<T0*>(f_object(std::forward<T1>(a_object))->f_pointer());
-			if (!p->f_valid()) t_throwable::f_throw(L"accessing from other thread.");
-			if (!p->f_object()) t_throwable::f_throw(L"already disposed.");
+			if (!p->f_valid()) f_throw(L"accessing from other thread.");
+			if (!p->f_object()) f_throw(L"already disposed.");
 			return p;
 		}
 	};
@@ -122,8 +122,8 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_underivable<t_bears<xemmaix::nata::
 	static void f_define(t_extension* a_extension);
 
 	using t_base::t_base;
-	virtual void f_finalize(t_object* a_this);
-	virtual t_scoped f_construct(t_stacked* a_stack, size_t a_n);
+	static void f_do_finalize(t_object* a_this);
+	t_scoped f_do_construct(t_stacked* a_stack, size_t a_n);
 };
 
 }

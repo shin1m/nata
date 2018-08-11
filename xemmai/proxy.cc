@@ -23,16 +23,16 @@ void t_type_of<xemmaix::nata::t_proxy>::f_define(t_extension* a_extension)
 	;
 }
 
-void t_type_of<xemmaix::nata::t_proxy>::f_finalize(t_object* a_this)
+void t_type_of<xemmaix::nata::t_proxy>::f_do_finalize(t_object* a_this)
 {
 	auto p = static_cast<xemmaix::nata::t_proxy*>(a_this->f_pointer());
 	assert(p->f_object() == nullptr);
 	delete p;
 }
 
-t_scoped t_type_of<xemmaix::nata::t_proxy>::f_construct(t_stacked* a_stack, size_t a_n)
+t_scoped t_type_of<xemmaix::nata::t_proxy>::f_do_construct(t_stacked* a_stack, size_t a_n)
 {
-	t_throwable::f_throw(L"uninstantiatable.");
+	f_throw(L"uninstantiatable.");
 }
 
 }
