@@ -4,6 +4,7 @@
 
 int main(int argc, char* argv[])
 {
+	using namespace std::literals;
 	auto setup = [](auto test)
 	{
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
@@ -12,7 +13,7 @@ int main(int argc, char* argv[])
 	};
 	setup([](auto& text, auto& tokens)
 	{
-		std::wstring s = L"Hello.";
+		auto s = L"Hello."s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		f_assert_spans(tokens, {
 			{0, 7}
@@ -20,7 +21,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& tokens)
 	{
-		std::wstring s = L"Hello, world!\nGood bye.";
+		auto s = L"Hello, world!\nGood bye."s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		tokens.f_paint(7, {
 			{1, 5}

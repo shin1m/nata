@@ -57,13 +57,13 @@ struct t_view : t_proxy
 	void f_paint(size_t a_p, size_t a_n, t_scoped&& a_token)
 	{
 		size_t n = v_text.f_size();
-		if (a_p > n) f_throw(L"out of range.");
+		if (a_p > n) f_throw(L"out of range."sv);
 		v_tokens->f_paint(a_p, {{std::move(a_token), std::min(a_n, n - a_p)}});
 	}
 	void f_crease(size_t a_p, size_t a_n, bool a_on)
 	{
 		size_t n = v_text.f_size();
-		if (a_p > n) f_throw(L"out of range.");
+		if (a_p > n) f_throw(L"out of range."sv);
 		if (a_on)
 			v_rows->f_crease(a_p, {{{{std::min(a_n, n - a_p)}}}});
 		else
@@ -71,7 +71,7 @@ struct t_view : t_proxy
 	}
 	size_t f_folded(size_t a_p, bool a_on)
 	{
-		if (a_p > v_text.f_size()) f_throw(L"out of range.");
+		if (a_p > v_text.f_size()) f_throw(L"out of range."sv);
 		return v_rows->f_folded(a_p, a_on);
 	}
 	void f_render()
@@ -104,7 +104,7 @@ struct t_view : t_proxy
 	}
 	void f_position__(size_t a_value, bool a_forward)
 	{
-		if (a_value > v_text.f_size()) f_throw(L"out of range.");
+		if (a_value > v_text.f_size()) f_throw(L"out of range."sv);
 		v_widget->f_position__(a_value, a_forward);
 	}
 	t_scoped f_line() const
@@ -113,7 +113,7 @@ struct t_view : t_proxy
 	}
 	void f_line__(size_t a_value)
 	{
-		if (a_value >= v_rows->f_size().v_line) f_throw(L"out of range.");
+		if (a_value >= v_rows->f_size().v_line) f_throw(L"out of range."sv);
 		v_widget->v_line.v_line = a_value;
 		v_widget->f_from_line();
 	}
@@ -128,7 +128,7 @@ struct t_view : t_proxy
 	intptr_t f_get()
 	{
 		wint_t c;
-		if (v_target->f_get(c) == ERR) f_throw(L"get_wch");
+		if (v_target->f_get(c) == ERR) f_throw(L"get_wch"sv);
 		return c;
 	}
 	void f_timeout(int a_delay)
@@ -170,7 +170,7 @@ struct t_overlay : t_proxy
 	void f_paint(size_t a_p, size_t a_n, bool a_on)
 	{
 		size_t n = v_view.v_text.f_size();
-		if (a_p > n) f_throw(L"out of range.");
+		if (a_p > n) f_throw(L"out of range."sv);
 		v_overlay->f_paint(a_p, {{a_on, std::min(a_n, n - a_p)}});
 	}
 };
@@ -236,28 +236,28 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 
 	static void f_define(t_extension* a_extension)
 	{
-		t_define<t_view, xemmaix::nata::t_proxy>(a_extension, L"View")
+		t_define<t_view, xemmaix::nata::t_proxy>(a_extension, L"View"sv)
 			(t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>())
-			(L"move", t_member<void(t_view::*)(size_t, size_t, size_t, size_t), &t_view::f_move>())
-			(L"attributes", t_member<void(t_view::*)(const typename T_target::t_attribute&, const typename T_target::t_attribute&), &t_view::f_attributes>())
-			(L"paint", t_member<void(t_view::*)(size_t, size_t, t_scoped&&), &t_view::f_paint>())
-			(L"crease", t_member<void(t_view::*)(size_t, size_t, bool), &t_view::f_crease>())
-			(L"folded", t_member<size_t(t_view::*)(size_t, bool), &t_view::f_folded>())
-			(L"render", t_member<void(t_view::*)(), &t_view::f_render>())
-			(L"size", t_member<t_scoped(t_view::*)() const, &t_view::f_size>())
-			(L"height", t_member<size_t(t_view::*)() const, &t_view::f_height>())
-			(L"range", t_member<size_t(t_view::*)() const, &t_view::f_range>())
-			(L"top", t_member<size_t(t_view::*)() const, &t_view::f_top>())
-			(L"position", t_member<t_scoped(t_view::*)() const, &t_view::f_position>())
-			(L"position__", t_member<void(t_view::*)(size_t, bool), &t_view::f_position__>())
-			(L"line", t_member<t_scoped(t_view::*)() const, &t_view::f_line>())
-			(L"line__", t_member<void(t_view::*)(size_t), &t_view::f_line__>())
-			(L"into_view",
+			(L"move"sv, t_member<void(t_view::*)(size_t, size_t, size_t, size_t), &t_view::f_move>())
+			(L"attributes"sv, t_member<void(t_view::*)(const typename T_target::t_attribute&, const typename T_target::t_attribute&), &t_view::f_attributes>())
+			(L"paint"sv, t_member<void(t_view::*)(size_t, size_t, t_scoped&&), &t_view::f_paint>())
+			(L"crease"sv, t_member<void(t_view::*)(size_t, size_t, bool), &t_view::f_crease>())
+			(L"folded"sv, t_member<size_t(t_view::*)(size_t, bool), &t_view::f_folded>())
+			(L"render"sv, t_member<void(t_view::*)(), &t_view::f_render>())
+			(L"size"sv, t_member<t_scoped(t_view::*)() const, &t_view::f_size>())
+			(L"height"sv, t_member<size_t(t_view::*)() const, &t_view::f_height>())
+			(L"range"sv, t_member<size_t(t_view::*)() const, &t_view::f_range>())
+			(L"top"sv, t_member<size_t(t_view::*)() const, &t_view::f_top>())
+			(L"position"sv, t_member<t_scoped(t_view::*)() const, &t_view::f_position>())
+			(L"position__"sv, t_member<void(t_view::*)(size_t, bool), &t_view::f_position__>())
+			(L"line"sv, t_member<t_scoped(t_view::*)() const, &t_view::f_line>())
+			(L"line__"sv, t_member<void(t_view::*)(size_t), &t_view::f_line__>())
+			(L"into_view"sv,
 				t_member<void(t_view::*)(size_t, size_t), &t_view::f_into_view>(),
 				t_member<void(t_view::*)(size_t), &t_view::f_into_view>()
 			)
-			(L"get", t_member<intptr_t(t_view::*)(), &t_view::f_get>())
-			(L"timeout", t_member<void(t_view::*)(int), &t_view::f_timeout>())
+			(L"get"sv, t_member<intptr_t(t_view::*)(), &t_view::f_get>())
+			(L"timeout"sv, t_member<void(t_view::*)(int), &t_view::f_timeout>())
 		;
 	}
 
@@ -276,9 +276,9 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemma
 
 	static void f_define(t_extension* a_extension)
 	{
-		t_define<t_overlay, xemmaix::nata::t_proxy>(a_extension, L"Overlay")
+		t_define<t_overlay, xemmaix::nata::t_proxy>(a_extension, L"Overlay"sv)
 			(t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>())
-			(L"paint", t_member<void(t_overlay::*)(size_t, size_t, bool), &t_overlay::f_paint>())
+			(L"paint"sv, t_member<void(t_overlay::*)(size_t, size_t, bool), &t_overlay::f_paint>())
 		;
 	}
 
@@ -297,9 +297,9 @@ struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_derivable<t_be
 
 	static void f_define(t_extension* a_extension)
 	{
-		t_define<t_overlay_iterator, xemmaix::nata::t_proxy>(a_extension, L"OverlayIterator")
+		t_define<t_overlay_iterator, xemmaix::nata::t_proxy>(a_extension, L"OverlayIterator"sv)
 			(t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>())
-			(L"next", t_member<t_scoped(t_overlay_iterator::*)(), &t_overlay_iterator::f_next>())
+			(L"next"sv, t_member<t_scoped(t_overlay_iterator::*)(), &t_overlay_iterator::f_next>())
 		;
 	}
 

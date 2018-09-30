@@ -4,6 +4,7 @@
 
 int main(int argc, char* argv[])
 {
+	using namespace std::literals;
 	auto setup = [](auto test)
 	{
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
@@ -15,7 +16,7 @@ int main(int argc, char* argv[])
 	};
 	setup([](auto& text, auto& rows, auto& creaser)
 	{
-		std::wstring s = L"Hello,\tworld!\nGood bye.";
+		auto s = L"Hello,\tworld!\nGood bye."s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		creaser.f_reset();
 		creaser.f_push(7);
@@ -32,7 +33,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows, auto& creaser)
 	{
-		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
+		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		creaser.f_reset();
 		creaser.f_push(2);
@@ -53,7 +54,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows, auto& creaser)
 	{
-		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
+		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		creaser.f_reset();
 		creaser.f_push(1);
@@ -80,7 +81,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows, auto& creaser)
 	{
-		std::wstring s = L"xx(xx\nxx)(xxxxxxxx)x";
+		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		creaser.f_reset();
 		creaser.f_push(2);
@@ -128,7 +129,7 @@ int main(int argc, char* argv[])
 	};
 	setup([&](auto& text, auto& rows, auto& creaser)
 	{
-		std::wstring s = L"xxxx";
+		auto s = L"xxxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		creaser.f_reset();
 		creaser.f_push(4);
@@ -155,7 +156,7 @@ int main(int argc, char* argv[])
 	};
 	setup([&](auto& text, auto& rows, auto& creaser)
 	{
-		std::wstring s = L"x(x)x";
+		auto s = L"x(x)x"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(1, {
 			{{{3}}}
@@ -173,7 +174,7 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& rows, auto& creaser)
 	{
-		std::wstring s = L"x(x)x";
+		auto s = L"x(x)x"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(1, {
 			{{{3}}}
@@ -198,7 +199,7 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& rows, auto& creaser)
 	{
-		std::wstring s = L"x(x)x";
+		auto s = L"x(x)x"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(1, {
 			{{{3}}}
@@ -224,7 +225,7 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& rows, auto& creaser)
 	{
-		std::wstring s = L"x(x)x";
+		auto s = L"x(x)x"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(1, {
 			{{{3}}}

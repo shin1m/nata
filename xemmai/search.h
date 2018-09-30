@@ -31,9 +31,9 @@ struct t_search : t_proxy
 		v_text.f_acquire();
 	}
 	virtual void f_destroy();
-	void f_pattern(const std::wstring& a_pattern, intptr_t a_flags)
+	void f_pattern(std::wstring_view a_pattern, intptr_t a_flags)
 	{
-		v_pattern.assign(a_pattern, static_cast<std::wregex::flag_type>(a_flags));
+		v_pattern.assign(a_pattern.begin(), a_pattern.end(), static_cast<std::wregex::flag_type>(a_flags));
 	}
 	void f_reset()
 	{

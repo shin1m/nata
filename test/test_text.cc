@@ -14,70 +14,71 @@ void f_assert_equals(const nata::t_text<T_lines, A_leaf, A_branch>& a0, const T&
 }
 
 template<typename T_lines, size_t A_leaf, size_t A_branch>
-void f_assert_equals(const nata::t_text<T_lines, A_leaf, A_branch>& a0, std::initializer_list<std::wstring> a1)
+void f_assert_equals(const nata::t_text<T_lines, A_leaf, A_branch>& a0, std::initializer_list<std::wstring_view> a1)
 {
-	f_assert_equals<T_lines, A_leaf, A_branch, std::initializer_list<std::wstring>>(a0, a1);
+	f_assert_equals<T_lines, A_leaf, A_branch, std::initializer_list<std::wstring_view>>(a0, a1);
 }
 
 int main(int argc, char* argv[])
 {
+	using namespace std::literals;
 	{
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
-		std::wstring s = L"Hello.";
+		auto s = L"Hello."s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		f_assert_equals(text, {
-			L"Hello."
+			L"Hello."sv
 		});
 	}
 	{
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
-		std::wstring s = L"Hello.\nGood bye.";
+		auto s = L"Hello.\nGood bye."s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		f_assert_equals(text, {
-			L"Hello.\n",
-			L"Good bye."
+			L"Hello.\n"sv,
+			L"Good bye."sv
 		});
 	}
 	{
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
 		{
-			std::wstring s = L"Hello.\nBye.";
+			auto s = L"Hello.\nBye."s;
 			text.f_replace(0, 0, s.begin(), s.end());
 		}
 		f_assert_equals(text, {
-			L"Hello.\n",
-			L"Bye."
+			L"Hello.\n"sv,
+			L"Bye."sv
 		});
 		{
-			std::wstring s = L", world!\nGood b";
+			auto s = L", world!\nGood b"s;
 			text.f_replace(5, 3, s.begin(), s.end());
 		}
 		f_assert_equals(text, {
-			L"Hello, world!\n",
-			L"Good bye."
+			L"Hello, world!\n"sv,
+			L"Good bye."sv
 		});
 	}
 	{
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
 		{
-			std::wstring s = L"\n\n";
+			auto s = L"\n\n"s;
 			text.f_replace(0, 0, s.begin(), s.end());
 		}
 		f_assert_equals(text, {
-			L"\n",
-			L"\n",
-			L""
+			L"\n"sv,
+			L"\n"sv,
+			L""sv
 		});
 		{
-			std::wstring s;
+			auto s = L""s;
 			text.f_replace(1, 1, s.begin(), s.end());
 			f_assert_equals(text, {
-				L"\n",
-				L""
+				L"\n"sv,
+				L""sv
 			});
 			text.f_replace(0, 1, s.begin(), s.end());
 			f_assert_equals(text, {
-				L""
+				L""sv
 			});
 		}
 	}

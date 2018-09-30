@@ -2,7 +2,7 @@ xemmaidir = $(XEMMAI_MODULE_PATH)
 
 xemmai_PROGRAMS = nata.so natacurses.so
 AM_CPPFLAGS = -I$(top_srcdir)/.. $(XEMMAI_CFLAGS) $(NCURSES_CFLAGS)
-AM_CXXFLAGS = -fPIC
+AM_CXXFLAGS = -std=c++17 -fPIC
 AM_LDFLAGS = -shared
 if DEBUG
 AM_CXXFLAGS += -g

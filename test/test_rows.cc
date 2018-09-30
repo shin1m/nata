@@ -2,13 +2,14 @@
 
 int main(int argc, char* argv[])
 {
+	using namespace std::literals;
 	auto setup = [](auto test)
 	{
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
 		nata::t_tokens<decltype(text), int, 5, 5> tokens(text);
 		t_test_target target;
 		nata::t_rows<decltype(tokens), decltype(target), nata::t_creased<5, 5>, 5, 5> rows(tokens, target);
-		std::wstring s = L"Hello,\tworld!\nGood bye.";
+		auto s = L"Hello,\tworld!\nGood bye."s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		test(text, rows);
 	};
@@ -38,7 +39,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		std::wstring s = L".";
+		auto s = L"."s;
 		text.f_replace(5, 8, s.begin(), s.end());
 		f_assert_rows(rows, {
 			{1, true, 7, 7, 2, 2},
@@ -47,7 +48,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		std::wstring s = L"Bye.";
+		auto s = L"Bye."s;
 		text.f_replace(14, 9, s.begin(), s.end());
 		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
@@ -57,7 +58,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		std::wstring s = L"Hi";
+		auto s = L"Hi"s;
 		text.f_replace(0, 5, s.begin(), s.end());
 		f_assert_rows(rows, {
 			{1, false, 10, 10, 2, 3},
@@ -67,7 +68,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		std::wstring s = L"Hi ";
+		auto s = L"Hi "s;
 		text.f_replace(0, 7, s.begin(), s.end());
 		f_assert_rows(rows, {
 			{1, true, 10, 10, 2, 2},
@@ -76,7 +77,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		std::wstring s = L"";
+		auto s = L""s;
 		text.f_replace(10, 1, s.begin(), s.end());
 		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
@@ -86,7 +87,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		std::wstring s = L"DDDDDDDDD";
+		auto s = L"DDDDDDDDD"s;
 		text.f_replace(11, 1, s.begin(), s.end());
 		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
@@ -97,7 +98,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		std::wstring s = L"\t\t";
+		auto s = L"\t\t"s;
 		text.f_replace(18, 1, s.begin(), s.end());
 		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
@@ -108,7 +109,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		std::wstring s = L"\n";
+		auto s = L"\n"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		f_assert_rows(rows, {
 			{1, true, 1, 1, 2, 2},
@@ -119,7 +120,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		std::wstring s = L" ";
+		auto s = L" "s;
 		text.f_replace(9, 0, s.begin(), s.end());
 		f_assert_rows(rows, {
 			{1, false, 9, 10, 2, 3},
@@ -128,7 +129,7 @@ int main(int argc, char* argv[])
 		});
 	});
 	{
-		auto test = [&](size_t a_p, size_t a_n, const std::wstring& a_s, size_t a_y, size_t a_h0, size_t a_h1)
+		auto test = [&](size_t a_p, size_t a_n, std::wstring_view a_s, size_t a_y, size_t a_h0, size_t a_h1)
 		{
 			setup([&](auto& text, auto& rows)
 			{
@@ -148,10 +149,10 @@ int main(int argc, char* argv[])
 				assert(called);
 			});
 		};
-		test(6, 1, L" ", 0, 5, 4);
-		test(9, 1, L"R", 0, 5, 5);
-		test(10, 1, L"L", 3, 2, 2);
-		test(18, 1, L"\t", 5, 2, 5);
+		test(6, 1, L" "sv, 0, 5, 4);
+		test(9, 1, L"R"sv, 0, 5, 5);
+		test(10, 1, L"L"sv, 3, 2, 2);
+		test(18, 1, L"\t"sv, 5, 2, 5);
 	}
 	setup([](auto& text, auto& rows)
 	{

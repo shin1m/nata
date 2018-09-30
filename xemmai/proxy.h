@@ -14,7 +14,7 @@ class t_proxy : public t_entry
 	size_t v_n = 1;
 
 protected:
-	t_proxy(t_type* a_class) : t_entry(t_session::f_instance()), v_session(t_session::f_instance()), v_object(t_object::f_allocate(a_class)), v_owner(v_object)
+	t_proxy(t_type* a_class) : t_entry(t_session::f_instance()), v_session(t_session::f_instance()), v_object(t_object::f_allocate(a_class, false)), v_owner(v_object)
 	{
 		v_object.f_pointer__(this);
 	}
@@ -58,8 +58,8 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_underivable<t_bears<xemmaix::nata::
 		static T0* f_call(T1&& a_object)
 		{
 			auto p = static_cast<T0*>(f_object(std::forward<T1>(a_object))->f_pointer());
-			if (!p->f_valid()) f_throw(L"accessing from other thread.");
-			if (!p->f_object()) f_throw(L"already disposed.");
+			if (!p->f_valid()) f_throw(L"accessing from other thread."sv);
+			if (!p->f_object()) f_throw(L"already disposed."sv);
 			return p;
 		}
 	};

@@ -3,12 +3,13 @@
 
 int main(int argc, char* argv[])
 {
+	using namespace std::literals;
 	{
 		nata::t_lines<5, 5> lines;
 		f_assert_spans(lines, {
 			{1}
 		});
-		std::wstring s = L"Hello.";
+		auto s = L"Hello."s;
 		lines.f_replace(0, 0, s.begin(), s.end());
 		f_assert_spans(lines, {
 			{7}
@@ -16,7 +17,7 @@ int main(int argc, char* argv[])
 	}
 	{
 		nata::t_lines<5, 5> lines;
-		std::wstring s = L"Hello.\nGood bye.";
+		auto s = L"Hello.\nGood bye."s;
 		lines.f_replace(0, 0, s.begin(), s.end());
 		f_assert_spans(lines, {
 			{7},
@@ -26,11 +27,11 @@ int main(int argc, char* argv[])
 	{
 		nata::t_lines<5, 5> lines;
 		{
-			std::wstring s = L"Hello.\nBye.";
+			auto s = L"Hello.\nBye."s;
 			lines.f_replace(0, 0, s.begin(), s.end());
 		}
 		{
-			std::wstring s = L", world!\nGood b";
+			auto s = L", world!\nGood b"s;
 			lines.f_replace(5, 3, s.begin(), s.end());
 		}
 		f_assert_spans(lines, {
@@ -41,7 +42,7 @@ int main(int argc, char* argv[])
 	{
 		nata::t_lines<5, 5> lines;
 		{
-			std::wstring s = L"\n\n";
+			auto s = L"\n\n"s;
 			lines.f_replace(0, 0, s.begin(), s.end());
 		}
 		f_assert_spans(lines, {
@@ -65,11 +66,11 @@ int main(int argc, char* argv[])
 	{
 		nata::t_lines<5, 5> lines;
 		{
-			std::wstring s = L"Hello.";
+			auto s = L"Hello."s;
 			lines.f_replace(0, 0, s.begin(), s.end());
 		}
 		{
-			std::wstring s = L"\nBye.";
+			auto s = L"\nBye."s;
 			lines.f_replace(6, 0, s.begin(), s.end());
 		}
 		f_assert_spans(lines, {
@@ -80,11 +81,11 @@ int main(int argc, char* argv[])
 	{
 		nata::t_lines<5, 5> lines;
 		{
-			std::wstring s = L"ello.\nBye.";
+			auto s = L"ello.\nBye."s;
 			lines.f_replace(0, 0, s.begin(), s.end());
 		}
 		{
-			std::wstring s = L"H";
+			auto s = L"H"s;
 			lines.f_replace(0, 0, s.begin(), s.end());
 		}
 		f_assert_spans(lines, {
@@ -95,11 +96,11 @@ int main(int argc, char* argv[])
 	{
 		nata::t_lines<5, 5> lines;
 		{
-			std::wstring s = L"Hello.Bye.";
+			auto s = L"Hello.Bye."s;
 			lines.f_replace(0, 0, s.begin(), s.end());
 		}
 		{
-			std::wstring s = L"\n";
+			auto s = L"\n"s;
 			lines.f_replace(6, 0, s.begin(), s.end());
 		}
 		f_assert_spans(lines, {

@@ -60,14 +60,14 @@ public:
 #else
 	static t_session* f_instance()
 	{
-		if (!v_instance) f_throw(L"must be inside main.");
+		if (!v_instance) f_throw(L"must be inside main."sv);
 		return v_instance;
 	}
 #endif
 
 	t_session(t_extension* a_extension) : v_extension(a_extension)
 	{
-		if (v_instance) f_throw(L"already inside main.");
+		if (v_instance) f_throw(L"already inside main."sv);
 		v_instance = this;
 	}
 	~t_session()

@@ -1,5 +1,5 @@
 AM_CPPFLAGS = -I$(top_srcdir)/.. -I.. $(NCURSES_CFLAGS)
-AM_CXXFLAGS =
+AM_CXXFLAGS = -std=c++17
 AM_LDFLAGS =
 if DEBUG
 AM_CXXFLAGS += -g

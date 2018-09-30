@@ -6,15 +6,15 @@ namespace xemmai
 void t_type_of<xemmaix::nata::curses::t_token>::f_define(t_extension* a_extension)
 {
 	using xemmaix::nata::curses::t_token;
-	t_define<t_token, t_object>(a_extension, L"Token")
-		(t_construct<attr_t>())
-		(L"attribute", t_member<attr_t(t_token::*)() const, &t_token::f_attribute>())
+	t_define<t_token, t_object>(a_extension, L"Token"sv)
+		(t_construct<false, attr_t>())
+		(L"attribute"sv, t_member<attr_t(t_token::*)() const, &t_token::f_attribute>())
 	;
 }
 
 t_scoped t_type_of<xemmaix::nata::curses::t_token>::f_do_construct(t_stacked* a_stack, size_t a_n)
 {
-	return t_construct<attr_t>::t_bind<xemmaix::nata::curses::t_token>::f_do(this, a_stack, a_n);
+	return t_construct<false, attr_t>::t_bind<xemmaix::nata::curses::t_token>::f_do(this, a_stack, a_n);
 }
 
 }
@@ -33,7 +33,7 @@ void f_main(const t_value& a_callable)
 
 void f_define_pair(short a_pair, short a_fore, short a_back)
 {
-	if (init_pair(a_pair, a_fore, a_back) == ERR) f_throw(L"init_pair");
+	if (init_pair(a_pair, a_fore, a_back) == ERR) f_throw(L"init_pair"sv);
 }
 
 attr_t f_color_pair(short a_pair)
@@ -57,53 +57,53 @@ t_extension::t_extension(xemmai::t_object* a_module, t_scoped&& a_nata) : xemmai
 	t_type_of<t_overlay_iterator<t_target>>::f_define(this);
 	t_type_of<t_painter<t_target>>::f_define(this);
 	t_type_of<t_creaser<t_target>>::f_define(this);
-	f_define<void(*)(const t_value&), f_main>(this, L"main");
-	f_define<void(*)(short, short, short), f_define_pair>(this, L"define_pair");
-	f_define<attr_t(*)(short), f_color_pair>(this, L"color_pair");
-	f_define<t_scoped(*)(), f_size>(this, L"size");
-	a_module->f_put(t_symbol::f_instantiate(L"COLOR_BLACK"), f_as(COLOR_BLACK));
-	a_module->f_put(t_symbol::f_instantiate(L"COLOR_RED"), f_as(COLOR_RED));
-	a_module->f_put(t_symbol::f_instantiate(L"COLOR_GREEN"), f_as(COLOR_GREEN));
-	a_module->f_put(t_symbol::f_instantiate(L"COLOR_YELLOW"), f_as(COLOR_YELLOW));
-	a_module->f_put(t_symbol::f_instantiate(L"COLOR_BLUE"), f_as(COLOR_BLUE));
-	a_module->f_put(t_symbol::f_instantiate(L"COLOR_MAGENTA"), f_as(COLOR_MAGENTA));
-	a_module->f_put(t_symbol::f_instantiate(L"COLOR_CYAN"), f_as(COLOR_CYAN));
-	a_module->f_put(t_symbol::f_instantiate(L"COLOR_WHITE"), f_as(COLOR_WHITE));
-	a_module->f_put(t_symbol::f_instantiate(L"A_NORMAL"), f_as(A_NORMAL));
-	a_module->f_put(t_symbol::f_instantiate(L"A_STANDOUT"), f_as(A_STANDOUT));
-	a_module->f_put(t_symbol::f_instantiate(L"A_UNDERLINE"), f_as(A_UNDERLINE));
-	a_module->f_put(t_symbol::f_instantiate(L"A_REVERSE"), f_as(A_REVERSE));
-	a_module->f_put(t_symbol::f_instantiate(L"A_BLINK"), f_as(A_BLINK));
-	a_module->f_put(t_symbol::f_instantiate(L"A_DIM"), f_as(A_DIM));
-	a_module->f_put(t_symbol::f_instantiate(L"A_BOLD"), f_as(A_BOLD));
-	a_module->f_put(t_symbol::f_instantiate(L"A_ALTCHARSET"), f_as(A_ALTCHARSET));
-	a_module->f_put(t_symbol::f_instantiate(L"A_INVIS"), f_as(A_INVIS));
-	a_module->f_put(t_symbol::f_instantiate(L"A_PROTECT"), f_as(A_PROTECT));
-	a_module->f_put(t_symbol::f_instantiate(L"A_HORIZONTAL"), f_as(A_HORIZONTAL));
-	a_module->f_put(t_symbol::f_instantiate(L"A_LEFT"), f_as(A_LEFT));
-	a_module->f_put(t_symbol::f_instantiate(L"A_LOW"), f_as(A_LOW));
-	a_module->f_put(t_symbol::f_instantiate(L"A_RIGHT"), f_as(A_RIGHT));
-	a_module->f_put(t_symbol::f_instantiate(L"A_TOP"), f_as(A_TOP));
-	a_module->f_put(t_symbol::f_instantiate(L"A_VERTICAL"), f_as(A_VERTICAL));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_RESIZE"), f_as(KEY_RESIZE));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_DOWN"), f_as(KEY_DOWN));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_UP"), f_as(KEY_UP));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_LEFT"), f_as(KEY_LEFT));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_RIGHT"), f_as(KEY_RIGHT));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_BACKSPACE"), f_as(KEY_BACKSPACE));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F1"), f_as(KEY_F(1)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F2"), f_as(KEY_F(2)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F3"), f_as(KEY_F(3)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F4"), f_as(KEY_F(4)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F5"), f_as(KEY_F(5)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F6"), f_as(KEY_F(6)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F7"), f_as(KEY_F(7)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F8"), f_as(KEY_F(8)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F9"), f_as(KEY_F(9)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F10"), f_as(KEY_F(10)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F11"), f_as(KEY_F(11)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_F12"), f_as(KEY_F(12)));
-	a_module->f_put(t_symbol::f_instantiate(L"KEY_ENTER"), f_as(KEY_ENTER));
+	f_define<void(*)(const t_value&), f_main>(this, L"main"sv);
+	f_define<void(*)(short, short, short), f_define_pair>(this, L"define_pair"sv);
+	f_define<attr_t(*)(short), f_color_pair>(this, L"color_pair"sv);
+	f_define<t_scoped(*)(), f_size>(this, L"size"sv);
+	a_module->f_put(t_symbol::f_instantiate(L"COLOR_BLACK"sv), f_as(COLOR_BLACK));
+	a_module->f_put(t_symbol::f_instantiate(L"COLOR_RED"sv), f_as(COLOR_RED));
+	a_module->f_put(t_symbol::f_instantiate(L"COLOR_GREEN"sv), f_as(COLOR_GREEN));
+	a_module->f_put(t_symbol::f_instantiate(L"COLOR_YELLOW"sv), f_as(COLOR_YELLOW));
+	a_module->f_put(t_symbol::f_instantiate(L"COLOR_BLUE"sv), f_as(COLOR_BLUE));
+	a_module->f_put(t_symbol::f_instantiate(L"COLOR_MAGENTA"sv), f_as(COLOR_MAGENTA));
+	a_module->f_put(t_symbol::f_instantiate(L"COLOR_CYAN"sv), f_as(COLOR_CYAN));
+	a_module->f_put(t_symbol::f_instantiate(L"COLOR_WHITE"sv), f_as(COLOR_WHITE));
+	a_module->f_put(t_symbol::f_instantiate(L"A_NORMAL"sv), f_as(A_NORMAL));
+	a_module->f_put(t_symbol::f_instantiate(L"A_STANDOUT"sv), f_as(A_STANDOUT));
+	a_module->f_put(t_symbol::f_instantiate(L"A_UNDERLINE"sv), f_as(A_UNDERLINE));
+	a_module->f_put(t_symbol::f_instantiate(L"A_REVERSE"sv), f_as(A_REVERSE));
+	a_module->f_put(t_symbol::f_instantiate(L"A_BLINK"sv), f_as(A_BLINK));
+	a_module->f_put(t_symbol::f_instantiate(L"A_DIM"sv), f_as(A_DIM));
+	a_module->f_put(t_symbol::f_instantiate(L"A_BOLD"sv), f_as(A_BOLD));
+	a_module->f_put(t_symbol::f_instantiate(L"A_ALTCHARSET"sv), f_as(A_ALTCHARSET));
+	a_module->f_put(t_symbol::f_instantiate(L"A_INVIS"sv), f_as(A_INVIS));
+	a_module->f_put(t_symbol::f_instantiate(L"A_PROTECT"sv), f_as(A_PROTECT));
+	a_module->f_put(t_symbol::f_instantiate(L"A_HORIZONTAL"sv), f_as(A_HORIZONTAL));
+	a_module->f_put(t_symbol::f_instantiate(L"A_LEFT"sv), f_as(A_LEFT));
+	a_module->f_put(t_symbol::f_instantiate(L"A_LOW"sv), f_as(A_LOW));
+	a_module->f_put(t_symbol::f_instantiate(L"A_RIGHT"sv), f_as(A_RIGHT));
+	a_module->f_put(t_symbol::f_instantiate(L"A_TOP"sv), f_as(A_TOP));
+	a_module->f_put(t_symbol::f_instantiate(L"A_VERTICAL"sv), f_as(A_VERTICAL));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_RESIZE"sv), f_as(KEY_RESIZE));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_DOWN"sv), f_as(KEY_DOWN));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_UP"sv), f_as(KEY_UP));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_LEFT"sv), f_as(KEY_LEFT));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_RIGHT"sv), f_as(KEY_RIGHT));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_BACKSPACE"sv), f_as(KEY_BACKSPACE));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F1"sv), f_as(KEY_F(1)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F2"sv), f_as(KEY_F(2)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F3"sv), f_as(KEY_F(3)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F4"sv), f_as(KEY_F(4)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F5"sv), f_as(KEY_F(5)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F6"sv), f_as(KEY_F(6)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F7"sv), f_as(KEY_F(7)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F8"sv), f_as(KEY_F(8)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F9"sv), f_as(KEY_F(9)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F10"sv), f_as(KEY_F(10)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F11"sv), f_as(KEY_F(11)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_F12"sv), f_as(KEY_F(12)));
+	a_module->f_put(t_symbol::f_instantiate(L"KEY_ENTER"sv), f_as(KEY_ENTER));
 }
 
 void t_extension::f_scan(t_scan a_scan)
@@ -121,5 +121,6 @@ void t_extension::f_scan(t_scan a_scan)
 
 XEMMAI__MODULE__FACTORY(xemmai::t_object* a_module)
 {
-	return new xemmaix::nata::curses::t_extension(a_module, xemmai::t_module::f_instantiate(L"nata"));
+	using namespace std::literals;
+	return new xemmaix::nata::curses::t_extension(a_module, xemmai::t_module::f_instantiate(L"nata"sv));
 }

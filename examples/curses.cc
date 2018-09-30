@@ -52,6 +52,7 @@ constexpr attr_t attribute_keyword = COLOR_PAIR(5);
 
 int main(int argc, char* argv[])
 {
+	using namespace std::literals;
 	nata::curses::t_session session;
 	init_pair(1, COLOR_WHITE, -1);
 	init_pair(2, COLOR_BLACK, COLOR_WHITE);
@@ -154,7 +155,7 @@ int main(int argc, char* argv[])
 			} else {
 				v_painter.f_flush();
 				std::wostringstream s;
-				s << L"running: " << v_painter.f_current() * 100 / n << L'%';
+				s << L"running: "sv << v_painter.f_current() * 100 / n << L'%';
 				v_message = s.str();
 			}
 		}

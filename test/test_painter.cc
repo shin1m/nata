@@ -3,6 +3,7 @@
 
 int main(int argc, char* argv[])
 {
+	using namespace std::literals;
 	auto setup = [](auto test)
 	{
 		nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
@@ -12,7 +13,7 @@ int main(int argc, char* argv[])
 	};
 	setup([](auto& text, auto& tokens, auto& painter)
 	{
-		std::wstring s = L"Hello.";
+		auto s = L"Hello."s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		painter.f_reset();
 		painter.f_push(0, 7);
@@ -23,7 +24,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& tokens, auto& painter)
 	{
-		std::wstring s = L"Hello, world!\nGood bye.";
+		auto s = L"Hello, world!\nGood bye."s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		painter.f_reset();
 		painter.f_push(0, 7);
@@ -63,7 +64,7 @@ int main(int argc, char* argv[])
 	};
 	setup([&](auto& text, auto& tokens, auto& painter)
 	{
-		std::wstring s = L"xxyyyxx";
+		auto s = L"xxyyyxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		tokens.f_paint(2, {
 			{1, 3}
@@ -79,7 +80,7 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& tokens, auto& painter)
 	{
-		std::wstring s = L"xxyyyxx";
+		auto s = L"xxyyyxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		tokens.f_paint(2, {
 			{1, 3}
@@ -96,7 +97,7 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& tokens, auto& painter)
 	{
-		std::wstring s = L"xxyyyxx";
+		auto s = L"xxyyyxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		painter.f_reset();
 		assert_painted(tokens, [&]
@@ -115,7 +116,7 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& tokens, auto& painter)
 	{
-		std::wstring s = L"xxyyxyyxx";
+		auto s = L"xxyyxyyxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		painter.f_reset();
 		assert_painted(tokens, [&]
@@ -142,7 +143,7 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& tokens, auto& painter)
 	{
-		std::wstring s = L"xxyyxyyxx";
+		auto s = L"xxyyxyyxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		painter.f_reset();
 		assert_painted(tokens, [&]
@@ -163,7 +164,7 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& tokens, auto& painter)
 	{
-		std::wstring s = L"xyyzyyx";
+		auto s = L"xyyzyyx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		painter.f_reset();
 		assert_painted(tokens, [&]
@@ -184,7 +185,7 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& tokens, auto& painter)
 	{
-		std::wstring s = L"xxyyyxx";
+		auto s = L"xxyyyxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		painter.f_reset();
 		assert_painted(tokens, [&]

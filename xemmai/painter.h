@@ -69,15 +69,15 @@ struct t_type_of<xemmaix::nata::t_painter<T_target>> : t_derivable<t_bears<xemma
 
 	static void f_define(t_extension* a_extension)
 	{
-		t_define<t_painter, xemmaix::nata::t_proxy>(a_extension, L"Painter")
+		t_define<t_painter, xemmaix::nata::t_proxy>(a_extension, L"Painter"sv)
 			(t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&), t_painter::f_construct>())
-			(L"reset", t_member<void(t_painter::*)(), &t_painter::f_reset>())
-			(L"current", t_member<size_t(t_painter::*)() const, &t_painter::f_current>())
-			(L"push",
+			(L"reset"sv, t_member<void(t_painter::*)(), &t_painter::f_reset>())
+			(L"current"sv, t_member<size_t(t_painter::*)() const, &t_painter::f_current>())
+			(L"push"sv,
 				t_member<void(t_painter::*)(const t_value&, size_t), &t_painter::f_push>(),
 				t_member<void(t_painter::*)(const t_value&, size_t, size_t), &t_painter::f_push>()
 			)
-			(L"flush", t_member<void(t_painter::*)(), &t_painter::f_flush>())
+			(L"flush"sv, t_member<void(t_painter::*)(), &t_painter::f_flush>())
 		;
 	}
 

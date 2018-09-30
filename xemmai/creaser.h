@@ -77,15 +77,15 @@ struct t_type_of<xemmaix::nata::t_creaser<T_target>> : t_derivable<t_bears<xemma
 
 	static void f_define(t_extension* a_extension)
 	{
-		t_define<t_creaser, xemmaix::nata::t_proxy>(a_extension, L"Creaser")
+		t_define<t_creaser, xemmaix::nata::t_proxy>(a_extension, L"Creaser"sv)
 			(t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&), t_creaser::f_construct>())
-			(L"reset", t_member<void(t_creaser::*)(), &t_creaser::f_reset>())
-			(L"current", t_member<size_t(t_creaser::*)() const, &t_creaser::f_current>())
-			(L"push", t_member<void(t_creaser::*)(size_t), &t_creaser::f_push>())
-			(L"tag", t_member<t_scoped(t_creaser::*)() const, &t_creaser::f_tag>())
-			(L"open", t_member<void(t_creaser::*)(t_scoped&&), &t_creaser::f_open>())
-			(L"close", t_member<void(t_creaser::*)(), &t_creaser::f_close>())
-			(L"flush", t_member<void(t_creaser::*)(), &t_creaser::f_flush>())
+			(L"reset"sv, t_member<void(t_creaser::*)(), &t_creaser::f_reset>())
+			(L"current"sv, t_member<size_t(t_creaser::*)() const, &t_creaser::f_current>())
+			(L"push"sv, t_member<void(t_creaser::*)(size_t), &t_creaser::f_push>())
+			(L"tag"sv, t_member<t_scoped(t_creaser::*)() const, &t_creaser::f_tag>())
+			(L"open"sv, t_member<void(t_creaser::*)(t_scoped&&), &t_creaser::f_open>())
+			(L"close"sv, t_member<void(t_creaser::*)(), &t_creaser::f_close>())
+			(L"flush"sv, t_member<void(t_creaser::*)(), &t_creaser::f_flush>())
 		;
 	}
 

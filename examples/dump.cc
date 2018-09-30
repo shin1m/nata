@@ -4,6 +4,7 @@
 
 int main(int argc, char* argv[])
 {
+	using namespace std::literals;
 	nata::t_text<nata::t_lines<5, 5>, 5, 5> text;
 	nata::t_tokens<decltype(text), int, 5, 5> tokens(text);
 	struct
@@ -37,7 +38,7 @@ int main(int argc, char* argv[])
 	} target;
 	nata::t_rows<decltype(tokens), decltype(target), nata::t_creased<5, 5>, 5, 5> rows(tokens, target);
 	{
-		std::wstring s = L"Hello,\tworld!!\nGood bye.";
+		auto s = L"Hello,\tworld!!\nGood bye."s;
 		text.f_replace(0, 0, s.begin(), s.end());
 		tokens.f_paint(7, {
 			{1, 7},
