@@ -14,9 +14,8 @@ class t_proxy : public t_entry
 	size_t v_n = 1;
 
 protected:
-	t_proxy(t_type* a_class) : t_entry(t_session::f_instance()), v_session(t_session::f_instance()), v_object(t_object::f_allocate(a_class, false)), v_owner(v_object)
+	t_proxy() : t_entry(t_session::f_instance()), v_session(t_session::f_instance()), v_object(t_object::f_of(this)), v_owner(v_object)
 	{
-		v_object.f_pointer__(this);
 	}
 	virtual void f_destroy() = 0;
 
@@ -37,9 +36,9 @@ public:
 	{
 		return v_session == t_session::f_instance();
 	}
-	t_object* f_object() const
+	bool f_disposed() const
 	{
-		return v_object;
+		return !v_object;
 	}
 };
 
@@ -55,11 +54,11 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_underivable<t_bears<xemmaix::nata::
 	struct t_cast
 	{
 		template<typename T1>
-		static T0* f_call(T1&& a_object)
+		static T0& f_call(T1&& a_object)
 		{
-			auto p = static_cast<T0*>(f_object(std::forward<T1>(a_object))->f_pointer());
-			if (!p->f_valid()) f_throw(L"accessing from other thread."sv);
-			if (!p->f_object()) f_throw(L"already disposed."sv);
+			auto& p = f_object(std::forward<T1>(a_object))->template f_as<T0>();
+			if (!p.f_valid()) f_throw(L"accessing from other thread."sv);
+			if (p.f_disposed()) f_throw(L"already disposed."sv);
 			return p;
 		}
 	};
@@ -69,7 +68,7 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_underivable<t_bears<xemmaix::nata::
 		template<typename T1>
 		static T0 f_call(T1&& a_object)
 		{
-			return *t_cast<typename t_fundamental<T0>::t_type>::f_call(std::forward<T1>(a_object));
+			return t_cast<typename t_fundamental<T0>::t_type>::f_call(std::forward<T1>(a_object));
 		}
 	};
 	template<typename T0>
@@ -78,7 +77,7 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_underivable<t_bears<xemmaix::nata::
 		template<typename T1>
 		static T0* f_call(T1&& a_object)
 		{
-			return reinterpret_cast<size_t>(f_object(std::forward<T1>(a_object))) == t_value::e_tag__NULL ? nullptr : t_cast<T0>::f_call(std::forward<T1>(a_object));
+			return reinterpret_cast<size_t>(f_object(std::forward<T1>(a_object))) == t_value::e_tag__NULL ? nullptr : &t_cast<T0>::f_call(std::forward<T1>(a_object));
 		}
 	};
 	template<typename T0>
@@ -114,7 +113,7 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_underivable<t_bears<xemmaix::nata::
 	template<typename T_extension, typename T>
 	static t_scoped f_transfer(T_extension* a_extension, T&& a_value)
 	{
-		return a_value->f_object();
+		return t_object::f_of(a_value);
 	}
 
 	typedef xemmaix::nata::t_extension t_extension;

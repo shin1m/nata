@@ -22,14 +22,14 @@ struct t_view : t_proxy
 
 	static t_scoped f_construct(t_type* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height)
 	{
-		return (new t_view(a_class, a_text, a_x, a_y, a_width, a_height))->f_object();
+		return a_class->f_new<t_view>(false, a_text, a_x, a_y, a_width, a_height);
 	}
 	static t_scoped f_tuple(const decltype(v_widget->v_line)& a_i)
 	{
 		return nata::f_tuple(a_i.v_i, a_i.v_line, a_i.v_text, a_i.v_x, a_i.v_y);
 	}
 
-	t_view(t_type* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : t_proxy(a_class), v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_target(new T_target(a_x, a_y, a_width, a_height)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, *v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows))
+	t_view(t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_target(new T_target(a_x, a_y, a_width, a_height)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, *v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows))
 	{
 		v_text.f_acquire();
 	}
@@ -145,10 +145,10 @@ struct t_overlay : t_proxy
 
 	static t_scoped f_construct(t_type* a_class, t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute)
 	{
-		return (new t_overlay(a_class, a_view, a_attribute))->f_object();
+		return a_class->f_new<t_overlay>(false, a_view, a_attribute);
 	}
 
-	t_overlay(t_type* a_class, t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute) : t_proxy(a_class), v_view(a_view)
+	t_overlay(t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute) : v_view(a_view)
 	{
 		v_view.f_acquire();
 		v_view.v_widget->f_add_overlay(a_attribute);
@@ -194,10 +194,10 @@ struct t_overlay_iterator : t_proxy
 
 	static t_scoped f_construct(t_type* a_class, t_overlay<T_target>& a_overlay)
 	{
-		return (new t_overlay_iterator(a_class, a_overlay))->f_object();
+		return a_class->f_new<t_overlay_iterator>(false, a_overlay);
 	}
 
-	t_overlay_iterator(t_type* a_class, t_overlay<T_target>& a_overlay) : t_proxy(a_class), v_overlay(a_overlay), v_connection0(v_overlay.v_overlay->v_replaced >> v_replaced), v_connection1(v_overlay.v_overlay->v_painted >> v_painted)
+	t_overlay_iterator(t_overlay<T_target>& a_overlay) : v_overlay(a_overlay), v_connection0(v_overlay.v_overlay->v_replaced >> v_replaced), v_connection1(v_overlay.v_overlay->v_painted >> v_painted)
 	{
 		v_overlay.f_acquire();
 		v_i = v_overlay.v_overlay->f_begin();
@@ -208,7 +208,7 @@ struct t_overlay_iterator : t_proxy
 	}
 	virtual void f_dispose()
 	{
-		if (v_overlay.f_object()) {
+		if (!v_overlay.f_disposed()) {
 			delete v_connection0;
 			delete v_connection1;
 		}
@@ -216,7 +216,7 @@ struct t_overlay_iterator : t_proxy
 	}
 	t_scoped f_next()
 	{
-		if (!v_overlay.f_object() || v_i == v_overlay.v_overlay->f_end()) return nullptr;
+		if (v_overlay.f_disposed() || v_i == v_overlay.v_overlay->f_end()) return nullptr;
 		auto p = f_tuple(v_i->v_x, v_i.f_index().v_i1, v_i.f_delta().v_i1);
 		++v_i;
 		return p;

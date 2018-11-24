@@ -3,7 +3,6 @@
 
 #include "../model.h"
 #include "proxy.h"
-#include <xemmai/derived.h>
 
 namespace xemmaix::nata
 {
@@ -14,10 +13,9 @@ struct t_text : t_proxy
 
 	static t_scoped f_construct(t_type* a_class)
 	{
-		return (new t_text(a_class))->f_object();
+		return a_class->f_new<t_text>(false);
 	}
 
-	using t_proxy::t_proxy;
 	virtual void f_destroy();
 	size_t f_size() const
 	{

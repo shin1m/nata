@@ -23,10 +23,10 @@ struct t_search : t_proxy
 
 	static t_scoped f_construct(t_type* a_class, t_text& a_text)
 	{
-		return (new t_search(a_class, a_text))->f_object();
+		return a_class->f_new<t_search>(false, a_text);
 	}
 
-	t_search(t_type* a_class, t_text& a_text) : t_proxy(a_class), v_text(a_text), v_p(*v_text.v_text), v_connection(v_p.v_replaced >> v_replaced)
+	t_search(t_text& a_text) : v_text(a_text), v_p(*v_text.v_text), v_connection(v_p.v_replaced >> v_replaced)
 	{
 		v_text.f_acquire();
 	}

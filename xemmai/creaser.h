@@ -21,10 +21,10 @@ struct t_creaser : t_proxy
 
 	static t_scoped f_construct(t_type* a_class, t_view<T_target>& a_view)
 	{
-		return (new t_creaser(a_class, a_view))->f_object();
+		return a_class->f_new<t_creaser>(false, a_view);
 	}
 
-	t_creaser(t_type* a_class, t_view<T_target>& a_view) : t_proxy(a_class), v_view(a_view), v_creaser(new std::decay_t<decltype(*v_creaser)>(*v_view.v_rows)), v_connection(v_view.v_text.v_text->v_replaced >> v_replaced)
+	t_creaser(t_view<T_target>& a_view) : v_view(a_view), v_creaser(new std::decay_t<decltype(*v_creaser)>(*v_view.v_rows)), v_connection(v_view.v_text.v_text->v_replaced >> v_replaced)
 	{
 		v_view.f_acquire();
 	}

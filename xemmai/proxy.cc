@@ -25,9 +25,9 @@ void t_type_of<xemmaix::nata::t_proxy>::f_define(t_extension* a_extension)
 
 void t_type_of<xemmaix::nata::t_proxy>::f_do_finalize(t_object* a_this)
 {
-	auto p = static_cast<xemmaix::nata::t_proxy*>(a_this->f_pointer());
-	assert(p->f_object() == nullptr);
-	delete p;
+	auto& p = a_this->f_as<xemmaix::nata::t_proxy>();
+	assert(p.f_disposed());
+	p.~t_proxy();
 }
 
 t_scoped t_type_of<xemmaix::nata::t_proxy>::f_do_construct(t_stacked* a_stack, size_t a_n)
