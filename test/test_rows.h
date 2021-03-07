@@ -1,7 +1,7 @@
 #include "test_spans.h"
-#include "model.h"
-#include "tokens.h"
-#include "rows.h"
+#include <nata/model.h>
+#include <nata/tokens.h>
+#include <nata/rows.h>
 
 template<typename T>
 void f_assert_rows(const T& a0, std::initializer_list<typename T::t_row> a1)

@@ -1,5 +1,6 @@
 #include "test_rows.h"
-#include "painter.h"
+#include <nata/painter.h>
+#include <string>
 
 int main(int argc, char* argv[])
 {

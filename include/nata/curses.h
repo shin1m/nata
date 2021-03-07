@@ -2,6 +2,7 @@
 #define NATA__CURSES_H
 
 #include "signal.h"
+#include <clocale>
 #include <ncurses.h>
 
 namespace nata::curses

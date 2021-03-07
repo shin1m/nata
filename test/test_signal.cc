@@ -1,4 +1,4 @@
-#include "signal.h"
+#include <nata/signal.h>
 #include <cassert>
 
 int main(int argc, char* argv[])

@@ -1,7 +1,7 @@
 #ifndef XEMMAIX__NATA__TEXT_H
 #define XEMMAIX__NATA__TEXT_H
 
-#include "../model.h"
+#include <nata/model.h>
 #include "proxy.h"
 
 namespace xemmaix::nata
@@ -11,7 +11,7 @@ struct t_text : t_proxy
 {
 	::nata::t_text<>* v_text = new ::nata::t_text<>();
 
-	static t_scoped f_construct(t_type* a_class)
+	static t_pvalue f_construct(t_type* a_class)
 	{
 		return a_class->f_new<t_text>(false);
 	}
@@ -37,7 +37,7 @@ struct t_text : t_proxy
 	{
 		return v_text->f_lines().f_size().v_i0;
 	}
-	t_scoped f_line_at_in_text(size_t a_p) const
+	t_pvalue f_line_at_in_text(size_t a_p) const
 	{
 		size_t n = f_size();
 		if (a_p > n) f_throw(L"out of range."sv);
@@ -57,7 +57,7 @@ struct t_type_of<xemmaix::nata::t_text> : t_derivable<t_bears<xemmaix::nata::t_t
 	static void f_define(t_extension* a_extension);
 
 	using t_base::t_base;
-	t_scoped f_do_construct(t_stacked* a_stack, size_t a_n);
+	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n);
 };
 
 }

@@ -1,7 +1,7 @@
 #ifndef XEMMAIX__NATA__CREASER_H
 #define XEMMAIX__NATA__CREASER_H
 
-#include "../creaser.h"
+#include <nata/creaser.h>
 #include "view.h"
 
 namespace xemmaix::nata
@@ -11,7 +11,7 @@ template<typename T_target>
 struct t_creaser : t_proxy
 {
 	t_view<T_target>& v_view;
-	::nata::t_creaser<std::decay_t<decltype(*t_view<T_target>::v_rows)>, t_scoped>* v_creaser;
+	::nata::t_creaser<std::decay_t<decltype(*t_view<T_target>::v_rows)>, t_rvalue>* v_creaser;
 
 	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 	{
@@ -19,7 +19,7 @@ struct t_creaser : t_proxy
 	};
 	::nata::t_connection<decltype(v_replaced)>* v_connection;
 
-	static t_scoped f_construct(t_type* a_class, t_view<T_target>& a_view)
+	static t_pvalue f_construct(t_type* a_class, t_view<T_target>& a_view)
 	{
 		return a_class->f_new<t_creaser>(false, a_view);
 	}
@@ -46,11 +46,11 @@ struct t_creaser : t_proxy
 	{
 		v_creaser->f_push(std::min(a_n, v_view.v_text.v_text->f_size() - f_current()));
 	}
-	t_scoped f_tag() const
+	t_pvalue f_tag() const
 	{
 		return v_creaser->f_tag();
 	}
-	void f_open(t_scoped&& a_tag)
+	void f_open(const t_pvalue& a_tag)
 	{
 		v_creaser->f_open(std::move(a_tag));
 	}
@@ -78,21 +78,21 @@ struct t_type_of<xemmaix::nata::t_creaser<T_target>> : t_derivable<t_bears<xemma
 	static void f_define(t_extension* a_extension)
 	{
 		t_define<t_creaser, xemmaix::nata::t_proxy>(a_extension, L"Creaser"sv)
-			(t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&), t_creaser::f_construct>())
+			(t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_view<T_target>&), t_creaser::f_construct>())
 			(L"reset"sv, t_member<void(t_creaser::*)(), &t_creaser::f_reset>())
 			(L"current"sv, t_member<size_t(t_creaser::*)() const, &t_creaser::f_current>())
 			(L"push"sv, t_member<void(t_creaser::*)(size_t), &t_creaser::f_push>())
-			(L"tag"sv, t_member<t_scoped(t_creaser::*)() const, &t_creaser::f_tag>())
-			(L"open"sv, t_member<void(t_creaser::*)(t_scoped&&), &t_creaser::f_open>())
+			(L"tag"sv, t_member<t_pvalue(t_creaser::*)() const, &t_creaser::f_tag>())
+			(L"open"sv, t_member<void(t_creaser::*)(const t_pvalue&), &t_creaser::f_open>())
 			(L"close"sv, t_member<void(t_creaser::*)(), &t_creaser::f_close>())
 			(L"flush"sv, t_member<void(t_creaser::*)(), &t_creaser::f_flush>())
 		;
 	}
 
 	using t_type_of::t_base::t_base;
-	t_scoped f_do_construct(t_stacked* a_stack, size_t a_n)
+	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_scoped(*)(t_type*, xemmaix::nata::t_view<T_target>&), t_creaser::f_construct>::template t_bind<t_creaser>::f_do(this, a_stack, a_n);
+		return t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_view<T_target>&), t_creaser::f_construct>::template t_bind<t_creaser>::f_do(this, a_stack, a_n);
 	}
 };
 

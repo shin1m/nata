@@ -1,5 +1,6 @@
-#include "model.h"
+#include <nata/model.h>
 #include "test_spans.h"
+#include <string>
 
 int main(int argc, char* argv[])
 {

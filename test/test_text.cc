@@ -1,5 +1,8 @@
-#include "model.h"
+#include <nata/model.h>
 #include "test_spans.h"
+#include <string>
+
+using namespace std::literals;
 
 template<typename T_lines, size_t A_leaf, size_t A_branch, typename T>
 void f_assert_equals(const nata::t_text<T_lines, A_leaf, A_branch>& a0, const T& a1)

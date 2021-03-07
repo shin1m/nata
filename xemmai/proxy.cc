@@ -30,7 +30,7 @@ void t_type_of<xemmaix::nata::t_proxy>::f_do_finalize(t_object* a_this)
 	p.~t_proxy();
 }
 
-t_scoped t_type_of<xemmaix::nata::t_proxy>::f_do_construct(t_stacked* a_stack, size_t a_n)
+t_pvalue t_type_of<xemmaix::nata::t_proxy>::f_do_construct(t_pvalue* a_stack, size_t a_n)
 {
 	f_throw(L"uninstantiatable."sv);
 }

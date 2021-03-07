@@ -1,6 +1,7 @@
 #include "test_spans.h"
-#include "model.h"
-#include "tokens.h"
+#include <nata/model.h>
+#include <nata/tokens.h>
+#include <string>
 
 int main(int argc, char* argv[])
 {

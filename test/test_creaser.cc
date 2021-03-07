@@ -1,6 +1,6 @@
 #include "test_nested.h"
 #include "test_rows.h"
-#include "creaser.h"
+#include <nata/creaser.h>
 
 int main(int argc, char* argv[])
 {

@@ -17,18 +17,18 @@ void t_type_of<xemmaix::nata::t_text>::f_define(t_extension* a_extension)
 {
 	using xemmaix::nata::t_text;
 	t_define<t_text, xemmaix::nata::t_proxy>(a_extension, L"Text"sv)
-		(t_construct_with<t_scoped(*)(t_type*), t_text::f_construct>())
+		(t_construct_with<t_pvalue(*)(t_type*), t_text::f_construct>())
 		(L"size"sv, t_member<size_t(t_text::*)() const, &t_text::f_size>())
 		(L"slice"sv, t_member<std::wstring(t_text::*)(size_t, size_t) const, &t_text::f_slice>())
 		(L"replace"sv, t_member<void(t_text::*)(size_t, size_t, std::wstring_view), &t_text::f_replace>())
 		(L"lines"sv, t_member<size_t(t_text::*)() const, &t_text::f_lines>())
-		(L"line_at_in_text"sv, t_member<t_scoped(t_text::*)(size_t) const, &t_text::f_line_at_in_text>())
+		(L"line_at_in_text"sv, t_member<t_pvalue(t_text::*)(size_t) const, &t_text::f_line_at_in_text>())
 	;
 }
 
-t_scoped t_type_of<xemmaix::nata::t_text>::f_do_construct(t_stacked* a_stack, size_t a_n)
+t_pvalue t_type_of<xemmaix::nata::t_text>::f_do_construct(t_pvalue* a_stack, size_t a_n)
 {
-	return t_construct_with<t_scoped(*)(t_type*), xemmaix::nata::t_text::f_construct>::t_bind<xemmaix::nata::t_text>::f_do(this, a_stack, a_n);
+	return t_construct_with<t_pvalue(*)(t_type*), xemmaix::nata::t_text::f_construct>::t_bind<xemmaix::nata::t_text>::f_do(this, a_stack, a_n);
 }
 
 }

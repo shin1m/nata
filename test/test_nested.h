@@ -1,6 +1,7 @@
-#include "nested.h"
+#include <nata/nested.h>
 #include "test_spans.h"
 #include <numeric>
+#include <string>
 
 template<size_t A_leaf, size_t A_branch>
 struct t_test_value

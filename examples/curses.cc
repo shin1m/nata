@@ -1,9 +1,9 @@
-#include "model.h"
-#include "rows.h"
-#include "widget.h"
-#include "painter.h"
-#include "creaser.h"
-#include "curses.h"
+#include <nata/model.h>
+#include <nata/rows.h>
+#include <nata/widget.h>
+#include <nata/painter.h>
+#include <nata/creaser.h>
+#include <nata/curses.h>
 #include <fstream>
 #include <regex>
 

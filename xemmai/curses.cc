@@ -12,7 +12,7 @@ void t_type_of<xemmaix::nata::curses::t_token>::f_define(t_extension* a_extensio
 	;
 }
 
-t_scoped t_type_of<xemmaix::nata::curses::t_token>::f_do_construct(t_stacked* a_stack, size_t a_n)
+t_pvalue t_type_of<xemmaix::nata::curses::t_token>::f_do_construct(t_pvalue* a_stack, size_t a_n)
 {
 	return t_construct<false, attr_t>::t_bind<xemmaix::nata::curses::t_token>::f_do(this, a_stack, a_n);
 }
@@ -25,7 +25,7 @@ namespace xemmaix::nata::curses
 namespace
 {
 
-void f_main(const t_value& a_callable)
+void f_main(const t_pvalue& a_callable)
 {
 	::nata::curses::t_session session;
 	a_callable();
@@ -41,14 +41,14 @@ attr_t f_color_pair(short a_pair)
 	return COLOR_PAIR(a_pair);
 }
 
-t_scoped f_size()
+t_pvalue f_size()
 {
 	return f_tuple(COLS, LINES);
 }
 
 }
 
-t_extension::t_extension(xemmai::t_object* a_module, t_scoped&& a_nata) : xemmai::t_extension(a_module), v_module_nata(std::move(a_nata))
+t_extension::t_extension(xemmai::t_object* a_module, const t_pvalue& a_nata) : xemmai::t_extension(a_module), v_module_nata(std::move(a_nata))
 {
 	v_nata = xemmai::f_extension<xemmaix::nata::t_extension>(v_module_nata);
 	t_type_of<t_token>::f_define(this);
@@ -57,10 +57,10 @@ t_extension::t_extension(xemmai::t_object* a_module, t_scoped&& a_nata) : xemmai
 	t_type_of<t_overlay_iterator<t_target>>::f_define(this);
 	t_type_of<t_painter<t_target>>::f_define(this);
 	t_type_of<t_creaser<t_target>>::f_define(this);
-	f_define<void(*)(const t_value&), f_main>(this, L"main"sv);
+	f_define<void(*)(const t_pvalue&), f_main>(this, L"main"sv);
 	f_define<void(*)(short, short, short), f_define_pair>(this, L"define_pair"sv);
 	f_define<attr_t(*)(short), f_color_pair>(this, L"color_pair"sv);
-	f_define<t_scoped(*)(), f_size>(this, L"size"sv);
+	f_define<t_pvalue(*)(), f_size>(this, L"size"sv);
 	a_module->f_put(t_symbol::f_instantiate(L"COLOR_BLACK"sv), f_as(COLOR_BLACK));
 	a_module->f_put(t_symbol::f_instantiate(L"COLOR_RED"sv), f_as(COLOR_RED));
 	a_module->f_put(t_symbol::f_instantiate(L"COLOR_GREEN"sv), f_as(COLOR_GREEN));

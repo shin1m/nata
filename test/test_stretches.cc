@@ -1,4 +1,4 @@
-#include "stretches.h"
+#include <nata/stretches.h>
 #include "test_spans.h"
 
 int main(int argc, char* argv[])

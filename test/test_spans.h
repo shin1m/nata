@@ -1,8 +1,9 @@
 #ifndef TEST__TEST_SPANS_H
 #define TEST__TEST_SPANS_H
 
-#include "spans.h"
+#include <nata/spans.h>
 #include <cassert>
+#include <cstdio>
 
 template<typename T, typename U>
 void f_assert_equals(const T& a0, const U& a1)
