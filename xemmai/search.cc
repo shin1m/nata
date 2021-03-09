@@ -11,15 +11,15 @@ void t_search::f_destroy()
 
 t_pvalue t_search::f_next()
 {
-	auto p = t_tuple::f_instantiate(v_i->size());
-	auto& tuple = f_as<t_tuple&>(p);
-	for (size_t i = 0; i < v_i->size(); ++i) {
-		auto& m = (*v_i)[i];
-		size_t j = m.first.f_index();
-		new(&tuple[i]) t_svalue(f_tuple(j, m.second.f_index() - j));
-	}
-	if (v_i != v_eos) ++v_i;
-	return p;
+	return t_tuple::f_instantiate(v_i->size(), [&](auto& tuple)
+	{
+		for (size_t i = 0; i < v_i->size(); ++i) {
+			auto& m = (*v_i)[i];
+			size_t j = m.first.f_index();
+			new(&tuple[i]) t_svalue(f_tuple(j, m.second.f_index() - j));
+		}
+		if (v_i != v_eos) ++v_i;
+	});
 }
 
 }
