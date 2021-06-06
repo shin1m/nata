@@ -21,7 +21,7 @@ struct t_painter : t_proxy
 
 	static t_pvalue f_construct(t_type* a_class, t_view<T_target>& a_view)
 	{
-		return a_class->f_new<t_painter>(false, a_view);
+		return a_class->f_new<t_painter>(a_view);
 	}
 
 	t_painter(t_view<T_target>& a_view) : v_view(a_view), v_painter(new std::decay_t<decltype(*v_painter)>(*v_view.v_tokens)), v_connection(v_view.v_text.v_text->v_replaced >> v_replaced)
@@ -64,13 +64,12 @@ namespace xemmai
 template<typename T_target>
 struct t_type_of<xemmaix::nata::t_painter<T_target>> : t_derivable<t_bears<xemmaix::nata::t_painter<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
-	typedef typename T_target::t_extension t_extension;
+	typedef typename T_target::t_library t_library;
 	using t_painter = xemmaix::nata::t_painter<T_target>;
 
-	static void f_define(t_extension* a_extension)
+	static void f_define(t_library* a_library)
 	{
-		t_define<t_painter, xemmaix::nata::t_proxy>(a_extension, L"Painter"sv)
-			(t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_view<T_target>&), t_painter::f_construct>())
+		t_define{a_library}
 			(L"reset"sv, t_member<void(t_painter::*)(), &t_painter::f_reset>())
 			(L"current"sv, t_member<size_t(t_painter::*)() const, &t_painter::f_current>())
 			(L"push"sv,
@@ -78,7 +77,7 @@ struct t_type_of<xemmaix::nata::t_painter<T_target>> : t_derivable<t_bears<xemma
 				t_member<void(t_painter::*)(const t_pvalue&, size_t, size_t), &t_painter::f_push>()
 			)
 			(L"flush"sv, t_member<void(t_painter::*)(), &t_painter::f_flush>())
-		;
+		.template f_derive<t_painter, xemmaix::nata::t_proxy>();
 	}
 
 	using t_type_of::t_base::t_base;

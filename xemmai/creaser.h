@@ -21,7 +21,7 @@ struct t_creaser : t_proxy
 
 	static t_pvalue f_construct(t_type* a_class, t_view<T_target>& a_view)
 	{
-		return a_class->f_new<t_creaser>(false, a_view);
+		return a_class->f_new<t_creaser>(a_view);
 	}
 
 	t_creaser(t_view<T_target>& a_view) : v_view(a_view), v_creaser(new std::decay_t<decltype(*v_creaser)>(*v_view.v_rows)), v_connection(v_view.v_text.v_text->v_replaced >> v_replaced)
@@ -72,13 +72,12 @@ namespace xemmai
 template<typename T_target>
 struct t_type_of<xemmaix::nata::t_creaser<T_target>> : t_derivable<t_bears<xemmaix::nata::t_creaser<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
-	typedef typename T_target::t_extension t_extension;
+	typedef typename T_target::t_library t_library;
 	using t_creaser = xemmaix::nata::t_creaser<T_target>;
 
-	static void f_define(t_extension* a_extension)
+	static void f_define(t_library* a_library)
 	{
-		t_define<t_creaser, xemmaix::nata::t_proxy>(a_extension, L"Creaser"sv)
-			(t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_view<T_target>&), t_creaser::f_construct>())
+		t_define{a_library}
 			(L"reset"sv, t_member<void(t_creaser::*)(), &t_creaser::f_reset>())
 			(L"current"sv, t_member<size_t(t_creaser::*)() const, &t_creaser::f_current>())
 			(L"push"sv, t_member<void(t_creaser::*)(size_t), &t_creaser::f_push>())
@@ -86,7 +85,7 @@ struct t_type_of<xemmaix::nata::t_creaser<T_target>> : t_derivable<t_bears<xemma
 			(L"open"sv, t_member<void(t_creaser::*)(const t_pvalue&), &t_creaser::f_open>())
 			(L"close"sv, t_member<void(t_creaser::*)(), &t_creaser::f_close>())
 			(L"flush"sv, t_member<void(t_creaser::*)(), &t_creaser::f_flush>())
-		;
+		.template f_derive<t_creaser, xemmaix::nata::t_proxy>();
 	}
 
 	using t_type_of::t_base::t_base;

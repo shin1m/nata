@@ -22,7 +22,7 @@ struct t_view : t_proxy
 
 	static t_pvalue f_construct(t_type* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height)
 	{
-		return a_class->f_new<t_view>(false, a_text, a_x, a_y, a_width, a_height);
+		return a_class->f_new<t_view>(a_text, a_x, a_y, a_width, a_height);
 	}
 	static t_pvalue f_tuple(const decltype(v_widget->v_line)& a_i)
 	{
@@ -145,7 +145,7 @@ struct t_overlay : t_proxy
 
 	static t_pvalue f_construct(t_type* a_class, t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute)
 	{
-		return a_class->f_new<t_overlay>(false, a_view, a_attribute);
+		return a_class->f_new<t_overlay>(a_view, a_attribute);
 	}
 
 	t_overlay(t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute) : v_view(a_view)
@@ -194,7 +194,7 @@ struct t_overlay_iterator : t_proxy
 
 	static t_pvalue f_construct(t_type* a_class, t_overlay<T_target>& a_overlay)
 	{
-		return a_class->f_new<t_overlay_iterator>(false, a_overlay);
+		return a_class->f_new<t_overlay_iterator>(a_overlay);
 	}
 
 	t_overlay_iterator(t_overlay<T_target>& a_overlay) : v_overlay(a_overlay), v_connection0(v_overlay.v_overlay->v_replaced >> v_replaced), v_connection1(v_overlay.v_overlay->v_painted >> v_painted)
@@ -231,13 +231,12 @@ namespace xemmai
 template<typename T_target>
 struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix::nata::t_view<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
-	typedef typename T_target::t_extension t_extension;
+	typedef typename T_target::t_library t_library;
 	using t_view = xemmaix::nata::t_view<T_target>;
 
-	static void f_define(t_extension* a_extension)
+	static void f_define(t_library* a_library)
 	{
-		t_define<t_view, xemmaix::nata::t_proxy>(a_extension, L"View"sv)
-			(t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>())
+		t_define{a_library}
 			(L"move"sv, t_member<void(t_view::*)(size_t, size_t, size_t, size_t), &t_view::f_move>())
 			(L"attributes"sv, t_member<void(t_view::*)(const typename T_target::t_attribute&, const typename T_target::t_attribute&), &t_view::f_attributes>())
 			(L"paint"sv, t_member<void(t_view::*)(size_t, size_t, const t_pvalue&), &t_view::f_paint>())
@@ -258,7 +257,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 			)
 			(L"get"sv, t_member<intptr_t(t_view::*)(), &t_view::f_get>())
 			(L"timeout"sv, t_member<void(t_view::*)(int), &t_view::f_timeout>())
-		;
+		.template f_derive<t_view, xemmaix::nata::t_proxy>();
 	}
 
 	using t_type_of::t_base::t_base;
@@ -271,15 +270,14 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 template<typename T_target>
 struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemmaix::nata::t_overlay<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
-	typedef typename T_target::t_extension t_extension;
+	typedef typename T_target::t_library t_library;
 	using t_overlay = xemmaix::nata::t_overlay<T_target>;
 
-	static void f_define(t_extension* a_extension)
+	static void f_define(t_library* a_library)
 	{
-		t_define<t_overlay, xemmaix::nata::t_proxy>(a_extension, L"Overlay"sv)
-			(t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>())
+		t_define{a_library}
 			(L"paint"sv, t_member<void(t_overlay::*)(size_t, size_t, bool), &t_overlay::f_paint>())
-		;
+		.template f_derive<t_overlay, xemmaix::nata::t_proxy>();
 	}
 
 	using t_type_of::t_base::t_base;
@@ -292,15 +290,14 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemma
 template<typename T_target>
 struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_derivable<t_bears<xemmaix::nata::t_overlay_iterator<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
-	typedef typename T_target::t_extension t_extension;
+	typedef typename T_target::t_library t_library;
 	using t_overlay_iterator = xemmaix::nata::t_overlay_iterator<T_target>;
 
-	static void f_define(t_extension* a_extension)
+	static void f_define(t_library* a_library)
 	{
-		t_define<t_overlay_iterator, xemmaix::nata::t_proxy>(a_extension, L"OverlayIterator"sv)
-			(t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>())
+		t_define{a_library}
 			(L"next"sv, t_member<t_pvalue(t_overlay_iterator::*)(), &t_overlay_iterator::f_next>())
-		;
+		.template f_derive<t_overlay_iterator, xemmaix::nata::t_proxy>();
 	}
 
 	using t_type_of::t_base::t_base;

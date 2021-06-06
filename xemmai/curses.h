@@ -21,10 +21,10 @@ struct t_token
 	}
 };
 
-class t_extension : public xemmai::t_extension
+class t_library : public xemmai::t_library
 {
 	t_slot v_module_nata;
-	xemmaix::nata::t_extension* v_nata;
+	xemmaix::nata::t_library* v_nata;
 	t_slot_of<t_type> v_type_token;
 	t_slot_of<t_type> v_type_view;
 	t_slot_of<t_type> v_type_overlay;
@@ -33,10 +33,13 @@ class t_extension : public xemmai::t_extension
 	t_slot_of<t_type> v_type_creaser;
 
 public:
-	t_extension(xemmai::t_object* a_module, const t_pvalue& a_nata);
+	t_library(xemmai::t_library::t_handle* a_handle, const t_pvalue& a_nata) : xemmai::t_library(a_handle), v_module_nata(a_nata), v_nata(&v_module_nata->f_as<t_module>().v_body->f_as<xemmaix::nata::t_library>())
+	{
+	}
 	virtual void f_scan(t_scan a_scan);
+	virtual std::vector<std::pair<t_root, t_rvalue>> f_define();
 	template<typename T>
-	const T* f_extension() const
+	const T* f_library() const
 	{
 		return f_global();
 	}
@@ -48,19 +51,19 @@ public:
 	template<typename T>
 	t_type* f_type() const
 	{
-		return const_cast<t_extension*>(this)->f_type_slot<T>();
+		return const_cast<t_library*>(this)->f_type_slot<T>();
 	}
 	template<typename T>
 	t_pvalue f_as(T&& a_value) const
 	{
 		typedef t_type_of<typename t_fundamental<T>::t_type> t;
-		return t::f_transfer(f_extension<typename t::t_extension>(), std::forward<T>(a_value));
+		return t::f_transfer(f_library<typename t::t_library>(), std::forward<T>(a_value));
 	}
 };
 
 struct t_target : ::nata::curses::t_target
 {
-	typedef xemmaix::nata::curses::t_extension t_extension;
+	typedef xemmaix::nata::curses::t_library t_library;
 
 	using ::nata::curses::t_target::t_target;
 	std::tuple<size_t, size_t, size_t> f_size(wchar_t a_c, const t_rvalue& a_a) const
@@ -84,52 +87,23 @@ struct t_target : ::nata::curses::t_target
 };
 
 template<>
-inline const xemmaix::nata::t_extension* t_extension::f_extension<xemmaix::nata::t_extension>() const
+inline const xemmaix::nata::t_library* t_library::f_library<xemmaix::nata::t_library>() const
 {
 	return v_nata;
 }
 
 template<>
-inline const t_extension* t_extension::f_extension<t_extension>() const
+inline const t_library* t_library::f_library<t_library>() const
 {
 	return this;
 }
 
-template<>
-inline t_slot_of<t_type>& t_extension::f_type_slot<t_token>()
-{
-	return v_type_token;
-}
-
-template<>
-inline t_slot_of<t_type>& t_extension::f_type_slot<t_view<t_target>>()
-{
-	return v_type_view;
-}
-
-template<>
-inline t_slot_of<t_type>& t_extension::f_type_slot<t_overlay<t_target>>()
-{
-	return v_type_overlay;
-}
-
-template<>
-inline t_slot_of<t_type>& t_extension::f_type_slot<t_overlay_iterator<t_target>>()
-{
-	return v_type_overlay_iterator;
-}
-
-template<>
-inline t_slot_of<t_type>& t_extension::f_type_slot<t_painter<t_target>>()
-{
-	return v_type_painter;
-}
-
-template<>
-inline t_slot_of<t_type>& t_extension::f_type_slot<t_creaser<t_target>>()
-{
-	return v_type_creaser;
-}
+XEMMAI__LIBRARY__TYPE(t_library, token)
+XEMMAI__LIBRARY__TYPE_AS(t_library, t_view<t_target>, view)
+XEMMAI__LIBRARY__TYPE_AS(t_library, t_overlay<t_target>, overlay)
+XEMMAI__LIBRARY__TYPE_AS(t_library, t_overlay_iterator<t_target>, overlay_iterator)
+XEMMAI__LIBRARY__TYPE_AS(t_library, t_painter<t_target>, painter)
+XEMMAI__LIBRARY__TYPE_AS(t_library, t_creaser<t_target>, creaser)
 
 }
 
@@ -139,9 +113,9 @@ namespace xemmai
 template<>
 struct t_type_of<xemmaix::nata::curses::t_token> : t_derivable<t_holds<xemmaix::nata::curses::t_token>>
 {
-	typedef xemmaix::nata::curses::t_extension t_extension;
+	typedef xemmaix::nata::curses::t_library t_library;
 
-	static void f_define(t_extension* a_extension);
+	static void f_define(t_library* a_library);
 
 	using t_base::t_base;
 	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n);

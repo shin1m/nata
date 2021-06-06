@@ -27,10 +27,10 @@ t_pvalue t_search::f_next()
 namespace xemmai
 {
 
-void t_type_of<xemmaix::nata::t_search>::f_define(t_extension* a_extension)
+void t_type_of<xemmaix::nata::t_search>::f_define(t_library* a_library)
 {
 	using xemmaix::nata::t_search;
-	t_define<t_search, xemmaix::nata::t_proxy>(a_extension, L"Search"sv)
+	t_define{a_library}
 		(L"ICASE"sv, static_cast<intptr_t>(std::wregex::icase))
 		(L"NOSUBS"sv, static_cast<intptr_t>(std::wregex::nosubs))
 		(L"OPTIMIZE"sv, static_cast<intptr_t>(std::wregex::optimize))
@@ -42,11 +42,10 @@ void t_type_of<xemmaix::nata::t_search>::f_define(t_extension* a_extension)
 		(L"AWK"sv, static_cast<intptr_t>(std::wregex::awk))
 		(L"GREP"sv, static_cast<intptr_t>(std::wregex::grep))
 		(L"EGREP"sv, static_cast<intptr_t>(std::wregex::egrep))
-		(t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_text&), t_search::f_construct>())
 		(L"pattern"sv, t_member<void(t_search::*)(std::wstring_view, intptr_t), &t_search::f_pattern>())
 		(L"reset"sv, t_member<void(t_search::*)(), &t_search::f_reset>())
 		(L"next"sv, t_member<t_pvalue(t_search::*)(), &t_search::f_next>())
-	;
+	.f_derive<t_search, xemmaix::nata::t_proxy>();
 }
 
 t_pvalue t_type_of<xemmaix::nata::t_search>::f_do_construct(t_pvalue* a_stack, size_t a_n)

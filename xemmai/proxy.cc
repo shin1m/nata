@@ -15,12 +15,12 @@ void t_proxy::f_dispose()
 namespace xemmai
 {
 
-void t_type_of<xemmaix::nata::t_proxy>::f_define(t_extension* a_extension)
+void t_type_of<xemmaix::nata::t_proxy>::f_define(t_library* a_library)
 {
 	using xemmaix::nata::t_proxy;
-	t_define<t_proxy, t_object>(a_extension, L"Proxy"sv)
+	t_define{a_library}
 		(L"dispose"sv, t_member<void(t_proxy::*)(), &t_proxy::f_dispose>())
-	;
+	.f_derive<t_proxy, t_object>();
 }
 
 void t_type_of<xemmaix::nata::t_proxy>::f_do_finalize(t_object* a_this)

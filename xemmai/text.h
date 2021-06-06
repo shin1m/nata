@@ -13,7 +13,7 @@ struct t_text : t_proxy
 
 	static t_pvalue f_construct(t_type* a_class)
 	{
-		return a_class->f_new<t_text>(false);
+		return a_class->f_new<t_text>();
 	}
 
 	virtual void f_destroy();
@@ -54,7 +54,7 @@ namespace xemmai
 template<>
 struct t_type_of<xemmaix::nata::t_text> : t_derivable<t_bears<xemmaix::nata::t_text, t_type_of<xemmaix::nata::t_proxy>>>
 {
-	static void f_define(t_extension* a_extension);
+	static void f_define(t_library* a_library);
 
 	using t_base::t_base;
 	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n);

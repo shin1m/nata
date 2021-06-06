@@ -3,9 +3,11 @@ io = Module("io"
 nata = Module("nata"
 natacurses = Module("natacurses"
 
-Session = Class() :: @
+Session = Object + @
+	$logs
+	$undos
+	$redos
 	$__initialize = @
-		$logs = null
 		$undos = [
 		$redos = [
 	$begin = @ $logs = [
@@ -46,15 +48,18 @@ each = @(overlay, f)
 		while (x = i.next()) !== null
 			x[0] && f(x[1], x[2]
 
-TextSession = Class(Session) :: @
-	Delta = Class() :: @
+TextSession = Session + @
+	Delta = Object + @
+		$x
+		$xs
 		$__initialize = @(x, xs)
 			$x = x
 			$xs = xs
 		$__call = @ $x.replace(*$xs
 
+	$text
 	$__initialize = @(text)
-		:$^__initialize[$](
+		Session.__initialize[$](
 		$text = text
 	$replace = @(p, n, s)
 		$log(Delta($, '(p, s.size(), $text.slice(p, n
@@ -125,9 +130,8 @@ nata.main(@ natacurses.main(@
 			nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
 		painter = natacurses.Painter(view
 		creaser = natacurses.Creaser(view
-		exports = Object(
-		exports.more = @ painter.current() < text.size()
-		exports.step = @ if exports.more()
+		more = @ painter.current() < text.size()
+		step = @ if more()
 			for i = 0; i < UNIT; i = i + 1
 				(match = search.next()).size() > 0 || break
 				type = 1
@@ -169,6 +173,12 @@ nata.main(@ natacurses.main(@
 		search.reset(
 		painter.reset(
 		creaser.reset(
+		exports = (Object + @
+			$more
+			$step
+		)(
+		exports.more = more
+		exports.step = step
 		exports
 	)(
 	done = false

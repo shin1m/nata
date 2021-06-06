@@ -24,7 +24,7 @@ using namespace xemmai;
 using xemmai::t_slot;
 
 class t_proxy;
-class t_extension;
+class t_library;
 class t_text;
 class t_search;
 
@@ -52,7 +52,7 @@ class t_session : public t_entry
 
 	static XEMMAI__PORTABLE__THREAD t_session* v_instance;
 
-	t_extension* v_extension;
+	t_library* v_library;
 
 public:
 #ifdef _WIN32
@@ -65,7 +65,7 @@ public:
 	}
 #endif
 
-	t_session(t_extension* a_extension) : v_extension(a_extension)
+	t_session(t_library* a_library) : v_library(a_library)
 	{
 		if (v_instance) f_throw(L"already inside main."sv);
 		v_instance = this;
@@ -75,23 +75,24 @@ public:
 		while (v_next != this) v_next->f_dispose();
 		v_instance = nullptr;
 	}
-	t_extension* f_extension() const
+	t_library* f_library() const
 	{
-		return v_extension;
+		return v_library;
 	}
 };
 
-class t_extension : public xemmai::t_extension
+class t_library : public xemmai::t_library
 {
 	t_slot_of<t_type> v_type_proxy;
 	t_slot_of<t_type> v_type_text;
 	t_slot_of<t_type> v_type_search;
 
 public:
-	t_extension(t_object* a_module);
+	using xemmai::t_library::t_library;
 	virtual void f_scan(t_scan a_scan);
+	virtual std::vector<std::pair<t_root, t_rvalue>> f_define();
 	template<typename T>
-	const T* f_extension() const
+	const T* f_library() const
 	{
 		return f_global();
 	}
@@ -103,39 +104,25 @@ public:
 	template<typename T>
 	t_type* f_type() const
 	{
-		return const_cast<t_extension*>(this)->f_type_slot<T>();
+		return const_cast<t_library*>(this)->f_type_slot<T>();
 	}
 	template<typename T>
 	t_pvalue f_as(T&& a_value) const
 	{
 		typedef t_type_of<typename t_fundamental<T>::t_type> t;
-		return t::f_transfer(f_extension<typename t::t_extension>(), std::forward<T>(a_value));
+		return t::f_transfer(f_library<typename t::t_library>(), std::forward<T>(a_value));
 	}
 };
 
 template<>
-inline const t_extension* t_extension::f_extension<t_extension>() const
+inline const t_library* t_library::f_library<t_library>() const
 {
 	return this;
 }
 
-template<>
-inline t_slot_of<t_type>& t_extension::f_type_slot<t_proxy>()
-{
-	return v_type_proxy;
-}
-
-template<>
-inline t_slot_of<t_type>& t_extension::f_type_slot<t_text>()
-{
-	return v_type_text;
-}
-
-template<>
-inline t_slot_of<t_type>& t_extension::f_type_slot<t_search>()
-{
-	return v_type_search;
-}
+XEMMAI__LIBRARY__TYPE(t_library, proxy)
+XEMMAI__LIBRARY__TYPE(t_library, text)
+XEMMAI__LIBRARY__TYPE(t_library, search)
 
 }
 

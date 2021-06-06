@@ -48,7 +48,7 @@ namespace xemmai
 {
 
 template<>
-struct t_type_of<xemmaix::nata::t_proxy> : t_underivable<t_bears<xemmaix::nata::t_proxy>>
+struct t_type_of<xemmaix::nata::t_proxy> : t_bears<xemmaix::nata::t_proxy>
 {
 	template<typename T0>
 	struct t_cast
@@ -110,15 +110,15 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_underivable<t_bears<xemmaix::nata::
 		}
 	};
 
-	template<typename T_extension, typename T>
-	static t_pvalue f_transfer(T_extension* a_extension, T&& a_value)
+	template<typename T_library, typename T>
+	static t_pvalue f_transfer(T_library* a_library, T&& a_value)
 	{
 		return t_object::f_of(a_value);
 	}
 
-	typedef xemmaix::nata::t_extension t_extension;
+	typedef xemmaix::nata::t_library t_library;
 
-	static void f_define(t_extension* a_extension);
+	static void f_define(t_library* a_library);
 
 	using t_base::t_base;
 	static void f_do_finalize(t_object* a_this);

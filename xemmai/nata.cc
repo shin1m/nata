@@ -23,32 +23,37 @@ t_session* t_session::f_instance()
 namespace
 {
 
-void f_main(t_extension* a_extension, const t_pvalue& a_callable)
+void f_main(t_library* a_library, const t_pvalue& a_callable)
 {
-	t_session session(a_extension);
+	t_session session(a_library);
 	a_callable();
 }
 
 }
 
-t_extension::t_extension(t_object* a_module) : xemmai::t_extension(a_module)
-{
-	t_type_of<t_proxy>::f_define(this);
-	t_type_of<t_text>::f_define(this);
-	t_type_of<t_search>::f_define(this);
-	f_define<void(*)(t_extension*, const t_pvalue&), f_main>(this, L"main"sv);
-}
-
-void t_extension::f_scan(t_scan a_scan)
+void t_library::f_scan(t_scan a_scan)
 {
 	a_scan(v_type_proxy);
 	a_scan(v_type_text);
 	a_scan(v_type_search);
 }
 
+std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
+{
+	t_type_of<t_proxy>::f_define(this);
+	t_type_of<t_text>::f_define(this);
+	t_type_of<t_search>::f_define(this);
+	return t_define(this)
+		(L"Proxy"sv, t_object::f_of(v_type_proxy))
+		(L"Text"sv, t_object::f_of(v_type_text))
+		(L"Search"sv, t_object::f_of(v_type_search))
+		(L"main"sv, t_static<void(*)(t_library*, const t_pvalue&), f_main>())
+	;
 }
 
-XEMMAI__MODULE__FACTORY(xemmai::t_object* a_module)
+}
+
+XEMMAI__MODULE__FACTORY(xemmai::t_library::t_handle* a_handle)
 {
-	return new xemmaix::nata::t_extension(a_module);
+	return xemmai::f_new<xemmaix::nata::t_library>(a_handle);
 }
