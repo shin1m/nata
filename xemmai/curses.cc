@@ -51,8 +51,11 @@ void t_library::f_scan(t_scan a_scan)
 {
 	a_scan(v_module_nata);
 	a_scan(v_type_token);
+	a_scan(v_type_position);
+	a_scan(v_type_row);
 	a_scan(v_type_view);
 	a_scan(v_type_overlay);
+	a_scan(v_type_overlay_value);
 	a_scan(v_type_overlay_iterator);
 	a_scan(v_type_painter);
 	a_scan(v_type_creaser);
@@ -61,6 +64,23 @@ void t_library::f_scan(t_scan a_scan)
 std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
 {
 	t_type_of<t_token>::f_define(this);
+	v_type_position.f_construct(f_global()->f_type<t_object>()->f_derive({{
+		t_symbol::f_instantiate(L"text"sv),
+		t_symbol::f_instantiate(L"x"sv),
+		t_symbol::f_instantiate(L"width"sv)
+	}}));
+	v_type_row.f_construct(f_global()->f_type<t_object>()->f_derive({{
+		t_symbol::f_instantiate(L"index"sv),
+		t_symbol::f_instantiate(L"line"sv),
+		t_symbol::f_instantiate(L"text"sv),
+		t_symbol::f_instantiate(L"x"sv),
+		t_symbol::f_instantiate(L"y"sv)
+	}}));
+	v_type_overlay_value.f_construct(f_global()->f_type<t_object>()->f_derive({{
+		t_symbol::f_instantiate(L"value"sv),
+		t_symbol::f_instantiate(L"from"sv),
+		t_symbol::f_instantiate(L"count"sv)
+	}}));
 	t_type_of<t_view<t_target>>::f_define(this);
 	t_type_of<t_overlay<t_target>>::f_define(this);
 	t_type_of<t_overlay_iterator<t_target>>::f_define(this);
@@ -68,8 +88,11 @@ std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
 	t_type_of<t_creaser<t_target>>::f_define(this);
 	return t_define(this)
 		(L"Token"sv, static_cast<t_object*>(v_type_token))
+		(L"Position"sv, static_cast<t_object*>(v_type_position))
+		(L"Row"sv, static_cast<t_object*>(v_type_row))
 		(L"View"sv, static_cast<t_object*>(v_type_view))
 		(L"Overlay"sv, static_cast<t_object*>(v_type_overlay))
+		(L"OverlayValue"sv, static_cast<t_object*>(v_type_overlay_value))
 		(L"OverlayIterator"sv, static_cast<t_object*>(v_type_overlay_iterator))
 		(L"Painter"sv, static_cast<t_object*>(v_type_painter))
 		(L"Creaser"sv, static_cast<t_object*>(v_type_creaser))

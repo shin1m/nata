@@ -17,7 +17,7 @@ struct t_search : t_proxy
 
 	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 	{
-		f_reset();
+		f_reset(0, -1);
 	};
 	::nata::t_connection<decltype(v_replaced)>* v_connection;
 
@@ -35,11 +35,13 @@ struct t_search : t_proxy
 	{
 		v_pattern.assign(a_pattern.begin(), a_pattern.end(), static_cast<std::wregex::flag_type>(a_flags));
 	}
-	void f_reset()
+	void f_reset(size_t a_p, size_t a_n)
 	{
-		v_i = decltype(v_i)(v_p.f_begin(), v_p.f_end(), v_pattern);
+		size_t n = v_p.f_size();
+		if (a_p > n) f_throw(L"out of range."sv);
+		v_i = {v_p.f_at(a_p), v_p.f_at(a_p + std::min(a_n, n - a_p)), v_pattern};
 	}
-	t_pvalue f_next();
+	t_pvalue f_next(t_library* a_library);
 };
 
 }

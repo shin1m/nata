@@ -24,9 +24,10 @@ struct t_view : t_proxy
 	{
 		return a_class->f_new<t_view>(a_text, a_x, a_y, a_width, a_height);
 	}
-	static t_pvalue f_tuple(const decltype(v_widget->v_line)& a_i)
+	template<typename T>
+	static t_pvalue f_row(typename T_target::t_library* a_library, const T& a_row)
 	{
-		return nata::f_tuple(a_i.v_i, a_i.v_line, a_i.v_text, a_i.v_x, a_i.v_y);
+		return f_new(a_library->f_type_row(), a_row.v_i, a_row.v_line, a_row.v_text, a_row.v_x, a_row.v_y);
 	}
 
 	t_view(t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_target(new T_target(a_x, a_y, a_width, a_height)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, *v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows))
@@ -82,9 +83,9 @@ struct t_view : t_proxy
 		}
 		v_target->f_cursor(std::get<1>(v_widget->v_position) - v_widget->v_row.f_index().v_x, v_widget->v_row.f_index().v_y - v_widget->v_top);
 	}
-	t_pvalue f_size() const
+	t_pvalue f_size(typename T_target::t_library* a_library) const
 	{
-		return f_tuple(v_rows->f_size());
+		return f_row(a_library, v_rows->f_size());
 	}
 	size_t f_height() const
 	{
@@ -98,23 +99,32 @@ struct t_view : t_proxy
 	{
 		return v_widget->v_top;
 	}
-	t_pvalue f_position() const
+	t_pvalue f_position(typename T_target::t_library* a_library) const
 	{
-		return nata::f_tuple(std::get<0>(v_widget->v_position), std::get<1>(v_widget->v_position), std::get<2>(v_widget->v_position));
+		return f_new(a_library->f_type_position(), std::get<0>(v_widget->v_position), std::get<1>(v_widget->v_position), std::get<2>(v_widget->v_position));
 	}
 	void f_position__(size_t a_value, bool a_forward)
 	{
 		if (a_value > v_text.f_size()) f_throw(L"out of range."sv);
 		v_widget->f_position__(a_value, a_forward);
 	}
-	t_pvalue f_line() const
+	t_pvalue f_row(typename T_target::t_library* a_library) const
 	{
-		return f_tuple(v_widget->v_line);
+		return f_row(a_library, v_widget->v_line);
 	}
 	void f_line__(size_t a_value)
 	{
 		if (a_value >= v_rows->f_size().v_line) f_throw(L"out of range."sv);
 		v_widget->v_line.v_line = a_value;
+		v_widget->f_from_line();
+	}
+	size_t f_target() const
+	{
+		return v_widget->v_target;
+	}
+	void f_target__(size_t a_value)
+	{
+		v_widget->v_target = a_value;
 		v_widget->f_from_line();
 	}
 	void f_into_view(size_t a_y, size_t a_height)
@@ -214,10 +224,10 @@ struct t_overlay_iterator : t_proxy
 		}
 		t_proxy::f_dispose();
 	}
-	t_pvalue f_next()
+	t_pvalue f_next(typename T_target::t_library* a_library)
 	{
 		if (v_overlay.f_disposed() || v_i == v_overlay.v_overlay->f_end()) return nullptr;
-		auto p = f_tuple(v_i->v_x, v_i.f_index().v_i1, v_i.f_delta().v_i1);
+		auto p = f_new(a_library->f_type_overlay_value(), v_i->v_x, v_i.f_index().v_i1, v_i.f_delta().v_i1);
 		++v_i;
 		return p;
 	}
@@ -243,14 +253,16 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 			(L"crease"sv, t_member<void(t_view::*)(size_t, size_t, bool), &t_view::f_crease>())
 			(L"folded"sv, t_member<size_t(t_view::*)(size_t, bool), &t_view::f_folded>())
 			(L"render"sv, t_member<void(t_view::*)(), &t_view::f_render>())
-			(L"size"sv, t_member<t_pvalue(t_view::*)() const, &t_view::f_size>())
+			(L"size"sv, t_member<t_pvalue(t_view::*)(t_library*) const, &t_view::f_size>())
 			(L"height"sv, t_member<size_t(t_view::*)() const, &t_view::f_height>())
 			(L"range"sv, t_member<size_t(t_view::*)() const, &t_view::f_range>())
 			(L"top"sv, t_member<size_t(t_view::*)() const, &t_view::f_top>())
-			(L"position"sv, t_member<t_pvalue(t_view::*)() const, &t_view::f_position>())
+			(L"position"sv, t_member<t_pvalue(t_view::*)(t_library*) const, &t_view::f_position>())
 			(L"position__"sv, t_member<void(t_view::*)(size_t, bool), &t_view::f_position__>())
-			(L"line"sv, t_member<t_pvalue(t_view::*)() const, &t_view::f_line>())
+			(L"row"sv, t_member<t_pvalue(t_view::*)(t_library*) const, &t_view::f_row>())
 			(L"line__"sv, t_member<void(t_view::*)(size_t), &t_view::f_line__>())
+			(L"target"sv, t_member<size_t(t_view::*)() const, &t_view::f_target>())
+			(L"target__"sv, t_member<void(t_view::*)(size_t), &t_view::f_target__>())
 			(L"into_view"sv,
 				t_member<void(t_view::*)(size_t, size_t), &t_view::f_into_view>(),
 				t_member<void(t_view::*)(size_t), &t_view::f_into_view>()
@@ -296,7 +308,7 @@ struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_derivable<t_be
 	static void f_define(t_library* a_library)
 	{
 		t_define{a_library}
-			(L"next"sv, t_member<t_pvalue(t_overlay_iterator::*)(), &t_overlay_iterator::f_next>())
+			(L"next"sv, t_member<t_pvalue(t_overlay_iterator::*)(t_library*), &t_overlay_iterator::f_next>())
 		.template f_derive<t_overlay_iterator, xemmaix::nata::t_proxy>();
 	}
 

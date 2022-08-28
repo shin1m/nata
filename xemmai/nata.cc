@@ -34,18 +34,31 @@ void f_main(t_library* a_library, const t_pvalue& a_callable)
 void t_library::f_scan(t_scan a_scan)
 {
 	a_scan(v_type_proxy);
+	a_scan(v_type_line);
 	a_scan(v_type_text);
+	a_scan(v_type_span);
 	a_scan(v_type_search);
 }
 
 std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
 {
 	t_type_of<t_proxy>::f_define(this);
+	v_type_line.f_construct(f_global()->f_type<t_object>()->f_derive({{
+		t_symbol::f_instantiate(L"index"sv),
+		t_symbol::f_instantiate(L"from"sv),
+		t_symbol::f_instantiate(L"count"sv)
+	}}));
+	v_type_span.f_construct(f_global()->f_type<t_object>()->f_derive({{
+		t_symbol::f_instantiate(L"from"sv),
+		t_symbol::f_instantiate(L"count"sv)
+	}}));
 	t_type_of<t_text>::f_define(this);
 	t_type_of<t_search>::f_define(this);
 	return t_define(this)
 		(L"Proxy"sv, static_cast<t_object*>(v_type_proxy))
+		(L"Line"sv, static_cast<t_object*>(v_type_line))
 		(L"Text"sv, static_cast<t_object*>(v_type_text))
+		(L"Span"sv, static_cast<t_object*>(v_type_span))
 		(L"Search"sv, static_cast<t_object*>(v_type_search))
 		(L"main"sv, t_static<void(*)(t_library*, const t_pvalue&), f_main>())
 	;

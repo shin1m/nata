@@ -84,7 +84,9 @@ public:
 class t_library : public xemmai::t_library
 {
 	t_slot_of<t_type> v_type_proxy;
+	t_slot_of<t_type> v_type_line;
 	t_slot_of<t_type> v_type_text;
+	t_slot_of<t_type> v_type_span;
 	t_slot_of<t_type> v_type_search;
 
 public:
@@ -112,6 +114,14 @@ public:
 		typedef t_type_of<typename t_fundamental<T>::t_type> t;
 		return t::f_transfer(f_library<typename t::t_library>(), std::forward<T>(a_value));
 	}
+	t_type* f_type_line() const
+	{
+		return v_type_line;
+	}
+	t_type* f_type_span() const
+	{
+		return v_type_span;
+	}
 };
 
 template<>
@@ -123,6 +133,26 @@ inline const t_library* t_library::f_library<t_library>() const
 XEMMAI__LIBRARY__TYPE(t_library, proxy)
 XEMMAI__LIBRARY__TYPE(t_library, text)
 XEMMAI__LIBRARY__TYPE(t_library, search)
+
+inline void f__new(t_svalue* a_p)
+{
+}
+
+template<typename T_x, typename... T_xs>
+inline void f__new(t_svalue* a_p, T_x&& a_x, T_xs&&... a_xs)
+{
+	new(a_p) t_svalue(std::forward<T_x>(a_x));
+	f__new(++a_p, std::forward<T_xs>(a_xs)...);
+}
+
+template<typename... T_xs>
+inline t_object* f_new(t_type* a_type, T_xs&&... a_xs)
+{
+	auto p = f_engine()->f_allocate(sizeof(t_svalue) * sizeof...(a_xs));
+	f__new(p->f_fields(0), std::forward<T_xs>(a_xs)...);
+	p->f_be(a_type);
+	return p;
+}
 
 }
 

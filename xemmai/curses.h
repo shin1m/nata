@@ -26,8 +26,11 @@ class t_library : public xemmai::t_library
 	t_slot v_module_nata;
 	xemmaix::nata::t_library* v_nata;
 	t_slot_of<t_type> v_type_token;
+	t_slot_of<t_type> v_type_position;
+	t_slot_of<t_type> v_type_row;
 	t_slot_of<t_type> v_type_view;
 	t_slot_of<t_type> v_type_overlay;
+	t_slot_of<t_type> v_type_overlay_value;
 	t_slot_of<t_type> v_type_overlay_iterator;
 	t_slot_of<t_type> v_type_painter;
 	t_slot_of<t_type> v_type_creaser;
@@ -58,6 +61,18 @@ public:
 	{
 		typedef t_type_of<typename t_fundamental<T>::t_type> t;
 		return t::f_transfer(f_library<typename t::t_library>(), std::forward<T>(a_value));
+	}
+	t_type* f_type_position() const
+	{
+		return v_type_position;
+	}
+	t_type* f_type_row() const
+	{
+		return v_type_row;
+	}
+	t_type* f_type_overlay_value() const
+	{
+		return v_type_overlay_value;
 	}
 };
 

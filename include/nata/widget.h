@@ -297,8 +297,9 @@ public:
 	void f_from_line()
 	{
 		v_line = v_rows.f_at_in_line(v_line.v_line).f_index();
-		size_t ax = v_line.v_x + v_target;
 		v_row = v_rows.f_at_in_line(v_line.v_line + 1);
+		size_t ax = v_target;
+		if (ax < size_t(-1)) ax += v_line.v_x;
 		if (ax < v_row.f_index().v_x)
 			v_row = v_rows.f_at_in_x(ax);
 		else
@@ -312,7 +313,7 @@ public:
 	{
 		v_row = v_rows.f_at_in_text(std::get<0>(v_position));
 		v_line = v_rows.f_at_in_line(v_row.f_index().v_line + v_row.f_delta().v_line - 1).f_index();
-		v_position = v_rows.f_each_x(v_row, [&](size_t p, size_t x, size_t width)
+		v_position = v_rows.f_each_x(v_row, [&](size_t p, size_t, size_t)
 		{
 			return p < std::get<0>(v_position);
 		});

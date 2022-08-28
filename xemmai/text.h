@@ -37,12 +37,21 @@ struct t_text : t_proxy
 	{
 		return v_text->f_lines().f_size().v_i0;
 	}
-	t_pvalue f_line_at_in_text(size_t a_p) const
+	template<typename T>
+	static t_pvalue f_line(t_library* a_library, const T& a_line)
 	{
-		size_t n = f_size();
-		if (a_p > n) f_throw(L"out of range."sv);
-		auto line = v_text->f_lines().f_at_in_text(a_p);
-		return f_tuple(line.f_index().v_i0, line.f_index().v_i1, line.f_delta().v_i0, line.f_delta().v_i1);
+		auto i = a_line.f_index();
+		return f_new(a_library->f_type_line(), i.v_i0, i.v_i1, a_line.f_delta().v_i1);
+	}
+	t_pvalue f_line_at(t_library* a_library, size_t a_p) const
+	{
+		if (a_p >= f_lines()) f_throw(L"out of range."sv);
+		return f_line(a_library, v_text->f_lines().f_at(a_p));
+	}
+	t_pvalue f_line_at_in_text(t_library* a_library, size_t a_p) const
+	{
+		if (a_p > f_size()) f_throw(L"out of range."sv);
+		return f_line(a_library, v_text->f_lines().f_at_in_text(a_p));
 	}
 };
 
