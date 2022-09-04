@@ -114,7 +114,6 @@ nata.main(@ natacurses.main(@
 		current = vi.current(
 		current.timeout(more ? 0 : -1
 		vi.message(""
-		c = null
 		try
 			c = current.get(
 		catch Throwable t

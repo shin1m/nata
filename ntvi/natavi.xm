@@ -66,11 +66,23 @@ TextSession = Session + @
 		e.xs = p < p0 ? '(p, x, $text.slice(p, p0 - p) + y) : '(p0, p - p0 + x, y)
 		$text.replace(p, n, s
 
+KeyMap = Object + @
+	$action
+	$base
+	$map
+	$__initialize = @(action, base = null, map = null)
+		$action = action
+		$base = base
+		$map = map === null ? {} : map
+	$__get_at = @(c)
+		try
+			$map[c]
+		catch Throwable t
+			$base[c]
+	$more = @ $map.size() > 0 || $base !== null && $base.more()
+
 letter = @(x) x.code_at(0
 control = @(x) letter(x) - letter("@")
-merge = @(x, y)
-	x.each(@(k, v) y[k] = v
-	y
 
 $new = @(host, path)
 	text = host.text(
@@ -107,7 +119,24 @@ $new = @(host, path)
 	current = view
 	input = [
 	message = ""
-	mode = mode_insert = mode_visual = mode_prompt = null
+	map = @(map, lhs, rhs)
+		n = lhs.size(
+		for i = 0; i < n; i = i + 1
+			c = lhs.code_at(i
+			try
+				map = map.map[c]
+			catch Throwable t
+				try
+					base = map.base[c]
+				catch Throwable t
+					base = null
+				map = map.map[c] = KeyMap(null, base
+		cs = [
+		m = rhs.size(
+		for i = 0; i < m; i = i + 1: cs.push(rhs.code_at(i
+		map.action = @
+			for i = 0; i < n; i = i + 1: input.pop(
+			cs.each(push
 	show_prompt = @(prompt, doing, done)
 		status.replace(0, -1, prompt
 		:current = strip
@@ -193,38 +222,38 @@ $new = @(host, path)
 				else
 					:$reset(
 	map_motion = {
-		control("H"): @ $finish(@ backward(view.position().text, 0, @(p) view.position__(p, false
-		letter(" "): @ $finish(@ forward(view.position().text, text.size(), @(p) view.position__(p, true
-		letter("$"): @ $finish(@
+		control("H"): KeyMap(@ $finish(@ backward(view.position().text, 0, @(p) view.position__(p, false
+		letter(" "): KeyMap(@ $finish(@ forward(view.position().text, text.size(), @(p) view.position__(p, true
+		letter("$"): KeyMap(@ $finish(@
 			view.target__(-1
 			count > 1 && forward_n(view.row().line, view.size().line, count - 1, view.line__
-		letter("/"): @ search[$](false
-		letter("0"): @
+		letter("/"): KeyMap(@ search[$](false
+		letter("0"): KeyMap(@
 			if count > 0
 				:count = count * 10
 			else
 				view.position__(text.line_at_in_text(view.position().text).from, false
-		letter("1"): @ :count = count * 10 + 1
-		letter("2"): @ :count = count * 10 + 2
-		letter("3"): @ :count = count * 10 + 3
-		letter("4"): @ :count = count * 10 + 4
-		letter("5"): @ :count = count * 10 + 5
-		letter("6"): @ :count = count * 10 + 6
-		letter("7"): @ :count = count * 10 + 7
-		letter("8"): @ :count = count * 10 + 8
-		letter("9"): @ :count = count * 10 + 9
-		letter("?"): @ search[$](true
-		letter("N"): @ search_next[$](true
-		letter("h"): @ $finish(@
+		letter("1"): KeyMap(@ :count = count * 10 + 1
+		letter("2"): KeyMap(@ :count = count * 10 + 2
+		letter("3"): KeyMap(@ :count = count * 10 + 3
+		letter("4"): KeyMap(@ :count = count * 10 + 4
+		letter("5"): KeyMap(@ :count = count * 10 + 5
+		letter("6"): KeyMap(@ :count = count * 10 + 6
+		letter("7"): KeyMap(@ :count = count * 10 + 7
+		letter("8"): KeyMap(@ :count = count * 10 + 8
+		letter("9"): KeyMap(@ :count = count * 10 + 9
+		letter("?"): KeyMap(@ search[$](true
+		letter("N"): KeyMap(@ search_next[$](true
+		letter("h"): KeyMap(@ $finish(@
 			p = view.position().text
 			backward(p, text.line_at_in_text(p).from, @(p) view.position__(p, false
-		letter("j"): @ $finish(@ forward(view.row().line, view.size().line - 1, view.line__
-		letter("k"): @ $finish(@ backward(view.row().line, 0, view.line__
-		letter("l"): @ $finish(@
+		letter("j"): KeyMap(@ $finish(@ forward(view.row().line, view.size().line - 1, view.line__
+		letter("k"): KeyMap(@ $finish(@ backward(view.row().line, 0, view.line__
+		letter("l"): KeyMap(@ $finish(@
 			p = view.position().text
 			l = text.line_at_in_text(p
 			forward(p, l.from + l.count - 1, @(p) view.position__(p, true
-		letter("n"): @ search_next[$](false
+		letter("n"): KeyMap(@ search_next[$](false
 	repeat = @(n, start, end, f)
 		for ; n > 1; n = n - 1
 			for i = start; i < end; i = i + 1
@@ -257,7 +286,6 @@ $new = @(host, path)
 			::count = 0
 			::input = [
 			$post = $reset
-			$map = $map_default
 		$finish = @(f)
 			try
 				f[$](
@@ -267,8 +295,12 @@ $new = @(host, path)
 			$post[$](
 		$__call = @(c)
 			try
-				$map[c][$](
+				map = $map[c]
+				$map = map.more() ? map : $map_default
+				action = map.action
+				action !== null && action[$](
 			catch Throwable t
+				$map = $map_default
 				$reset(
 	insert = @
 		:mode = mode_insert
@@ -282,30 +314,14 @@ $new = @(host, path)
 	delete = @(p, q, line = false) $commit(@
 		delete_and_edit(p, q, line
 		commit(
+	push = @(c)
+		input.push(c
+		mode(c
 	mode = mode_normal = (Mode + @
-		map_Z = {
-			letter("Z"): @ host.quit(
-		$for_lines = @(f)
-			$post = $reset
-			l0 = text.line_at_in_text(view.position().text
-			l = l0.index + (count > 0 ? count : count0 > 0 ? count0 : 1) - 1
-			l >= text.lines() && (l = text.lines() - 1)
-			l1 = l > l0.index ? text.line_at(l) : l0
-			f(l0.from, l1.from + l1.count
-		map_c = merge(map_motion, {
-			letter("c"): @ $for_lines(@(p, q)
-				begin(p
-				replace(p, q - 1, true
-		map_d = merge(map_motion, {
-			letter("d"): @ $for_lines(@(p, q)
-				begin(p
-				delete[:$](p, q, true
-		map_y = merge(map_motion, {
-			letter("y"): @ $for_lines(@(p, q) yank[:$](p, q, true
 		$for_motion = @(begin, f)
-			:count0 = ::count
-			start = input.size(
+			:count0 = count
 			::count = 0
+			start = input.size(
 			p0 = view.position().text
 			$post = @
 				$post = @
@@ -317,40 +333,57 @@ $new = @(host, path)
 					f(p1, p0
 				else
 					f(p0, p1
-		$map_default = merge(map_motion, {
-			control("R"): @ $finish(@ times(@ session.redo(
-			letter("."): @
+		$for_lines = @(f)
+			$post = $reset
+			l0 = text.line_at_in_text(view.position().text
+			l = l0.index + (count > 0 ? count : count0 > 0 ? count0 : 1) - 1
+			l >= text.lines() && (l = text.lines() - 1)
+			l1 = l > l0.index ? text.line_at(l) : l0
+			f(l0.from, l1.from + l1.count
+		$map_default = KeyMap(null, KeyMap(null, map_motion, {
+			control("R"): KeyMap(@ $finish(@ times(@ session.redo(
+			letter("."): KeyMap(@
 				input.pop(
 				last = $last_input
 				c = last.shift(
 				if count > 0: while c >= 0x30 && c <= 0x39: c = last.shift(
 				for ;; c = last.shift()
-					input.push(c
-					mode(c
+					push(c
 					last.size() > 0 || break
-			letter("Z"): @ $map = map_Z
-			letter("c"): @
-				$for_motion(begin, replace
-				$map = map_c
-			letter("d"): @
-				$for_motion(begin, delete[$]
-				$map = map_d
-			letter("i"): insert
-			letter("p"): @ $commit(@
+			letter("Z"): KeyMap(null, null, {
+				letter("Z"): KeyMap(@ host.quit(
+			letter("c"): KeyMap(
+				@ $for_motion(begin, replace
+				map_motion
+				{
+					letter("c"): KeyMap(@ $for_lines(@(p, q)
+						begin(p
+						replace(p, q - 1, true
+			letter("d"): KeyMap(
+				@ $for_motion(begin, delete[$]
+				map_motion
+				{
+					letter("d"): KeyMap(@ $for_lines(@(p, q)
+						begin(p
+						delete[:$](p, q, true
+			letter("i"): KeyMap(insert
+			letter("p"): KeyMap(@ $commit(@
 				p = view.position().text
 				begin(p
 				register[0] && (p = text.line_at_in_text(p).from)
 				times(@ session.merge(p, 0, register[1]
 				commit(
-			letter("u"): @ $finish(@ times(@ session.undo(
-			letter("v"): @
+			letter("u"): KeyMap(@ $finish(@ times(@ session.undo(
+			letter("v"): KeyMap(@
 				::count = 0
 				::input = [
 				::mode = mode_visual
 				mode.base = view.position().text
-			letter("y"): @
-				$for_motion(@(p) view.position__(p, false), yank[$]
-				$map = map_y
+			letter("y"): KeyMap(
+				@ $for_motion(@(p) view.position__(p, false), yank[$]
+				map_motion
+				{
+					letter("y"): KeyMap(@ $for_lines(@(p, q) yank[:$](p, q, true
 		$name = "NORMAL"
 		$last_input
 		$__initialize = @
@@ -404,19 +437,19 @@ $new = @(host, path)
 			for i = 0; i < s.size(); i = i + 1: input.push(s.code_at(i
 			::count = 0
 			f(x[0], x[0] + x[1]
-		$map_default = merge(map_motion, {
-			control("["): @
+		$map_default = KeyMap(null, map_motion, {
+			control("["): KeyMap(@
 				clear(
 				::mode = mode_normal
 				mode.finish(@
-			letter("c"): @ for_selection("c", @(p, q)
+			letter("c"): KeyMap(@ for_selection("c", @(p, q)
 				begin(:$base
 				replace(p, q
-			letter("d"): @ for_selection("d", @(p, q)
+			letter("d"): KeyMap(@ for_selection("d", @(p, q)
 				begin(:$base
 				:::mode = mode_normal
 				delete[mode](p, q
-			letter("y"): @ for_selection("y", @(p, q)
+			letter("y"): KeyMap(@ for_selection("y", @(p, q)
 				view.position__(:$base, false
 				:::mode = mode_normal
 				yank[mode](p, q
@@ -431,7 +464,6 @@ $new = @(host, path)
 				selection.paint($base, position - $base, true
 			::count = 0
 			::input = [
-			$map = $map_default
 	)(
 	mode_prompt = (Object + @
 		backspace = @
@@ -465,6 +497,14 @@ $new = @(host, path)
 				status.replace(status.size(), 0, String.from_code(c
 				$doing(status.slice($prompt.size(), -1
 	)(
+	map(mode_normal.map_default.base, "C", "c$"
+	map(mode_normal.map_default.base, "D", "d$"
+	map(mode_normal.map_default.base, "S", "cc"
+	map(mode_normal.map_default.base, "X", "dh"
+	map(mode_normal.map_default.base, "s", "cl"
+	map(mode_normal.map_default.base, "x", "dl"
+	map(mode_normal.map_default, "__", " ."
+	map(mode_normal.map_default, "_y", "iYAH!" + String.from_code(0x1b)
 	(Object + @
 		$render = @
 			view.into_view(view.position().text
@@ -472,8 +512,6 @@ $new = @(host, path)
 		$main = @ view
 		$strip = @ strip
 		$current = @ current
-		$__call = @(c)
-			input.push(c
-			mode(c
+		$__call = push
 		$message = @(x) ::message = x
 	)(
