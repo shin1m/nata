@@ -79,6 +79,7 @@ KeyMap = Object + @
 			$map[c]
 		catch Throwable t
 			$base[c]
+	$get = @ $action !== null ? $action : $base !== null ? $base.get() : null
 	$more = @ $map.size() > 0 || $base !== null && $base.more()
 
 letter = @(x) x.code_at(0
@@ -278,6 +279,7 @@ $new = @(host, path)
 	Mode = Object + @
 		$post
 		$map
+		$pending
 		$__initialize = @
 			$post = $reset
 			$map = $map_default
@@ -292,13 +294,30 @@ $new = @(host, path)
 			catch Throwable t
 				::message = t.__string(
 			::count = 0
-			$post[$](
+			$post(
 		$__call = @(c)
 			try
-				map = $map[c]
-				$map = map.more() ? map : $map_default
-				action = map.action
-				action !== null && action[$](
+				try
+					map = $map[c]
+				catch Throwable t
+					$pending === null && throw t
+					action = $pending[0]
+					n = $pending[1]
+					cs = [
+					while input.size() > n: cs.unshift(input.pop(
+					$map = $map_default
+					$pending = null
+					action[$](
+					cs.each(push
+					return
+				action = map.get(
+				if map.more()
+					$map = map
+					action !== null && ($pending = '(action, input.size()))
+				else
+					$map = $map_default
+					$pending = null
+					action !== null && action[$](
 			catch Throwable t
 				$map = $map_default
 				$reset(
@@ -317,6 +336,16 @@ $new = @(host, path)
 	push = @(c)
 		input.push(c
 		mode(c
+	map_change = KeyMap(null, KeyMap(null, map_motion, {
+		letter("c"): KeyMap(@ $for_lines(@(p, q)
+			begin(p
+			replace(p, q - 1, true
+	map_delete = KeyMap(null, KeyMap(null, map_motion, {
+		letter("d"): KeyMap(@ $for_lines(@(p, q)
+			begin(p
+			delete[:$](p, q, true
+	map_yank = KeyMap(null, KeyMap(null, map_motion, {
+		letter("y"): KeyMap(@ $for_lines(@(p, q) yank[:$](p, q, true
 	mode = mode_normal = (Mode + @
 		$for_motion = @(begin, f)
 			:count0 = count
@@ -324,9 +353,9 @@ $new = @(host, path)
 			start = input.size(
 			p0 = view.position().text
 			$post = @
-				$post = @
+				:$post = @
 				repeat(count0, start, input.size(), mode
-				$post = $reset
+				:$post = :$reset
 				p1 = view.position().text
 				begin(p0
 				if p1 < p0
@@ -350,22 +379,17 @@ $new = @(host, path)
 				for ;; c = last.shift()
 					push(c
 					last.size() > 0 || break
+			letter(":"): KeyMap(@ show_prompt(":"
+				@(text)
+				@(ok) if ok
 			letter("Z"): KeyMap(null, null, {
 				letter("Z"): KeyMap(@ host.quit(
-			letter("c"): KeyMap(
-				@ $for_motion(begin, replace
-				map_motion
-				{
-					letter("c"): KeyMap(@ $for_lines(@(p, q)
-						begin(p
-						replace(p, q - 1, true
-			letter("d"): KeyMap(
-				@ $for_motion(begin, delete[$]
-				map_motion
-				{
-					letter("d"): KeyMap(@ $for_lines(@(p, q)
-						begin(p
-						delete[:$](p, q, true
+			letter("c"): KeyMap(@
+				$for_motion(begin, replace
+				$map = map_change
+			letter("d"): KeyMap(@
+				$for_motion(begin, delete[$]
+				$map = map_delete
 			letter("i"): KeyMap(insert
 			letter("p"): KeyMap(@ $commit(@
 				p = view.position().text
@@ -379,11 +403,9 @@ $new = @(host, path)
 				::input = [
 				::mode = mode_visual
 				mode.base = view.position().text
-			letter("y"): KeyMap(
-				@ $for_motion(@(p) view.position__(p, false), yank[$]
-				map_motion
-				{
-					letter("y"): KeyMap(@ $for_lines(@(p, q) yank[:$](p, q, true
+			letter("y"): KeyMap(@
+				$for_motion(@(p) view.position__(p, false), yank[$]
+				$map = map_yank
 		$name = "NORMAL"
 		$last_input
 		$__initialize = @
@@ -505,6 +527,14 @@ $new = @(host, path)
 	map(mode_normal.map_default.base, "x", "dl"
 	map(mode_normal.map_default, "__", " ."
 	map(mode_normal.map_default, "_y", "iYAH!" + String.from_code(0x1b)
+	map(mode_normal.map_default, "c,", "$"
+	#map(map_change, "c,", "$"
+	#map(map_delete, "c,", "$"
+	#map(map_yank, "c,", "$"
+	map(mode_normal.map_default, "{", "$"
+	map(map_change, "{", "$"
+	map(map_delete, "{", "$"
+	map(map_yank, "{", "$"
 	(Object + @
 		$render = @
 			view.into_view(view.position().text
