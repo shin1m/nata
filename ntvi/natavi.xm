@@ -146,19 +146,19 @@ $new = @(host, path)
 		mode.prompt = prompt
 		mode.doing = doing
 		mode.done = done
-	with_search = @(pattern, f) with(nata.Search(text), @(search)
+	with_search = @(text, pattern, f) with(nata.Search(text), @(search)
 		try
 			search.pattern(pattern, nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
 			f(search
 		catch Throwable t
 			'(
-	search_forward = @(pattern, p) with_search(pattern, @(search)
+	search_forward = @(pattern, p) with_search(text, pattern, @(search)
 		f = @(p)
 			search.reset(p, -1
 			search.next(
 		match = p < text.size() ? f(p + 1) : '()
 		match.size() > 0 ? match : f(0)
-	search_backward = @(pattern, p) with_search(pattern, @(search)
+	search_backward = @(pattern, p) with_search(text, pattern, @(search)
 		f = @(p)
 			search.reset(0, -1
 			last = '(
@@ -171,25 +171,18 @@ $new = @(host, path)
 	last_pattern = null
 	last_reverse = false
 	search_message = @(reverse, p, match)
-		if match.size() <= 0
-			:message = "not found: " + last_pattern
-		else if reverse
-			:message = (match[0].from < p ? "?" : "continuing at BOTTOM: ") + last_pattern
-		else
-			:message = (match[0].from > p ? "/" : "continuing at TOP: ") + last_pattern
+		match.size() > 0 || throw Throwable("not found: " + last_pattern
+		:message = (reverse ?
+			(match[0].from < p ? "?" : "continuing at BOTTOM: ") :
+			(match[0].from > p ? "/" : "continuing at TOP: ")
+		) + last_pattern
 	search_next = @(reverse)
-		if last_pattern === null
-			:message = "no last pattern"
-			$reset(
-			return
+		last_pattern === null && throw Throwable("no last pattern"
 		reverse = last_reverse ^ reverse
 		p = view.position().text
 		match = reverse ? search_backward(last_pattern, p) : search_forward(last_pattern, p)
 		search_message(reverse, p, match
-		if match.size() > 0
-			$finish(@ move_to(match[0].from
-		else
-			$reset(
+		move_to(match[0].from
 	search = @(reverse)
 		p = view.position().text
 		pattern = ""
@@ -198,30 +191,21 @@ $new = @(host, path)
 			m = match[0]
 			selection.paint(m.from, m.count, selected
 		show_prompt(reverse ? "?" : "/"
-			@(text)
-				:pattern = text
+			@
+				:pattern = status.slice(1, -1
 				paint(false
-				:match = text.size() > 0 ? reverse ? search_backward(text, p) : search_forward(text, p) : '()
+				:match = pattern.size() > 0 ? reverse ? search_backward(pattern, p) : search_forward(pattern, p) : '()
 				paint(true
 				if match.size() > 0
 					move_to(match[0].from
 				else
 					view.position__(p, false
-			@(ok)
-				if ok
-					::last_reverse = reverse
-					if pattern.size() > 0
-						paint(false
-						::last_pattern = pattern
-						search_message(reverse, p, match
-						if match.size() > 0
-							:$finish(@
-						else
-							:$reset(
-					else
-						search_next[:$](false
-				else
-					:$reset(
+			@(ok) !ok ? :$reset() : :$finish(@
+				:::last_reverse = reverse
+				pattern.size() > 0 || return search_next[::$](false
+				paint(false
+				:::last_pattern = pattern
+				search_message(reverse, p, match
 	map_motion = {
 		control("H"): KeyMap(@ $finish(@ backward(view.position().text, 0, @(p) view.position__(p, false
 		letter(" "): KeyMap(@ $finish(@ forward(view.position().text, text.size(), @(p) view.position__(p, true
@@ -244,7 +228,7 @@ $new = @(host, path)
 		letter("8"): KeyMap(@ :count = count * 10 + 8
 		letter("9"): KeyMap(@ :count = count * 10 + 9
 		letter("?"): KeyMap(@ search[$](true
-		letter("N"): KeyMap(@ search_next[$](true
+		letter("N"): KeyMap(@ $finish(@ search_next[:$](true
 		letter("h"): KeyMap(@ $finish(@
 			p = view.position().text
 			backward(p, text.line_at_in_text(p).from, @(p) view.position__(p, false
@@ -254,7 +238,7 @@ $new = @(host, path)
 			p = view.position().text
 			l = text.line_at_in_text(p
 			forward(p, l.from + l.count - 1, @(p) view.position__(p, true
-		letter("n"): KeyMap(@ search_next[$](false
+		letter("n"): KeyMap(@ $finish(@ search_next[:$](false
 	repeat = @(n, start, end, f)
 		for ; n > 1; n = n - 1
 			for i = start; i < end; i = i + 1
@@ -293,6 +277,7 @@ $new = @(host, path)
 				f[$](
 			catch Throwable t
 				::message = t.__string(
+				return $reset(
 			::count = 0
 			$post(
 		$__call = @(c)
@@ -321,6 +306,17 @@ $new = @(host, path)
 			catch Throwable t
 				$map = $map_default
 				$reset(
+	commands = {
+		"map": @(i) with_search(status, "^\\s*(\\S+)\\s+(.+)", @(search)
+			search.reset(i, -1
+			match = search.next(
+			match.size() > 2 || throw Throwable("invalid arguments"
+			lhs = status.slice(match[1].from, match[1].count
+			rhs = status.slice(match[2].from, match[2].count
+			map(mode_normal.map_default, lhs, rhs
+			map(map_change, lhs, rhs
+			map(map_delete, lhs, rhs
+			map(map_yank, lhs, rhs
 	insert = @
 		:mode = mode_insert
 		mode.start = input.size(
@@ -380,8 +376,18 @@ $new = @(host, path)
 					push(c
 					last.size() > 0 || break
 			letter(":"): KeyMap(@ show_prompt(":"
-				@(text)
-				@(ok) if ok
+				@
+				@(ok) !ok ? :$reset() : :$finish(@ with_search(status, "^\\w+", @(search)
+					search.reset(1, -1
+					match = search.next(
+					match.size() > 0 || throw Throwable("invalid command"
+					m = match[0]
+					name = status.slice(m.from, m.count
+					try
+						command = commands[name]
+					catch Throwable t
+						throw Throwable("no command: " + name
+					command[::$](m.from + m.count
 			letter("Z"): KeyMap(null, null, {
 				letter("Z"): KeyMap(@ host.quit(
 			letter("c"): KeyMap(@
@@ -411,9 +417,9 @@ $new = @(host, path)
 		$__initialize = @
 			Mode.__initialize[$](
 			$last_input = [
-		$commit = @(f)
+		$commit = @(f) $finish(@
+			f(
 			$last_input = input
-			$finish(f
 	)(
 	mode_insert = (Object + @
 		backspace = @
@@ -463,7 +469,7 @@ $new = @(host, path)
 			control("["): KeyMap(@
 				clear(
 				::mode = mode_normal
-				mode.finish(@
+				mode.reset(
 			letter("c"): KeyMap(@ for_selection("c", @(p, q)
 				begin(:$base
 				replace(p, q
@@ -488,22 +494,23 @@ $new = @(host, path)
 			::input = [
 	)(
 	mode_prompt = (Object + @
-		backspace = @
-			n = status.size(
-			if n > $prompt.size()
-				status.replace(n - 1, 1, ""
-				$doing(status.slice($prompt.size(), -1
-			else
-				done[$](false
 		done = @(ok)
 			::current = view
 			::mode = $caller
 			$done(ok
+		backspace = @
+			n = status.size(
+			if n > $prompt.size()
+				status.replace(n - 1, 1, ""
+				$doing(
+			else
+				done[$](false
 		map = {
 			control("H"): backspace
 			control("M"): @ done[$](true
 			control("["): @
-				$doing(""
+				status.replace($prompt.size(), -1, ""
+				$doing(
 				done[$](false
 			host.KEY_BACKSPACE: backspace
 			host.KEY_ENTER: @ done[$](true
@@ -517,7 +524,7 @@ $new = @(host, path)
 				map[c][$](
 			catch Throwable t
 				status.replace(status.size(), 0, String.from_code(c
-				$doing(status.slice($prompt.size(), -1
+				$doing(
 	)(
 	map(mode_normal.map_default.base, "C", "c$"
 	map(mode_normal.map_default.base, "D", "d$"
@@ -525,16 +532,6 @@ $new = @(host, path)
 	map(mode_normal.map_default.base, "X", "dh"
 	map(mode_normal.map_default.base, "s", "cl"
 	map(mode_normal.map_default.base, "x", "dl"
-	map(mode_normal.map_default, "__", " ."
-	map(mode_normal.map_default, "_y", "iYAH!" + String.from_code(0x1b)
-	map(mode_normal.map_default, "c,", "$"
-	#map(map_change, "c,", "$"
-	#map(map_delete, "c,", "$"
-	#map(map_yank, "c,", "$"
-	map(mode_normal.map_default, "{", "$"
-	map(map_change, "{", "$"
-	map(map_delete, "{", "$"
-	map(map_yank, "{", "$"
 	(Object + @
 		$render = @
 			view.into_view(view.position().text
