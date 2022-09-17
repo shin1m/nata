@@ -81,9 +81,73 @@ KeyMap = Object + @
 			$base[c]
 	$get = @ $action !== null ? $action : $base !== null ? $base.get() : null
 	$more = @ $map.size() > 0 || $base !== null && $base.more()
+	$list = @
+		list = [
+		f = @(map, lhs)
+			entries = [
+			map.map.each(@(k, v) entries.push('(k, v
+			entries.sort(@(x, y) x[0] - y[0]
+			entries.each(@(x)
+				s = lhs + String.from_code(x[0])
+				x[1].action === null || list.push('(s, x[1].action
+				f(x[1], s
+		f($, ""
+		list
+	$put = @(cs, action)
+		map = $
+		n = cs.size(
+		for i = 0; i < n; i = i + 1
+			c = cs.code_at(i
+			try
+				map = map.map[c]
+			catch Throwable t
+				try
+					base = map.base[c]
+				catch Throwable t
+					base = null
+				map = map.map[c] = KeyMap(null, base
+		map.action = action
+	$remove = @(cs)
+		map = $
+		path = [
+		n = cs.size(
+		for i = 0; i < n; i = i + 1
+			c = cs.code_at(i
+			try
+				path.push('(map, c
+				map = map.map[c]
+			catch Throwable t
+				return
+		map.action = null
+		while map.map.size() <= 0 && path.size() > 0
+			parent = path.pop(
+			map = parent[0]
+			map.map.remove(parent[1]
+			map.action === null || break
+
+KeyMapAction = Object + @
+	$name
+	$action
+	$__initialize = @(name, action)
+		$name = name
+		$action = action
+	$__string = @ $name
+	$__get_at = @(mode) $action[mode]
 
 letter = @(x) x.code_at(0
 control = @(x) letter(x) - letter("@")
+to_codes = @(s)
+	cs = [
+	n = s.size(
+	for i = 0; i < n; i = i + 1: cs.push(s.code_at(i
+	cs
+
+with_search = @(text, pattern, f) with(nata.Search(text), @(search)
+	try
+		search.pattern(pattern, nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
+		f(search
+	catch Throwable t
+		'(
 
 $new = @(host, path)
 	text = host.text(
@@ -120,24 +184,6 @@ $new = @(host, path)
 	current = view
 	input = [
 	message = ""
-	map = @(map, lhs, rhs)
-		n = lhs.size(
-		for i = 0; i < n; i = i + 1
-			c = lhs.code_at(i
-			try
-				map = map.map[c]
-			catch Throwable t
-				try
-					base = map.base[c]
-				catch Throwable t
-					base = null
-				map = map.map[c] = KeyMap(null, base
-		cs = [
-		m = rhs.size(
-		for i = 0; i < m; i = i + 1: cs.push(rhs.code_at(i
-		map.action = @
-			for i = 0; i < n; i = i + 1: input.pop(
-			cs.each(push
 	show_prompt = @(prompt, doing, done)
 		status.replace(0, -1, prompt
 		:current = strip
@@ -146,12 +192,6 @@ $new = @(host, path)
 		mode.prompt = prompt
 		mode.doing = doing
 		mode.done = done
-	with_search = @(text, pattern, f) with(nata.Search(text), @(search)
-		try
-			search.pattern(pattern, nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
-			f(search
-		catch Throwable t
-			'(
 	search_forward = @(pattern, p) with_search(text, pattern, @(search)
 		f = @(p)
 			search.reset(p, -1
@@ -280,6 +320,7 @@ $new = @(host, path)
 				return $reset(
 			::count = 0
 			$post(
+		$unknown = @(c) $reset(
 		$__call = @(c)
 			try
 				try
@@ -305,18 +346,37 @@ $new = @(host, path)
 					action !== null && action[$](
 			catch Throwable t
 				$map = $map_default
-				$reset(
+				$unknown(c
+	match_status = @(pattern, i) with_search(status, pattern, @(search)
+		search.reset(i, -1
+		search.next(
+	map = @(map, lhs, rhs)
+		cs = to_codes(rhs
+		map.put(lhs, KeyMapAction(rhs, @
+			n = lhs.size(
+			for i = 0; i < n; i = i + 1: input.pop(
+			cs.each(push
+	for_ncdyv = @(f)
+		f(mode_normal.map_default
+		f(map_change
+		f(map_delete
+		f(map_yank
+		f(mode_visual.map_default
 	commands = {
-		"map": @(i) with_search(status, "^\\s*(\\S+)\\s+(.+)", @(search)
-			search.reset(i, -1
-			match = search.next(
-			match.size() > 2 || throw Throwable("invalid arguments"
+		"map": @(i)
+			match = match_status("^\\s*(\\S+)\\s+(.+)", i
+			if match.size() < 2
+				:message = "maps\n"
+				mode_normal.map_default.list().each(@(x) ::message = message + x[0] + " " + x[1] + "\n"
+			else
+				lhs = status.slice(match[1].from, match[1].count
+				rhs = status.slice(match[2].from, match[2].count
+				for_ncdyv(@(x) map(x, lhs, rhs
+		"unmap": @(i)
+			match = match_status("^\\s*(\\S+)", i
+			match.size() > 1 || throw Throwable("invalid arguments"
 			lhs = status.slice(match[1].from, match[1].count
-			rhs = status.slice(match[2].from, match[2].count
-			map(mode_normal.map_default, lhs, rhs
-			map(map_change, lhs, rhs
-			map(map_delete, lhs, rhs
-			map(map_yank, lhs, rhs
+			for_ncdyv(@(x) x.remove(lhs
 	insert = @
 		:mode = mode_insert
 		mode.start = input.size(
@@ -377,9 +437,8 @@ $new = @(host, path)
 					last.size() > 0 || break
 			letter(":"): KeyMap(@ show_prompt(":"
 				@
-				@(ok) !ok ? :$reset() : :$finish(@ with_search(status, "^\\w+", @(search)
-					search.reset(1, -1
-					match = search.next(
+				@(ok) !ok ? :$reset() : :$finish(@
+					match = match_status("^\\w+", 1
 					match.size() > 0 || throw Throwable("invalid command"
 					m = match[0]
 					name = status.slice(m.from, m.count
@@ -421,31 +480,27 @@ $new = @(host, path)
 			f(
 			$last_input = input
 	)(
-	mode_insert = (Object + @
-		backspace = @
+	mode_insert = (Mode + @
+		backspace = KeyMap(@
 			p = view.position().text
 			if p > 0
 				view.folded(p - 1, false
 				session.logs === null && begin(p
 				session.merge(p - 1, 1, ""
-		map = {
+		$map_default = KeyMap(null, {
 			control("H"): backspace
-			control("["): @
+			control("["): KeyMap(@
 				repeat(count, $start, input.size() - 1, $
 				::mode = mode_normal
 				mode.commit(commit
 			host.KEY_BACKSPACE: backspace
 		$name = "INSERT"
 		$start
-		$render = @ render_status(
-		$__call = @(c)
-			try
-				map[c][$](
-			catch Throwable t
-				(c == host.KEY_ENTER || c == 0xd) && (c = 0xa)
-				p = view.position().text
-				session.logs === null && begin(p
-				session.merge(p, 0, String.from_code(c
+		$unknown = @(c)
+			(c == host.KEY_ENTER || c == 0xd) && (c = 0xa)
+			p = view.position().text
+			session.logs === null && begin(p
+			session.merge(p, 0, String.from_code(c
 	)(
 	mode_visual = (Mode + @
 		each = @(overlay, f)
@@ -460,9 +515,7 @@ $new = @(host, path)
 		for_selection = @(c, f)
 			xs = clear(
 			x = xs.size() > 0 ? xs[0] : '(0, 0
-			s = "v" + x[1] + " " + c
-			::input = [
-			for i = 0; i < s.size(); i = i + 1: input.push(s.code_at(i
+			::input = to_codes("v" + x[1] + " " + c
 			::count = 0
 			f(x[0], x[0] + x[1]
 		$map_default = KeyMap(null, map_motion, {
