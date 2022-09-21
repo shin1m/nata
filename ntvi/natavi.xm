@@ -300,10 +300,10 @@ $new = @(host, path)
 				session.undos.size() +
 				(session.logs === null ? "" : "?" + session.logs.size()) +
 				(session.redos.size() > 0 ? "|" + session.redos.size() : "") + "> " + i
+	pending = null
 	Mode = Object + @
 		$post
 		$map
-		$pending
 		$__initialize = @
 			$post = $reset
 			$map = $map_default
@@ -326,27 +326,35 @@ $new = @(host, path)
 				try
 					map = $map[c]
 				catch Throwable t
-					$pending === null && throw t
-					action = $pending[0]
-					n = $pending[1]
-					cs = [
-					while input.size() > n: cs.unshift(input.pop(
-					$map = $map_default
-					$pending = null
-					action[$](
-					cs.each(push
+					if pending === null
+						$map = $map_default
+						$unknown(c
+					else
+						pending[1](
+						pending[0](
 					return
 				action = map.get(
 				if map.more()
 					$map = map
-					action !== null && ($pending = '(action, input.size()))
+					action === null && return
+					n = input.size(
+					commit = @
+						cs = [
+						while input.size() > n: cs.unshift(input.pop(
+						:$map = :$map_default
+						:::pending = null
+						action[:$](
+						cs.each(push
+					::pending = '(commit, host.timeout(1000, commit
 				else
 					$map = $map_default
-					$pending = null
+					if pending !== null
+						pending[1](
+						::pending = null
 					action !== null && action[$](
 			catch Throwable t
 				$map = $map_default
-				$unknown(c
+				$reset(
 	match_status = @(pattern, i) with_search(status, pattern, @(search)
 		search.reset(i, -1
 		search.next(

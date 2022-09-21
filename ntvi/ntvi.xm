@@ -1,5 +1,6 @@
 system = Module("system"
 io = Module("io"
+time = Module("time"
 nata = Module("nata"
 natacurses = Module("natacurses"
 natavi = Module("natavi"
@@ -27,7 +28,7 @@ nata.main(@ natacurses.main(@
 		creaser.reset(
 		more = @ painter.current() < text.size()
 		@
-			more() || return false
+			more() || return
 			for i = 0; i < UNIT; i = i + 1
 				(match = search.next()).size() > 0 || break
 				type = 1
@@ -65,8 +66,9 @@ nata.main(@ natacurses.main(@
 				painter.flush(
 				creaser.push(-1
 				creaser.flush(
-			more(
+			more() && timers.push('(time.now(), @
 	done = false
+	timers = [
 	tasks = [
 	view = @(text, x, y, width, height)
 		view = natacurses.View(text, x, y, width, height
@@ -92,6 +94,14 @@ nata.main(@ natacurses.main(@
 			tasks.push(syntax(text, main, @(x) vi.message(x
 			main
 		$strip_view = @(text) view(text, 0, size[1] - 1, size[0], 1
+		$timeout = @(timeout, action)
+			x = '(time.now() + timeout / 1000.0, action
+			timers.push(x
+			@
+				for i = 0;; i = i + 1
+					i < timers.size() || return
+					timers[i] === x && break
+				timers.remove(i
 		$selection = @(view) natacurses.Overlay(view, natacurses.A_REVERSE
 		$overlay_iterator = natacurses.OverlayIterator
 		$KEY_BACKSPACE = natacurses.KEY_BACKSPACE
@@ -106,13 +116,20 @@ nata.main(@ natacurses.main(@
 		strip = x
 		x.move(0, size[1] - 1, size[0], 1
 	while !done
-		more = false
-		tasks.each(@(x) :more = more | x(
+		now = time.now(
+		ts = timers
+		timers = [
+		ts.each(@(x) x[0] > now ? timers.push(x) : x[1](
+		tasks.each(@(x) x(
 		vi.render(
 		main.render(
 		strip.render(
 		current = vi.current(
-		current.timeout(more ? 0 : -1
+		timeout = -1
+		timers.each(@(x)
+			t = Integer((x[0] - now) * 1000.0
+			(timeout < 0 || t < timeout) && (:timeout = t)
+		current.timeout(timeout
 		vi.message(""
 		try
 			c = current.get(

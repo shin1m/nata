@@ -120,12 +120,21 @@ OverlayIterator = Object + @
 test = @(name, text, f)
 	print(name
 	done = false
+	timers = [
 	vi = natavi.new((Object + @
 		$quit = @ ::done = true
 		$text = Text
 		$read = @(text, path) text.replace(text.size(), 0, path
 		$main_view = View
 		$strip_view = View
+		$timeout = @(timeout, action)
+			x = '(timeout, action
+			timers.push(x
+			@
+				for i = 0;; i = i + 1
+					i < timers.size() || return
+					timers[i] === x && break
+				timers.remove(i
 		$selection = Overlay
 		$overlay_iterator = OverlayIterator
 		$KEY_BACKSPACE = 0x1008
@@ -136,6 +145,11 @@ test = @(name, text, f)
 			n = cs.size(
 			for i = 0; i < n; i = i + 1
 				c = cs.code_at(i
+				if c == 0
+					ts = timers
+					:timers = [
+					ts.each(@(x) x[1](
+					return
 				if c == 0x5e
 					i = i + 1
 					c = cs.code_at(i
@@ -145,6 +159,7 @@ test = @(name, text, f)
 			done && return
 			vi.render(
 			status = vi.strip().text.slice(0, -1
+			timers.each(@(x) :status = status + " t" + x[0]
 			print("\t" + status
 			status
 
@@ -487,23 +502,33 @@ nata.main(@ test("map", "abcdefghi", @(vi, type, update)
 	assert(vi.main().text.slice(0, -1) == "YAH!aYAH!bcdefghi"
 	type(":map^M"
 	assert(update() == "maps\n__ l.\n_ya iYAH!\n"
-	vi.message(""
 	type(":unmap __^M:map^M"
 	assert(update() == "maps\n_ya iYAH!\n"
 	type(":unmap _ya^M:map^M"
 	assert(update() == "maps\n"
 
-nata.main(@ test("map ambiguous", "abcdefghi", @(vi, type, update)
-	type(":map c, $^M"
+nata.main(@ test("map ambiguous", "abc", @(vi, type, update)
+	type(":map _ $^M"
+	type(":map _, l^M"
+	assert(update() == "NORMAL 0,0-0 100% <0> "
+	type("_"
+	assert(update() == "NORMAL 0,0-0 100% <0> _ t1000"
+	type(","
+	assert(update() == "NORMAL 0,1-1 100% <0> "
+	type("_"
+	assert(update() == "NORMAL 0,1-1 100% <0> _ t1000"
+	type(String.from_code(0
+	assert(update() == "NORMAL 0,3-3 100% <0> "
+
+nata.main(@ test("map ambiguous operator pending", "abcdefghi", @(vi, type, update)
+	type(":map c, 3l^M"
 	assert(update() == "NORMAL 0,0-0 100% <0> "
 	type("c"
-	assert(update() == "NORMAL 0,0-0 100% <0> c"
+	assert(update() == "NORMAL 0,0-0 100% <0> c t1000"
 	type(","
-	assert(update() == "NORMAL 0,9-9 100% <0> "
-	type("3h"
-	assert(update() == "NORMAL 0,6-6 100% <0> "
+	assert(update() == "NORMAL 0,3-3 100% <0> "
 	type("cc"
-	assert(update() == "NORMAL 0,6-6 100% <0> cc"
+	assert(update() == "NORMAL 0,3-3 100% <0> cc t1000"
 	type(","
-	assert(update() == "INSERT 0,6-6 100% <0?2> c$"
-	assert(vi.main().text.slice(0, -1) == "abcdef"
+	assert(update() == "INSERT 0,3-3 100% <0?2> c3l"
+	assert(vi.main().text.slice(0, -1) == "abcghi"
