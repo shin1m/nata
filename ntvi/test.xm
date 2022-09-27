@@ -40,9 +40,7 @@ Row = Object + @
 remove = @(xs, x)
 	n = xs.size(
 	for i = 0; i < n; i = i + 1
-		if xs[i] == x
-			xs.remove(i
-			break
+		xs[i] === x && break xs.remove(i
 
 View = Object + @
 	$text
@@ -130,11 +128,7 @@ test = @(name, text, f)
 		$timeout = @(timeout, action)
 			x = '(timeout, action
 			timers.push(x
-			@
-				for i = 0;; i = i + 1
-					i < timers.size() || return
-					timers[i] === x && break
-				timers.remove(i
+			@ remove(timers, x
 		$selection = Overlay
 		$overlay_iterator = OverlayIterator
 		$KEY_BACKSPACE = 0x1008
@@ -415,12 +409,10 @@ nata.main(@ test("search forward", "abcdefghiabcdefghi", @(vi, type, update)
 	type("^M"
 	assert(update() == "/de"
 	assert(vi.main().position().text == 3
-	vi.message(""
 	assert(update() == "NORMAL 0,3-3 100% <0> "
 	type("n"
 	assert(update() == "/de"
 	assert(vi.main().position().text == 12
-	vi.message(""
 	assert(update() == "NORMAL 0,12-12 100% <0> "
 	type("n"
 	assert(update() == "continuing at TOP: de"
@@ -452,12 +444,10 @@ nata.main(@ test("search backward", "abcdefghiabcdefghi", @(vi, type, update)
 	type("^M"
 	assert(update() == "?de"
 	assert(vi.main().position().text == 12
-	vi.message(""
 	assert(update() == "NORMAL 0,12-12 100% <0> "
 	type("n"
 	assert(update() == "?de"
 	assert(vi.main().position().text == 3
-	vi.message(""
 	assert(update() == "NORMAL 0,3-3 100% <0> "
 	type("n"
 	assert(update() == "continuing at BOTTOM: de"
@@ -501,11 +491,11 @@ nata.main(@ test("map", "abcdefghi", @(vi, type, update)
 	assert(update() == "NORMAL 0,9-9 100% <2> "
 	assert(vi.main().text.slice(0, -1) == "YAH!aYAH!bcdefghi"
 	type(":map^M"
-	assert(update() == "maps\n__ l.\n_ya iYAH!\n"
+	assert(update() == "maps\n__ l.\n_ya iYAH!"
 	type(":unmap __^M:map^M"
-	assert(update() == "maps\n_ya iYAH!\n"
+	assert(update() == "maps\n_ya iYAH!"
 	type(":unmap _ya^M:map^M"
-	assert(update() == "maps\n"
+	assert(update() == "maps"
 
 nata.main(@ test("map ambiguous", "abc", @(vi, type, update)
 	type(":map _ $^M"
@@ -532,3 +522,20 @@ nata.main(@ test("map ambiguous operator pending", "abcdefghi", @(vi, type, upda
 	type(","
 	assert(update() == "INSERT 0,3-3 100% <0?2> c3l"
 	assert(vi.main().text.slice(0, -1) == "abcghi"
+
+nata.main(@ test("buffers", "foo", @(vi, type, update)
+	type(":buffers^M"
+	assert(update() == "buffers\n1 % \"foo\""
+	assert(vi.main().text.slice(0, -1) == "foo"
+	type(":edit bar^M"
+	assert(vi.main().text.slice(0, -1) == "bar"
+	type(":buffers^M"
+	assert(update() == "buffers\n1   \"foo\"\n2 % \"bar\""
+	type(":edit foo^M"
+	assert(vi.main().text.slice(0, -1) == "foo"
+	type(":buffers^M"
+	assert(update() == "buffers\n1 % \"foo\"\n2   \"bar\""
+	type(":quit^M"
+	assert(vi.main().text.slice(0, -1) == "bar"
+	type(":buffers^M"
+	assert(update() == "buffers\n1 % \"bar\""

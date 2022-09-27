@@ -66,6 +66,23 @@ TextSession = Session + @
 		e.xs = p < p0 ? '(p, x, $text.slice(p, p0 - p) + y) : '(p0, p - p0 + x, y)
 		$text.replace(p, n, s
 
+Buffer = Object + @
+	$path
+	$session
+	$view
+	$selection
+	$__initialize = @(host, path)
+		text = host.text(
+		path !== null && host.read(text, path
+		$path = path
+		$session = TextSession(text
+		$view = host.main_view(text
+		$selection = host.selection($view
+	$dispose = @
+		$selection.dispose(
+		$view.dispose(
+		$session.text.dispose(
+
 KeyMap = Object + @
 	$action
 	$base
@@ -150,13 +167,21 @@ with_search = @(text, pattern, f) with(nata.Search(text), @(search)
 		'(
 
 $new = @(host, path)
-	text = host.text(
-	path !== null && host.read(text, path
-	view = host.main_view(text
-	selection = host.selection(view
 	status = host.text(
 	strip = host.strip_view(status
-	session = TextSession(text
+	buffers = [
+	add_buffer = @(path)
+		buffer = Buffer(host, path
+		buffers.push(buffer
+		buffer
+	remove_buffer = @(i) buffers.remove(i).dispose(
+	switch_buffer = @(buffer)
+		:buffer = buffer
+		:session = buffer.session
+		:text = session.text
+		:current = :view = buffer.view
+		:selection = buffer.selection
+	switch_buffer(add_buffer(path
 	move_to = @(p)
 		view.folded(p, false
 		view.position__(p, false
@@ -283,23 +308,6 @@ $new = @(host, path)
 		for ; n > 1; n = n - 1
 			for i = start; i < end; i = i + 1
 				f(input[i]
-	render_status = @
-		if message != ""
-			status.replace(0, -1, message
-		else
-			position = view.position(
-			line = text.line_at_in_text(position.text
-			n = view.range(
-			i = ""
-			input.each(@(x) :i = i + String.from_code(x)
-			status.replace(0, -1, mode.name + " " +
-				line.index + "," +
-				(position.text - line.from) + "-" +
-				(position.x - view.row().x) + " " +
-				(n > 0 ? view.top() * 100 / n : 100) + "% <" +
-				session.undos.size() +
-				(session.logs === null ? "" : "?" + session.logs.size()) +
-				(session.redos.size() > 0 ? "|" + session.redos.size() : "") + "> " + i
 	pending = null
 	Mode = Object + @
 		$post
@@ -307,7 +315,24 @@ $new = @(host, path)
 		$__initialize = @
 			$post = $reset
 			$map = $map_default
-		$render = @ render_status(
+		$render = @
+			if message != ""
+				status.replace(0, -1, message
+				::message = ""
+			else
+				position = view.position(
+				line = text.line_at_in_text(position.text
+				n = view.range(
+				i = ""
+				input.each(@(x) :i = i + String.from_code(x)
+				status.replace(0, -1, mode.name + " " +
+					line.index + "," +
+					(position.text - line.from) + "-" +
+					(position.x - view.row().x) + " " +
+					(n > 0 ? view.top() * 100 / n : 100) + "% <" +
+					session.undos.size() +
+					(session.logs === null ? "" : "?" + session.logs.size()) +
+					(session.redos.size() > 0 ? "|" + session.redos.size() : "") + "> " + i
 		$reset = @
 			::count = 0
 			::input = [
@@ -371,15 +396,38 @@ $new = @(host, path)
 		f(map_yank
 		f(mode_visual.map_default
 	commands = {
+		"buffers": @(i)
+			:message = "buffers"
+			n = buffers.size(
+			for i = 0; i < n; i = i + 1
+				x = buffers[i]
+				:message = message + "\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path === null ? " no name" : " \"" + x.path + "\"")
+		"edit": @(i)
+			match = match_status("^\\s*(?:(#(?:\\d*))|(\\S*))", i
+			if match[1].count > 0
+				switch_buffer(buffers[Integer(status.slice(match[1].from + 1, match[1].count - 1)) - 1]
+			else if match[2].count > 0
+				path = status.slice(match[2].from, match[2].count
+				n = buffers.size(
+				for i = 0;; i = i + 1
+					i < n || return switch_buffer(add_buffer(path
+					x = buffers[i]
+					x.path == path && break switch_buffer(x
 		"map": @(i)
 			match = match_status("^\\s*(\\S+)\\s+(.+)", i
 			if match.size() < 2
-				:message = "maps\n"
-				mode_normal.map_default.list().each(@(x) ::message = message + x[0] + " " + x[1] + "\n"
+				:message = "maps"
+				mode_normal.map_default.list().each(@(x) ::message = message + "\n" + x[0] + " " + x[1]
 			else
 				lhs = status.slice(match[1].from, match[1].count
 				rhs = status.slice(match[2].from, match[2].count
 				for_ncdyv(@(x) map(x, lhs, rhs
+		"quit": @(i)
+			n = buffers.size(
+			n > 1 || return host.quit(
+			for i = 0; i < n; i = i + 1: buffers[i] === buffer && break
+			switch_buffer(buffers[i > 0 ? i - 1 : i + 1]
+			remove_buffer(i
 		"unmap": @(i)
 			match = match_status("^\\s*(\\S+)", i
 			match.size() > 1 || throw Throwable("invalid arguments"
@@ -594,9 +642,7 @@ $new = @(host, path)
 	map(mode_normal.map_default.base, "s", "cl"
 	map(mode_normal.map_default.base, "x", "dl"
 	(Object + @
-		$render = @
-			view.into_view(view.position().text
-			mode.render(
+		$render = @ mode.render(
 		$main = @ view
 		$strip = @ strip
 		$current = @ current
