@@ -21,7 +21,7 @@ template<typename T_tokens, typename T_target, typename T_creased = t_creased<>,
 struct t_rows
 {
 	template<typename, typename> friend class t_creaser;
-	typedef decltype(T_creased::v_nested) t_creases;
+	using t_creases = decltype(T_creased::v_nested);
 	struct t_row
 	{
 		size_t v_line;
@@ -93,8 +93,8 @@ struct t_rows
 private:
 	struct t_traits
 	{
-		typedef t_rows::t_index<size_t> t_index;
-		typedef t_rows::t_index<int> t_delta;
+		using t_index = t_rows::t_index<size_t>;
+		using t_delta = t_rows::t_index<int>;
 		struct t_default
 		{
 			constexpr size_t operator()(const t_index& a_index) const
@@ -128,7 +128,7 @@ private:
 			return a_p > a_base ? t_index{1, a_p->v_line - a_p[-1].v_line, a_p->v_text - a_p[-1].v_text, a_p->v_width - a_p[-1].v_width, a_p->v_height - a_p[-1].v_height} : t_index{1, a_p->v_line, a_p->v_text, a_p->v_width, a_p->v_height};
 		}
 	};
-	typedef jumoku::t_array<t_row, A_leaf, A_branch, t_traits> t_array;
+	using t_array = jumoku::t_array<t_row, A_leaf, A_branch, t_traits>;
 
 	template<bool A_visible>
 	static constexpr bool f_enter(const std::shared_ptr<T_creased>& a_x)
@@ -257,7 +257,7 @@ private:
 	};
 
 public:
-	typedef typename t_array::t_constant_iterator t_iterator;
+	using t_iterator = typename t_array::t_constant_iterator;
 
 	t_signal<size_t, size_t, size_t, size_t, size_t, size_t> v_replaced;
 	t_signal<size_t, size_t, size_t, size_t, size_t> v_painted;

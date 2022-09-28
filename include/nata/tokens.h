@@ -11,7 +11,7 @@ namespace nata
 template<typename T_text, typename T_value, size_t A_leaf = 256, size_t A_branch = 256>
 class t_tokens : t_stretches<T_value, A_leaf, A_branch>
 {
-	typedef nata::t_stretches<T_value, A_leaf, A_branch> t_stretches;
+	using t_stretches = nata::t_stretches<T_value, A_leaf, A_branch>;
 
 	t_slot<size_t, size_t, size_t> v_text_replaced = [this](auto a_p, auto a_n0, auto a_n1)
 	{
@@ -22,8 +22,8 @@ class t_tokens : t_stretches<T_value, A_leaf, A_branch>
 	};
 
 public:
-	typedef typename t_stretches::t_span t_span;
-	typedef typename t_stretches::t_iterator t_iterator;
+	using t_span = typename t_stretches::t_span;
+	using t_iterator = typename t_stretches::t_iterator;
 
 	T_text& v_text;
 	t_signal<size_t, size_t, size_t> v_replaced;

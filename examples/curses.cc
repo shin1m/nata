@@ -25,7 +25,7 @@ constexpr size_t c_region_chunk = 5;
 constexpr size_t c_task_unit = 4;
 #endif
 
-typedef nata::t_text<nata::t_lines<c_lines_chunk, c_lines_chunk>, c_text_chunk, c_text_chunk> t_text;
+using t_text = nata::t_text<nata::t_lines<c_lines_chunk, c_lines_chunk>, c_text_chunk, c_text_chunk>;
 
 struct t_view
 {

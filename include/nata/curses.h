@@ -92,7 +92,7 @@ public:
 
 struct t_target : t_window
 {
-	typedef attr_t t_attribute;
+	using t_attribute = attr_t;
 
 	attr_t v_attribute_control = A_NORMAL;
 	attr_t v_attribute_folded = A_NORMAL;

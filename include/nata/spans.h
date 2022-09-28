@@ -77,8 +77,8 @@ struct t_spans
 protected:
 	struct t_traits
 	{
-		typedef t_spans::t_index<size_t> t_index;
-		typedef t_spans::t_index<int> t_delta;
+		using t_index = t_spans::t_index<size_t>;
+		using t_delta = t_spans::t_index<int>;
 		struct t_default
 		{
 			constexpr size_t operator()(const t_index& a_index) const
@@ -108,12 +108,12 @@ protected:
 			return {1, a_p > a_base ? a_p->v_n - a_p[-1].v_n : a_p->v_n};
 		}
 	};
-	typedef jumoku::t_array<T_span, A_leaf, A_branch, t_traits> t_array;
+	using t_array = jumoku::t_array<T_span, A_leaf, A_branch, t_traits>;
 
 	t_array v_array;
 
 public:
-	typedef typename t_array::t_constant_iterator t_iterator;
+	using t_iterator = typename t_array::t_constant_iterator;
 
 	t_index<size_t> f_size() const
 	{

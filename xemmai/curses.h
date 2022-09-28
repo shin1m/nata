@@ -59,7 +59,7 @@ public:
 	template<typename T>
 	t_pvalue f_as(T&& a_value) const
 	{
-		typedef t_type_of<typename t_fundamental<T>::t_type> t;
+		using t = t_type_of<typename t_fundamental<T>::t_type>;
 		return t::f_transfer(f_library<typename t::t_library>(), std::forward<T>(a_value));
 	}
 	t_type* f_type_position() const
@@ -78,7 +78,7 @@ public:
 
 struct t_target : ::nata::curses::t_target
 {
-	typedef xemmaix::nata::curses::t_library t_library;
+	using t_library = xemmaix::nata::curses::t_library;
 
 	using ::nata::curses::t_target::t_target;
 	std::tuple<size_t, size_t, size_t> f_size(wchar_t a_c, const t_rvalue& a_a) const
@@ -128,7 +128,7 @@ namespace xemmai
 template<>
 struct t_type_of<xemmaix::nata::curses::t_token> : t_derivable<t_holds<xemmaix::nata::curses::t_token>>
 {
-	typedef xemmaix::nata::curses::t_library t_library;
+	using t_library = xemmaix::nata::curses::t_library;
 
 	static void f_define(t_library* a_library);
 

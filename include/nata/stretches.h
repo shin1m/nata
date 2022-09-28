@@ -10,8 +10,8 @@ namespace nata
 template<typename T_value, size_t A_leaf, size_t A_branch>
 struct t_stretches : t_spans<t_span<T_value>, A_leaf, A_branch>
 {
-	typedef nata::t_span<T_value> t_span;
-	typedef typename t_spans<t_span, A_leaf, A_branch>::t_iterator t_iterator;
+	using t_span = nata::t_span<T_value>;
+	using t_iterator = typename t_spans<t_span, A_leaf, A_branch>::t_iterator;
 
 	t_iterator f_replace(size_t a_p, size_t a_n, std::deque<t_span>&& a_xs)
 	{

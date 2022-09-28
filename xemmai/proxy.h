@@ -116,7 +116,7 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_bears<xemmaix::nata::t_proxy>
 		return t_object::f_of(a_value);
 	}
 
-	typedef xemmaix::nata::t_library t_library;
+	using t_library = xemmaix::nata::t_library;
 
 	static void f_define(t_library* a_library);
 

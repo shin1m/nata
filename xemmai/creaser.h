@@ -72,7 +72,7 @@ namespace xemmai
 template<typename T_target>
 struct t_type_of<xemmaix::nata::t_creaser<T_target>> : t_derivable<t_bears<xemmaix::nata::t_creaser<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
-	typedef typename T_target::t_library t_library;
+	using t_library = typename T_target::t_library;
 	using t_creaser = xemmaix::nata::t_creaser<T_target>;
 
 	static void f_define(t_library* a_library)

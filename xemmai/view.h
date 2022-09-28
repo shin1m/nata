@@ -241,7 +241,7 @@ namespace xemmai
 template<typename T_target>
 struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix::nata::t_view<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
-	typedef typename T_target::t_library t_library;
+	using t_library = typename T_target::t_library;
 	using t_view = xemmaix::nata::t_view<T_target>;
 
 	static void f_define(t_library* a_library)
@@ -282,7 +282,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 template<typename T_target>
 struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemmaix::nata::t_overlay<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
-	typedef typename T_target::t_library t_library;
+	using t_library = typename T_target::t_library;
 	using t_overlay = xemmaix::nata::t_overlay<T_target>;
 
 	static void f_define(t_library* a_library)
@@ -302,7 +302,7 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemma
 template<typename T_target>
 struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_derivable<t_bears<xemmaix::nata::t_overlay_iterator<T_target>, t_type_of<xemmaix::nata::t_proxy>>>
 {
-	typedef typename T_target::t_library t_library;
+	using t_library = typename T_target::t_library;
 	using t_overlay_iterator = xemmaix::nata::t_overlay_iterator<T_target>;
 
 	static void f_define(t_library* a_library)

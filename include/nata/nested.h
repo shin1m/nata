@@ -12,7 +12,7 @@ template<template<size_t, size_t> typename T_value, size_t A_leaf, size_t A_bran
 class t_nested_span
 {
 	template<template<size_t, size_t> typename, size_t, size_t> friend struct t_nested;
-	typedef T_value<A_leaf, A_branch> t_value;
+	using t_value = T_value<A_leaf, A_branch>;
 
 	t_nested_span(const std::shared_ptr<t_value>& a_x, size_t a_n) : v_x(a_x), v_n(a_n)
 	{
@@ -46,9 +46,9 @@ public:
 template<template<size_t, size_t> typename T_value, size_t A_leaf, size_t A_branch>
 struct t_nested : t_spans<t_nested_span<T_value, A_leaf, A_branch>, A_leaf, A_branch>
 {
-	typedef T_value<A_leaf, A_branch> t_value;
-	typedef t_nested_span<T_value, A_leaf, A_branch> t_span;
-	typedef typename t_spans<t_span, A_leaf, A_branch>::t_iterator t_iterator;
+	using t_value = T_value<A_leaf, A_branch>;
+	using t_span = t_nested_span<T_value, A_leaf, A_branch>;
+	using t_iterator = typename t_spans<t_span, A_leaf, A_branch>::t_iterator;
 
 private:
 	void f_merge(t_iterator& a_i, std::deque<t_span>& a_xs) const

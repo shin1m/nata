@@ -24,8 +24,8 @@ struct t_line
 template<size_t A_leaf, size_t A_branch>
 struct t_lines : t_spans<t_line, A_leaf, A_branch>
 {
-	typedef t_line t_span;
-	typedef typename t_spans<t_line, A_leaf, A_branch>::t_iterator t_iterator;
+	using t_span = t_line;
+	using t_iterator = typename t_spans<t_line, A_leaf, A_branch>::t_iterator;
 
 	t_lines()
 	{
@@ -57,12 +57,12 @@ struct t_lines : t_spans<t_line, A_leaf, A_branch>
 template<typename T_lines = t_lines<256, 256>, size_t A_leaf = 4096, size_t A_branch = 4096>
 class t_text : jumoku::t_array<wchar_t, A_leaf, A_branch>
 {
-	typedef jumoku::t_array<wchar_t, A_leaf, A_branch> t_array;
+	using t_array = jumoku::t_array<wchar_t, A_leaf, A_branch>;
 
 	T_lines v_lines;
 
 public:
-	typedef typename t_array::t_constant_iterator t_iterator;
+	using t_iterator = typename t_array::t_constant_iterator;
 
 	t_signal<size_t, size_t, size_t> v_replaced;
 
