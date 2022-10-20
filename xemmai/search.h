@@ -12,8 +12,8 @@ struct t_search : t_proxy
 	t_text& v_text;
 	decltype(*v_text.v_text) v_p;
 	std::wregex v_pattern;
-	std::regex_iterator<decltype(v_p.f_begin()), wchar_t> v_eos;
-	std::regex_iterator<decltype(v_p.f_begin()), wchar_t> v_i;
+	std::regex_iterator<decltype(v_p.f_begin())> v_eos;
+	std::regex_iterator<decltype(v_p.f_begin())> v_i;
 
 	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 	{

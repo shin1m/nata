@@ -3,6 +3,7 @@
 
 #include "signal.h"
 #include "spans.h"
+#include <jumoku/utf32.h>
 
 namespace nata
 {
@@ -54,19 +55,22 @@ struct t_lines : t_spans<t_line, A_leaf, A_branch>
 	}
 };
 
-template<typename T_lines = t_lines<256, 256>, size_t A_leaf = 4096, size_t A_branch = 4096>
-class t_text : jumoku::t_array<wchar_t, A_leaf, A_branch>
+template<typename T_lines = t_lines<256, 256>, size_t A_leaf = 256, size_t A_branch = 256>
+class t_text : jumoku::t_utf8<A_leaf, A_branch>
 {
-	using t_array = jumoku::t_array<wchar_t, A_leaf, A_branch>;
+	using t_array = jumoku::t_utf8<A_leaf, A_branch>;
 
 	T_lines v_lines;
 
 public:
-	using t_iterator = typename t_array::t_constant_iterator;
+	using t_iterator = jumoku::t_utf32_iterator<typename t_array::t_iterator>;
 
 	t_signal<size_t, size_t, size_t> v_replaced;
 
-	using t_array::f_size;
+	size_t f_size() const
+	{
+		return t_array::f_size().v_character;
+	}
 	t_iterator f_begin() const
 	{
 		return t_array::f_begin();
@@ -77,18 +81,33 @@ public:
 	}
 	t_iterator f_at(size_t a_index) const
 	{
-		return t_array::f_at(a_index);
+		return t_array::f_at(a_index, jumoku::t_utf8_traits::t_in_characters());
 	}
 	const T_lines& f_lines() const
 	{
 		return v_lines;
 	}
 	template<typename T>
+	T f_slice(size_t a_p, size_t a_n, T a_out) const
+	{
+		for (auto i = f_at(a_p).f_base(); a_n > 0; --a_n) {
+			*a_out++ = jumoku::t_utf32_traits::f_decode(*i, [&]
+			{
+				return *++i;
+			});
+			++i;
+		}
+		return a_out;
+	}
+	template<typename T>
 	void f_replace(size_t a_p, size_t a_n, T a_first, T a_last)
 	{
-		auto i = this->f_erase(f_at(a_p), f_at(a_p + a_n));
-		size_t n = f_size();
-		this->f_insert(i, a_first, a_last);
+		auto i = this->f_erase(f_at(a_p).f_base(), f_at(a_p + a_n).f_base());
+		auto n = f_size();
+		{
+			auto j = jumoku::f_utf8_inserter(*this, i);
+			std::copy(a_first, a_last, jumoku::f_utf32_output(j));
+		}
 		v_lines.f_replace(a_p, a_n, a_first, a_last);
 		v_replaced(a_p, a_n, f_size() - n);
 	}

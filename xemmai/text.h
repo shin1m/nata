@@ -21,11 +21,15 @@ struct t_text : t_proxy
 	{
 		return v_text->f_size();
 	}
-	std::wstring f_slice(size_t a_p, size_t a_n) const
+	t_pvalue f_slice(size_t a_p, size_t a_n) const
 	{
 		size_t n = f_size();
 		if (a_p > n) f_throw(L"out of range."sv);
-		return {v_text->f_at(a_p), v_text->f_at(a_p + std::min(a_n, n - a_p))};
+		a_n = std::min(a_n, n - a_p);
+		return t_string::f_instantiate(a_n, [&](auto p)
+		{
+			return v_text->f_slice(a_p, a_n, p);
+		});
 	}
 	void f_replace(size_t a_p, size_t a_n, std::wstring_view a_text)
 	{

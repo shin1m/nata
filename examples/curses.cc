@@ -87,8 +87,8 @@ int main(int argc, char* argv[])
 		nata::t_painter<decltype(view.v_tokens)> v_painter{v_rows.v_tokens};
 		nata::t_creaser<decltype(view.v_rows), size_t> v_creaser{v_rows};
 		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(?:(if|for|in|break|continue|return)|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done))\\b)", std::wregex::ECMAScript | std::wregex::optimize};
-		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_eos;
-		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_i;
+		std::regex_iterator<decltype(text.f_begin())> v_eos;
+		std::regex_iterator<decltype(text.f_begin())> v_i;
 		std::wstring v_message;
 
 		operator bool() const
@@ -174,8 +174,8 @@ int main(int argc, char* argv[])
 		decltype(*widget.f_overlays()[0].second) v_overlay;
 		nata::t_painter<std::decay_t<decltype(v_overlay)>> v_painter{v_overlay};
 		std::wregex v_pattern;
-		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_eos;
-		std::regex_iterator<decltype(text.f_begin()), wchar_t> v_i;
+		std::regex_iterator<decltype(text.f_begin())> v_eos;
+		std::regex_iterator<decltype(text.f_begin())> v_i;
 
 		operator bool() const
 		{
