@@ -87,8 +87,6 @@ nata.main(@ natacurses.main(@
 				creaser.flush(
 			more() && timers.push('(time.now(), @
 		search.reset(0, -1
-		painter.reset(
-		creaser.reset(
 		tasks.push(step
 	done = false
 	timers = [

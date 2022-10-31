@@ -18,7 +18,21 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"Hello,\tworld!\nGood bye."s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_reset();
+		creaser.f_push(23);
+		creaser.f_flush();
+		f_assert_nested(rows.f_creases(), {
+			{24}
+		});
+		creaser.f_push(0);
+		creaser.f_flush();
+		f_assert_nested(rows.f_creases(), {
+			{24}
+		});
+	});
+	setup([](auto& text, auto& rows, auto& creaser)
+	{
+		auto s = L"Hello,\tworld!\nGood bye."s;
+		text.f_replace(0, 0, s.begin(), s.end());
 		creaser.f_push(7);
 		creaser.f_open(0);
 			creaser.f_push(11);
@@ -35,7 +49,6 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_reset();
 		creaser.f_push(2);
 		creaser.f_open(0);
 			creaser.f_push(7);
@@ -56,7 +69,6 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_reset();
 		creaser.f_push(1);
 		creaser.f_open(0);
 			creaser.f_push(1);
@@ -83,7 +95,6 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_reset();
 		creaser.f_push(2);
 		creaser.f_open(0);
 			creaser.f_push(7);
@@ -131,7 +142,6 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"xxxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_reset();
 		creaser.f_push(4);
 		assert_not_painted(rows, [&]
 		{
@@ -162,7 +172,6 @@ int main(int argc, char* argv[])
 			{{{3}}}
 		});
 		rows.f_folded(1, true);
-		creaser.f_reset();
 		creaser.f_push(5);
 		assert_painted(rows, [&]
 		{
@@ -180,7 +189,6 @@ int main(int argc, char* argv[])
 			{{{3}}}
 		});
 		rows.f_folded(1, true);
-		creaser.f_reset();
 		creaser.f_open(0);
 		creaser.f_push(3);
 		assert_painted(rows, [&]
@@ -205,7 +213,6 @@ int main(int argc, char* argv[])
 			{{{3}}}
 		});
 		rows.f_folded(1, true);
-		creaser.f_reset();
 		creaser.f_push(2);
 		creaser.f_open(0);
 		creaser.f_push(3);
@@ -231,7 +238,6 @@ int main(int argc, char* argv[])
 			{{{3}}}
 		});
 		rows.f_folded(1, true);
-		creaser.f_reset();
 		creaser.f_push(2);
 		creaser.f_open(0);
 		creaser.f_push(1);

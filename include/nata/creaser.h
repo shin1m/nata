@@ -59,7 +59,7 @@ class t_creaser
 		}
 		if (v_p <= v_path_folded) b.f_dirty_end(v_p);
 	}
-	typename T_rows::t_creases::t_iterator f_foldable()
+	void f_foldable()
 	{
 		auto& b = v_nesting.back();
 		auto xs = std::move(b.v_xs);
@@ -70,13 +70,19 @@ class t_creaser
 		auto i = v_rows.v_creases.f_replace(v_nesting_p, n, std::move(xs));
 		if (b.v_dirty_begin < b.v_dirty_end) v_rows.v_tokens_painted(b.v_dirty_begin, b.v_dirty_end - b.v_dirty_begin);
 		v_nesting.clear();
+		v_nesting.push_back({{}});
+		v_nesting_p = v_p;
+		while (i.f_index().v_i1 < v_p) ++i;
 		v_path.clear();
-		return i;
+		v_path.push_back(i);
+		v_path_p = i.f_index().v_i1;
+		v_path_folded = v_p;
 	}
 
 public:
 	t_creaser(T_rows& a_rows) : v_rows(a_rows)
 	{
+		f_reset();
 	}
 	void f_reset()
 	{
@@ -109,11 +115,11 @@ public:
 	void f_close()
 	{
 		f_plain();
-		auto xs = std::move(v_nesting.back().v_xs);
+		auto& b0 = v_nesting.back();
+		auto xs = std::move(b0.v_xs);
 		if (xs.empty()) {
 			v_nesting.pop_back();
 		} else {
-			auto& b0 = v_nesting.back();
 			size_t n = b0.v_n;
 			bool folded = b0.v_folded;
 			size_t dbegin = b0.v_dirty_begin;
@@ -130,14 +136,7 @@ public:
 				b1.f_dirty_end(dend);
 			}
 		}
-		if (v_nesting.size() > 1) return;
-		auto i = f_foldable();
-		v_nesting.push_back({{}});
-		v_nesting_p = v_p;
-		while (i.f_index().v_i1 < v_p) ++i;
-		v_path.push_back(i);
-		v_path_p = i.f_index().v_i1;
-		v_path_folded = v_p;
+		if (v_nesting.size() <= 1) f_foldable();
 	}
 	void f_flush()
 	{

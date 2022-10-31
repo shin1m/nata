@@ -44,7 +44,7 @@ public:
 	template<typename T>
 	const T* f_library() const
 	{
-		return f_global();
+		return v_nata->f_library<T>();
 	}
 	template<typename T>
 	t_slot_of<t_type>& f_type_slot()
@@ -100,12 +100,6 @@ struct t_target : ::nata::curses::t_target
 		void f_attribute(const t_rvalue& a_value);
 	};
 };
-
-template<>
-inline const xemmaix::nata::t_library* t_library::f_library<xemmaix::nata::t_library>() const
-{
-	return v_nata;
-}
 
 template<>
 inline const t_library* t_library::f_library<t_library>() const

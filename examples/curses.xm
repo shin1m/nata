@@ -171,8 +171,6 @@ nata.main(@ natacurses.main(@
 				creaser.flush(
 				::message = ""
 		search.reset(0, -1
-		painter.reset(
-		creaser.reset(
 		exports = (Object + @
 			$more
 			$step

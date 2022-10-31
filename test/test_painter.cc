@@ -16,8 +16,12 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"Hello."s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		painter.f_reset();
 		painter.f_push(0, 7);
+		painter.f_flush();
+		f_assert_spans(tokens, {
+			{0, 7}
+		});
+		painter.f_push(0, 0);
 		painter.f_flush();
 		f_assert_spans(tokens, {
 			{0, 7}
@@ -27,7 +31,6 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"Hello, world!\nGood bye."s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		painter.f_reset();
 		painter.f_push(0, 7);
 		painter.f_push(1, 5);
 		painter.f_push(0, 11);
@@ -70,7 +73,6 @@ int main(int argc, char* argv[])
 		tokens.f_paint(2, {
 			{1, 3}
 		});
-		painter.f_reset();
 		assert_painted(tokens, [&]
 		{
 			painter.f_push(0, 2);
@@ -86,7 +88,6 @@ int main(int argc, char* argv[])
 		tokens.f_paint(2, {
 			{1, 3}
 		});
-		painter.f_reset();
 		assert_painted(tokens, [&]
 		{
 			painter.f_push(0, 7);
@@ -100,7 +101,6 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"xxyyyxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		painter.f_reset();
 		assert_painted(tokens, [&]
 		{
 			painter.f_push(0, 2);
@@ -119,7 +119,6 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"xxyyxyyxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		painter.f_reset();
 		assert_painted(tokens, [&]
 		{
 			painter.f_push(0, 2);
@@ -146,7 +145,6 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"xxyyxyyxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		painter.f_reset();
 		assert_painted(tokens, [&]
 		{
 			painter.f_push(0, 2, 1);
@@ -167,7 +165,6 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"xyyzyyx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		painter.f_reset();
 		assert_painted(tokens, [&]
 		{
 			painter.f_push(0, 1);
@@ -188,7 +185,6 @@ int main(int argc, char* argv[])
 	{
 		auto s = L"xxyyyxx"s;
 		text.f_replace(0, 0, s.begin(), s.end());
-		painter.f_reset();
 		assert_painted(tokens, [&]
 		{
 			painter.f_push(0, 1);

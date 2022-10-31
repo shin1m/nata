@@ -18,6 +18,7 @@ class t_painter
 public:
 	t_painter(T_tokens& a_tokens) : v_tokens(a_tokens)
 	{
+		f_reset();
 	}
 	void f_reset()
 	{

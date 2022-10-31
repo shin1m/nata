@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 	} target;
 	nata::t_rows<decltype(tokens), decltype(target), nata::t_creased<5, 5>, 5, 5> rows(tokens, target);
 	{
-		auto s = L"Hello,\tworld!!\nGood bye."s;
+		auto s = L"Hello,\tworld!!\nGood bye."sv;
 		text.f_replace(0, 0, s.begin(), s.end());
 		tokens.f_paint(7, {
 			{1, 7},

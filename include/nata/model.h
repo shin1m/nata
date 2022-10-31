@@ -67,6 +67,10 @@ public:
 
 	t_signal<size_t, size_t, size_t> v_replaced;
 
+	const t_array& f_base() const
+	{
+		return *this;
+	}
 	size_t f_size() const
 	{
 		return t_array::f_size().v_character;
