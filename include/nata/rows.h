@@ -15,8 +15,6 @@ struct t_creased
 	bool v_folded = false;
 };
 
-template<typename, typename> class t_creaser;
-
 template<typename T_tokens, typename T_target, typename T_creased = t_creased<>, size_t A_leaf = 256, size_t A_branch = 256>
 struct t_rows
 {
@@ -201,6 +199,7 @@ private:
 				token = v_tokens.f_at_in_text(p);
 				td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 				first = v_tokens.v_text.f_at(p);
+				if (first == last) break;
 			}
 			while (true) {
 				wchar_t c = *first;
@@ -389,6 +388,7 @@ public:
 				token = v_tokens.f_at_in_text(p);
 				td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 				first = v_tokens.v_text.f_at(p);
+				if (first == last) break;
 			}
 			while (true) {
 				wchar_t c = *first;

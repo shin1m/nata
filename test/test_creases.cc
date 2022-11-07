@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 	};
 	setup([](auto& text, auto& rows)
 	{
-		auto s = L"Hello,\tworld!\nGood bye."s;
+		auto s = L"Hello,\tworld!\nGood bye."sv;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(7, {
 			{{{11}}}
@@ -32,7 +32,22 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
+		auto s = L"x"sv;
+		text.f_replace(0, 0, s.begin(), s.end());
+		rows.f_crease(0, {
+			{{{1}}}
+		});
+		f_assert_rows(rows, {
+			{1, true, 2, 2, 2, 2}
+		});
+		rows.f_folded(0, true);
+		f_assert_rows(rows, {
+			{1, true, 2, 4, 1, 1}
+		});
+	});
+	setup([](auto& text, auto& rows)
+	{
+		auto s = L"xx(xx\nxx)(xxxxxxxx)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(2, {
 			{{{7}}},
@@ -66,7 +81,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
+		auto s = L"xx(xx\nxx)(xxxxxxxx)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(1, {
 			{{
@@ -103,7 +118,7 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
+		auto s = L"xx(xx\nxx)(xxxxxxxx)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(2, {
 			{{{7}}},
@@ -124,7 +139,39 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows)
 	{
-		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
+		auto s = L"x"sv;
+		text.f_replace(0, 0, s.begin(), s.end());
+		rows.f_crease(0, {
+			{{{1}}}
+		});
+		{
+			std::vector<std::tuple<size_t, size_t, size_t>> xs;
+			assert(rows.f_each_x(rows.f_begin(), [&](size_t p, size_t x, size_t width)
+			{
+				xs.push_back({p, x, width});
+				return true;
+			}) == std::make_tuple(1, 1, 1));
+			assert(xs == decltype(xs)({
+				{0, 0, 1}
+			}));
+		}
+		rows.f_folded(0, true);
+		{
+			std::vector<std::tuple<size_t, size_t, size_t>> xs;
+			assert(rows.f_each_x(rows.f_at(0), [&](size_t p, size_t x, size_t width)
+			{
+				xs.push_back({p, x, width});
+				return true;
+			}) == std::make_tuple(1, 3, 1));
+			assert(xs == decltype(xs)({
+				{0, 0, 3}
+			}));
+		}
+		f_dump(rows);
+	});
+	setup([](auto& text, auto& rows)
+	{
+		auto s = L"xx(xx\nxx)(xxxxxxxx)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(2, {
 			{{{7}}},
