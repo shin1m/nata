@@ -11,7 +11,7 @@ template<typename T_target>
 struct t_creaser : t_proxy
 {
 	t_view<T_target>& v_view;
-	::nata::t_creaser<std::decay_t<decltype(*t_view<T_target>::v_rows)>, t_rvalue>* v_creaser;
+	::nata::t_creaser<std::decay_t<decltype(*t_view<T_target>::v_rows)>>* v_creaser;
 
 	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 	{
@@ -42,25 +42,16 @@ struct t_creaser : t_proxy
 	{
 		return v_creaser->f_current();
 	}
-	void f_push(size_t a_n)
+	void f_push(size_t a_plain, size_t a_nested)
 	{
-		v_creaser->f_push(std::min(a_n, v_view.v_text.v_text->f_size() - f_current()));
+		if (a_nested <= 0) f_throw(L"nested must be greater than zero."sv);
+		size_t n = v_view.v_text.v_text->f_size() - f_current();
+		if (a_plain > n || a_nested > n || a_plain + a_nested > n) f_throw(L"out of range."sv);
+		v_creaser->f_push(a_plain, a_nested);
 	}
-	t_pvalue f_tag() const
+	void f_end()
 	{
-		return v_creaser->f_tag();
-	}
-	void f_open(const t_pvalue& a_tag)
-	{
-		v_creaser->f_open(std::move(a_tag));
-	}
-	void f_close()
-	{
-		v_creaser->f_close();
-	}
-	void f_flush()
-	{
-		v_creaser->f_flush();
+		v_creaser->f_end();
 	}
 };
 
@@ -80,11 +71,8 @@ struct t_type_of<xemmaix::nata::t_creaser<T_target>> : t_derivable<t_bears<xemma
 		t_define{a_library}
 			(L"reset"sv, t_member<void(t_creaser::*)(), &t_creaser::f_reset>())
 			(L"current"sv, t_member<size_t(t_creaser::*)() const, &t_creaser::f_current>())
-			(L"push"sv, t_member<void(t_creaser::*)(size_t), &t_creaser::f_push>())
-			(L"tag"sv, t_member<t_pvalue(t_creaser::*)() const, &t_creaser::f_tag>())
-			(L"open"sv, t_member<void(t_creaser::*)(const t_pvalue&), &t_creaser::f_open>())
-			(L"close"sv, t_member<void(t_creaser::*)(), &t_creaser::f_close>())
-			(L"flush"sv, t_member<void(t_creaser::*)(), &t_creaser::f_flush>())
+			(L"push"sv, t_member<void(t_creaser::*)(size_t, size_t), &t_creaser::f_push>())
+			(L"end"sv, t_member<void(t_creaser::*)(), &t_creaser::f_end>())
 		.template f_derive<t_creaser, xemmaix::nata::t_proxy>();
 	}
 

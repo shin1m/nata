@@ -6,6 +6,9 @@
 #include <nata/curses.h>
 #include <fstream>
 #include <regex>
+#include "tree_sitter.h"
+
+extern "C" TSLanguage* tree_sitter_json();
 
 #if 0
 constexpr size_t c_text_chunk = 4096;
@@ -57,8 +60,12 @@ int main(int argc, char* argv[])
 	init_pair(1, COLOR_WHITE, -1);
 	init_pair(2, COLOR_BLACK, COLOR_WHITE);
 	init_pair(3, -1, COLOR_YELLOW);
-	init_pair(4, COLOR_BLUE, -1);
-	init_pair(5, COLOR_YELLOW, -1);
+	init_pair(4, COLOR_RED, -1);
+	init_pair(5, COLOR_GREEN, -1);
+	init_pair(6, COLOR_YELLOW, -1);
+	init_pair(7, COLOR_BLUE, -1);
+	init_pair(8, COLOR_MAGENTA, -1);
+	init_pair(9, COLOR_CYAN, -1);
 	t_text text;
 	if (argc > 1) {
 		std::wifstream in(argv[1]);
@@ -85,90 +92,107 @@ int main(int argc, char* argv[])
 	{
 		decltype(view.v_rows)& v_rows;
 		nata::t_painter<decltype(view.v_tokens)> v_painter{v_rows.v_tokens};
-		nata::t_creaser<decltype(view.v_rows), size_t> v_creaser{v_rows};
-		std::wregex v_pattern{L"(#.*(?:\\n|$))|(?:\\b(?:(if|for|in|break|continue|return)|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done))\\b)", std::wregex::ECMAScript | std::wregex::optimize};
-		std::regex_iterator<decltype(text.f_begin())> v_eos;
-		std::regex_iterator<decltype(text.f_begin())> v_i;
+		nata::t_creaser<decltype(view.v_rows)> v_creaser{v_rows};
+		nata::tree_sitter::t_query v_query{tree_sitter_json(), R"scm(
+(number) @number
+(string) @string
+(escape_sequence) @escape
+[(null) (true) (false)] @literal
+(pair key: (_) @key)
+["{" "}" "[" "]"] @bracket
+(comment) @comment
+(object) @object
+(array) @array
+[(object) (array)] @crease
+)scm"sv};
+		nata::tree_sitter::t_parser<decltype(text)> v_parser{v_rows.v_tokens.v_text, v_query};
+		std::vector<std::pair<attr_t, uint32_t>> v_tokens;
+		std::map<std::string_view, attr_t> v_capture2token{
+			{"string"sv, COLOR_PAIR(4)},
+			{"number"sv, COLOR_PAIR(4)},
+			{"literal"sv, COLOR_PAIR(4)},
+			{"key"sv, COLOR_PAIR(6)},
+			{"keyword"sv, COLOR_PAIR(6)},
+			{"escape"sv, COLOR_PAIR(8)},
+			{"comment"sv, COLOR_PAIR(7)},
+			{"bracket"sv, COLOR_PAIR(8)},
+			{"object"sv, COLOR_PAIR(5)},
+			{"array"sv, COLOR_PAIR(9)}
+		};
+		std::vector<std::function<void(uint32_t, uint32_t)>> v_captures;
 		std::wstring v_message;
 
+		void f_paint(uint32_t a_p)
+		{
+			while (true) {
+				auto [token, to] = v_tokens.back();
+				auto p = a_p < to ? a_p : to;
+				auto q = v_painter.f_current();
+				if (q < p) v_painter.f_push(token, p - q, 64);
+				if (p < to) break;
+				v_tokens.pop_back();
+			}
+		}
+		void f_initialize()
+		{
+			v_rows.v_tokens.v_text.v_replaced >> v_replaced;
+			auto count = ts_query_capture_count(v_query);
+			for (size_t i = 0; i < count; ++i) {
+				uint32_t n;
+				auto p = ts_query_capture_name_for_id(v_query, i, &n);
+				std::string_view name(p, n);
+				if (name == "crease"sv) {
+					v_captures.emplace_back([&](uint32_t p, uint32_t n)
+					{
+						v_creaser.f_push(p - v_creaser.f_current(), n);
+					});
+				} else {
+					auto i = v_capture2token.find(name);
+					v_captures.emplace_back([&, token = i == v_capture2token.end() ? A_NORMAL : i->second](uint32_t p, uint32_t n)
+					{
+						f_paint(p);
+						v_tokens.emplace_back(token, p + n);
+					});
+				}
+			}
+		}
 		operator bool() const
 		{
-			return v_painter.f_current() < v_rows.v_tokens.v_text.f_size();
+			return !v_parser.f_parsed() || v_painter.f_current() < v_rows.v_tokens.v_text.f_size();
 		}
 		void operator()()
 		{
-			if (!*this) return;
+			auto size = v_rows.v_tokens.v_text.f_size();
+			if (!v_parser.f_parsed()) {
+				v_tokens.clear();
+				v_tokens.emplace_back(A_NORMAL, size + 1);
+			}
 			for (size_t i = 0; i < c_task_unit; ++i) {
-				if (v_i == v_eos) break;
-				size_t type = 1;
-				for (; type < v_i->size(); ++type) {
-					auto& m = (*v_i)[type];
-					if (m.first != m.second) break;
+				uint32_t p;
+				uint32_t n;
+				uint32_t index;
+				if (!v_parser.f_next(p, n, index)) {
+					f_paint(size);
+					v_painter.f_flush();
+					v_creaser.f_end();
+					v_message.clear();
+					return;
 				}
-				auto& m = (*v_i)[0];
-				size_t a = m.first.f_index() - v_painter.f_current();
-				size_t b = m.second.f_index() - m.first.f_index();
-				v_painter.f_push(A_NORMAL, a, 64);
-				v_painter.f_push(type == 1 ? attribute_comment : attribute_keyword, b, 64);
-				auto close = [&]
-				{
-					v_creaser.f_push(a);
-					v_creaser.f_close();
-					v_creaser.f_push(b);
-				};
-				switch (type) {
-				case 3:
-					if (v_creaser.f_tag() == 4) {
-						close();
-						v_creaser.f_open(4);
-					} else {
-						v_creaser.f_push(a + b);
-					}
-					break;
-				case 4:
-				case 5:
-				case 6:
-					v_creaser.f_push(a + b);
-					v_creaser.f_open(type);
-					break;
-				case 7:
-				case 8:
-				case 9:
-					if (v_creaser.f_tag() == type - 3)
-						close();
-					else
-						v_creaser.f_push(a + b);
-					break;
-				default:
-					v_creaser.f_push(a + b);
-				}
-				++v_i;
+				v_captures[index](p, n);
 			}
-			size_t n = v_rows.v_tokens.v_text.f_size();
-			if (v_i == v_eos) {
-				n -= v_painter.f_current();
-				v_painter.f_push(A_NORMAL, n, 64);
-				v_painter.f_flush();
-				v_creaser.f_push(n);
-				v_creaser.f_flush();
-				v_message.clear();
-			} else {
-				v_painter.f_flush();
-				std::wostringstream s;
-				s << L"running: "sv << v_painter.f_current() * 100 / n << L'%';
-				v_message = s.str();
-			}
+			v_painter.f_flush();
+			std::wostringstream s;
+			s << L"running: "sv << v_painter.f_current() * 100 / size << L'%';
+			v_message = s.str();
 		}
 
 		nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
 		{
-			v_i = decltype(v_i)(v_rows.v_tokens.v_text.f_begin(), v_rows.v_tokens.v_text.f_end(), v_pattern);
 			v_painter.f_reset();
 			v_creaser.f_reset();
 		};
 	} syntax{view.v_rows};
-	text.v_replaced >> syntax.v_replaced;
-	syntax.v_replaced(0, 0, 0);
+	syntax.f_initialize();
 	struct
 	{
 		decltype(*widget.f_overlays()[0].second) v_overlay;
@@ -255,6 +279,7 @@ int main(int argc, char* argv[])
 				if (position < text.f_size()) widget.f_position__(position + 1, true);
 				break;
 			case KEY_BACKSPACE:
+			case L'\b':
 				if (position > 0) {
 					view.v_rows.f_folded(--position, false);
 					text.f_replace(position, 1, &c, &c);

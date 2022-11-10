@@ -527,6 +527,9 @@ $new = @(host, path)
 			letter("y"): KeyMap(@
 				$for_motion(@(p) view.position__(p, false), yank[$]
 				$map = map_yank
+			letter("z"): KeyMap(null, null, {
+				letter("c"): KeyMap(@ $finish(@ view.position__(view.folded(view.position().text, true), false
+				letter("o"): KeyMap(@ $finish(@ view.folded(view.position().text, false
 		$name = "NORMAL"
 		$last_input
 		$__initialize = @

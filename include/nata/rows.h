@@ -18,7 +18,7 @@ struct t_creased
 template<typename T_tokens, typename T_target, typename T_creased = t_creased<>, size_t A_leaf = 256, size_t A_branch = 256>
 struct t_rows
 {
-	template<typename, typename> friend class t_creaser;
+	template<typename> friend class t_creaser;
 	using t_creases = decltype(T_creased::v_nested);
 	struct t_row
 	{

@@ -1,7 +1,8 @@
 system = Module("system"
 io = Module("io"
 nata = Module("nata"
-natacurses = Module("natacurses"
+nata_curses = Module("nata-curses"
+nata_tree_sitter = Module("nata-tree-sitter"
 
 Session = Object + @
 	$logs
@@ -44,7 +45,7 @@ with = @(x, f)
 		x.dispose(
 
 each = @(overlay, f)
-	with(natacurses.OverlayIterator(overlay), @(i)
+	with(nata_curses.OverlayIterator(overlay), @(i)
 		while (x = i.next()) !== null
 			x.value && f(x.from, x.count
 
@@ -82,30 +83,46 @@ TextSession = Session + @
 		e.xs = p < p0 ? '(p, x, $text.slice(p, p0 - p) + y) : '(p0, p - p0 + x, y)
 		$text.replace(p, n, s
 
-nata.main(@ natacurses.main(@
-	natacurses.define_pair(1, natacurses.COLOR_WHITE, -1
-	natacurses.define_pair(2, natacurses.COLOR_BLACK, natacurses.COLOR_WHITE
-	natacurses.define_pair(3, -1, natacurses.COLOR_YELLOW
-	natacurses.define_pair(4, natacurses.COLOR_BLUE, -1
-	attribute_comment = natacurses.color_pair(4
-	natacurses.define_pair(5, natacurses.COLOR_YELLOW, -1
-	attribute_keyword = natacurses.color_pair(5
-	token_comment = natacurses.Token(attribute_comment
-	token_keyword = natacurses.Token(attribute_keyword
+nata.main(@ nata_curses.main(@
+	nata_curses.define_pair(1, nata_curses.COLOR_WHITE, -1
+	nata_curses.define_pair(2, nata_curses.COLOR_BLACK, nata_curses.COLOR_WHITE
+	nata_curses.define_pair(3, -1, nata_curses.COLOR_YELLOW
+	nata_curses.define_pair(4, nata_curses.COLOR_RED, -1
+	nata_curses.define_pair(5, nata_curses.COLOR_GREEN, -1
+	nata_curses.define_pair(6, nata_curses.COLOR_YELLOW, -1
+	nata_curses.define_pair(7, nata_curses.COLOR_BLUE, -1
+	nata_curses.define_pair(8, nata_curses.COLOR_MAGENTA, -1
+	nata_curses.define_pair(9, nata_curses.COLOR_CYAN, -1
+	capture2token = {
+		"string": nata_curses.Token(nata_curses.color_pair(4
+		"number": nata_curses.Token(nata_curses.color_pair(4
+		"literal": nata_curses.Token(nata_curses.color_pair(4
+		"key": nata_curses.Token(nata_curses.color_pair(6
+		"keyword": nata_curses.Token(nata_curses.color_pair(6
+		"escape": nata_curses.Token(nata_curses.color_pair(8
+		"comment": nata_curses.Token(nata_curses.color_pair(7
+		"bracket": nata_curses.Token(nata_curses.color_pair(8
+		"object": nata_curses.Token(nata_curses.color_pair(5
+		"array": nata_curses.Token(nata_curses.color_pair(9
 	text = nata.Text(
 	if system.arguments.size() > 0
 		read(text, system.arguments[0]
 	else
-		text.replace(0, -1, "Hello, World!\nThis is shin.\nGood bye.\n"
-	size = natacurses.size(
-	view = natacurses.View(text, 0, 0, size[0], size[1] - 1
+		text.replace(0, -1, "{
+  \"hello\": [\"Hello\", \"World!\"],
+  \"by\": [\"This\", \"is\", \"shin.\"],
+  \"bye\": [\"Good\", \"bye.\"]
+}
+"
+	size = nata_curses.size(
+	view = nata_curses.View(text, 0, 0, size[0], size[1] - 1
 	view.attributes(
-		natacurses.A_DIM | natacurses.color_pair(1
-		natacurses.A_DIM | natacurses.color_pair(2
-	highlight = natacurses.Overlay(view, natacurses.color_pair(3
-	selection = natacurses.Overlay(view, natacurses.A_REVERSE
+		nata_curses.A_DIM | nata_curses.color_pair(1
+		nata_curses.A_DIM | nata_curses.color_pair(2
+	highlight = nata_curses.Overlay(view, nata_curses.color_pair(3
+	selection = nata_curses.Overlay(view, nata_curses.A_REVERSE
 	status = nata.Text(
-	strip = natacurses.View(status, 0, size[1] - 1, size[0], 1
+	strip = nata_curses.View(status, 0, size[1] - 1, size[0], 1
 	session = TextSession(text
 	log_position = @(p) session.log(@
 		view.position__(p, false
@@ -124,63 +141,65 @@ nata.main(@ natacurses.main(@
 	message = ""
 	syntax = (@
 		UNIT = 4
-		search = nata.Search(text
-		search.pattern(
-			"(#.*(?:\\n|$))|(?:\\b(?:(if|for|in|break|continue|return)|(else)|(then)|(case)|(do)|(elif|fi)|(esac)|(done))\\b)"
-			nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
-		painter = natacurses.Painter(view
-		creaser = natacurses.Creaser(view
-		more = @ painter.current() < text.size()
-		step = @ if more()
-			for i = 0; i < UNIT; i = i + 1
-				(match = search.next()).size() > 0 || break
-				type = 1
-				while type < match.size() && match[type].count <= 0
-					type = type + 1
-				a = match[0].from - painter.current()
-				b = match[0].count
-				painter.push(null, a, 64
-				painter.push(type == 1 ? token_comment : token_keyword, b, 64
-				close = @
-					creaser.push(a
-					creaser.close(
-					creaser.push(b
-				if type == 3
-					if creaser.tag() == 4
-						close(
-						creaser.open(4
-					else
-						creaser.push(a + b
-				else if type == 4 || type == 5 || type == 6
-					creaser.push(a + b
-					creaser.open(type
-				else if type == 7 || type == 8 || type == 9
-					if creaser.tag() == type - 3
-						close(
-					else
-						creaser.push(a + b
-				else
-					creaser.push(a + b
-			if match.size() > 0
-				painter.flush(
-				::message = "running: " + painter.current() * 100 / text.size() + "%"
+		query = nata_tree_sitter.Query(
+			Module("nata-tree-sitter-json").language
+			"
+(number) @number
+(string) @string
+(escape_sequence) @escape
+[(null) (true) (false)] @literal
+(pair key: (_) @key)
+[\"{\" \"}\" \"[\" \"]\"] @bracket
+(comment) @comment
+(object) @object
+(array) @array
+[(object) (array)] @crease
+"
+		parser = nata_tree_sitter.Parser(text, query
+		painter = nata_curses.Painter(view
+		creaser = nata_curses.Creaser(view
+		paint = @(p) while true
+			token = tokens[0]
+			to = p < token[1] ? p : token[1]
+			q = painter.current(
+			q < to && painter.push(token[0], to - q, 64
+			to < token[1] && break
+			tokens.shift(
+		captures = [
+		query.captures().each(@(x)
+			if x == "crease"
+				captures.push(@(p, n) creaser.push(p - creaser.current(), n
 			else
-				painter.push(null, -1, 64
+				token = capture2token.has(x) ? capture2token[x] : null
+				captures.push(@(p, n)
+					paint(p
+					tokens.unshift('(token, p + n
+		step = @
+			parser.parsed() || (:tokens = ['(null, text.size() + 1)])
+			for i = 0; i < UNIT; i = i + 1
+				(match = parser.next()) === null && break
+				captures[match[2]](match[0], match[1]
+			if match === null
+				paint(text.size(
 				painter.flush(
-				creaser.push(-1
-				creaser.flush(
-				::message = ""
-		search.reset(0, -1
-		exports = (Object + @
-			$more
-			$step
+				creaser.end(
+				:message = ""
+			else
+				painter.flush(
+				:message = "running: " + painter.current() * 100 / text.size() + "%"
+		(Object + @
+			$more = @ !parser.parsed() || painter.current() < text.size()
+			$step = step
 		)(
-		exports.more = more
-		exports.step = step
-		exports
 	)(
 	done = false
+	backspace = @
+		position = view.position().text
+		if position > 0
+			view.folded(position - 1, false
+			edit(@ session.merge(position - 1, 1, ""
 	actions = {
+		0x8: backspace
 		0x19: @
 			commit(
 			try
@@ -195,34 +214,30 @@ nata.main(@ natacurses.main(@
 				:message = t.__string(
 		0x1b: @
 			:done = true
-		natacurses.KEY_RESIZE: @
-			size = natacurses.size(
+		nata_curses.KEY_RESIZE: @
+			size = nata_curses.size(
 			view.move(0, 0, size[0], size[1] - 1
 			strip.move(0, size[1] - 1, size[0], 1
-		natacurses.KEY_DOWN: @
+		nata_curses.KEY_DOWN: @
 			commit(
 			line = view.row().line
 			line + 1 < view.size().line && view.line__(line + 1
-		natacurses.KEY_UP: @
+		nata_curses.KEY_UP: @
 			commit(
 			line = view.row().line
 			line > 0 && view.line__(line - 1
-		natacurses.KEY_LEFT: @
+		nata_curses.KEY_LEFT: @
 			position = view.position().text
 			position > 0 && view.position__(position - 1, false
-		natacurses.KEY_RIGHT: @
+		nata_curses.KEY_RIGHT: @
 			position = view.position().text
 			position < text.size() && view.position__(position + 1, true
-		natacurses.KEY_BACKSPACE: @
-			position = view.position().text
-			if position > 0
-				view.folded(position - 1, false
-				edit(@ session.merge(position - 1, 1, ""
-		natacurses.KEY_F1: @
+		nata_curses.KEY_BACKSPACE: backspace
+		nata_curses.KEY_F1: @
 			view.position__(view.folded(view.position().text, true), false
-		natacurses.KEY_F2: @
+		nata_curses.KEY_F2: @
 			view.folded(view.position().text, false
-		natacurses.KEY_F3: @
+		nata_curses.KEY_F3: @
 			pattern = ""
 			each(selection, @(p, n) :pattern = pattern + text.slice(p, n
 			selection.paint(0, -1, false
@@ -232,14 +247,14 @@ nata.main(@ natacurses.main(@
 				search.reset(0, -1
 				while (match = search.next()).size() > 0
 					highlight.paint(match[0].from, match[0].count, true
-		natacurses.KEY_F4: @
+		nata_curses.KEY_F4: @
 			highlight.paint(0, -1, false
-		natacurses.KEY_F5: @
+		nata_curses.KEY_F5: @
 			position = view.position().text
 			if position < text.size()
 				selection.paint(position, 1, true
 				view.position__(position + 1, true
-		natacurses.KEY_F6: @
+		nata_curses.KEY_F6: @
 			selection.paint(0, -1, false
 	update_status = @
 		position = view.position(
@@ -267,7 +282,7 @@ nata.main(@ natacurses.main(@
 			try
 				action = actions[c]
 			catch Throwable t
-				(c == natacurses.KEY_ENTER || c == 0xd) && (c = 0xa)
+				(c == nata_curses.KEY_ENTER || c == 0xd) && (c = 0xa)
 				edit(@ session.merge(view.position().text, 0, String.from_code(c
 			action !== null && action(
 			view.into_view(view.position().text

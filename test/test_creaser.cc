@@ -11,34 +11,28 @@ int main(int argc, char* argv[])
 		nata::t_tokens<decltype(text), int, 5, 5> tokens(text);
 		t_test_target target;
 		nata::t_rows<decltype(tokens), decltype(target), nata::t_creased<5, 5>, 5, 5> rows(tokens, target);
-		nata::t_creaser<decltype(rows), int> creaser(rows);
+		nata::t_creaser<decltype(rows)> creaser(rows);
 		test(text, rows, creaser);
 	};
 	setup([](auto& text, auto& rows, auto& creaser)
 	{
-		auto s = L"Hello,\tworld!\nGood bye."s;
+		auto s = L"Hello,\tworld!\nGood bye."sv;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_push(23);
-		creaser.f_flush();
+		creaser.f_end();
 		f_assert_nested(rows.f_creases(), {
 			{24}
 		});
-		creaser.f_push(0);
-		creaser.f_flush();
+		creaser.f_end();
 		f_assert_nested(rows.f_creases(), {
 			{24}
 		});
 	});
 	setup([](auto& text, auto& rows, auto& creaser)
 	{
-		auto s = L"Hello,\tworld!\nGood bye."s;
+		auto s = L"Hello,\tworld!\nGood bye."sv;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_push(7);
-		creaser.f_open(0);
-			creaser.f_push(11);
-		creaser.f_close();
-		creaser.f_push(5);
-		creaser.f_flush();
+		creaser.f_push(7, 11);
+		creaser.f_end();
 		f_assert_nested(rows.f_creases(), {
 			{7},
 			{{{11}}},
@@ -47,17 +41,11 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows, auto& creaser)
 	{
-		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
+		auto s = L"xx(xx\nxx)(xxxxxxxx)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_push(2);
-		creaser.f_open(0);
-			creaser.f_push(7);
-		creaser.f_close();
-		creaser.f_open(0);
-			creaser.f_push(10);
-		creaser.f_close();
-		creaser.f_push(1);
-		creaser.f_flush();
+		creaser.f_push(2, 7);
+		creaser.f_push(7, 10);
+		creaser.f_end();
 		f_assert_nested(rows.f_creases(), {
 			{2},
 			{{{7}}},
@@ -67,20 +55,12 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows, auto& creaser)
 	{
-		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
+		auto s = L"xx(xx\nxx)(xxxxxxxx)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_push(1);
-		creaser.f_open(0);
-			creaser.f_push(1);
-			creaser.f_open(0);
-				creaser.f_push(7);
-			creaser.f_close();
-			creaser.f_open(0);
-				creaser.f_push(10);
-			creaser.f_close();
-		creaser.f_close();
-		creaser.f_push(1);
-		creaser.f_flush();
+		creaser.f_push(1, 18);
+		creaser.f_push(1, 7);
+		creaser.f_push(7, 10);
+		creaser.f_end();
 		f_assert_nested(rows.f_creases(), {
 			{1},
 			{{
@@ -93,26 +73,14 @@ int main(int argc, char* argv[])
 	});
 	setup([](auto& text, auto& rows, auto& creaser)
 	{
-		auto s = L"xx(xx\nxx)(xxxxxxxx)x"s;
+		auto s = L"xx(xx\nxx)(xxxxxxxx)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_push(2);
-		creaser.f_open(0);
-			creaser.f_push(7);
-		creaser.f_close();
-		creaser.f_open(0);
-			creaser.f_push(1);
-			creaser.f_open(0);
-				creaser.f_push(5);
-			creaser.f_close();
-			creaser.f_open(0);
-				creaser.f_push(2);
-				creaser.f_open(0);
-					creaser.f_push(2);
-				creaser.f_close();
-			creaser.f_close();
-		creaser.f_close();
-		creaser.f_push(1);
-		creaser.f_flush();
+		creaser.f_push(2, 7);
+		creaser.f_push(7, 10);
+		creaser.f_push(1, 5);
+		creaser.f_push(5, 4);
+		creaser.f_push(2, 2);
+		creaser.f_end();
 		f_assert_nested(rows.f_creases(), {
 			{2},
 			{{{7}}},
@@ -140,12 +108,11 @@ int main(int argc, char* argv[])
 	};
 	setup([&](auto& text, auto& rows, auto& creaser)
 	{
-		auto s = L"xxxx"s;
+		auto s = L"xxxx"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
-		creaser.f_push(4);
 		assert_not_painted(rows, [&]
 		{
-			creaser.f_flush();
+			creaser.f_end();
 		});
 		f_assert_nested(rows.f_creases(), {
 			{5}
@@ -166,16 +133,15 @@ int main(int argc, char* argv[])
 	};
 	setup([&](auto& text, auto& rows, auto& creaser)
 	{
-		auto s = L"x(x)x"s;
+		auto s = L"x(x)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(1, {
 			{{{3}}}
 		});
 		rows.f_folded(1, true);
-		creaser.f_push(5);
 		assert_painted(rows, [&]
 		{
-			creaser.f_flush();
+			creaser.f_end();
 		}, 1, 3);
 		f_assert_nested(rows.f_creases(), {
 			{6}
@@ -183,22 +149,19 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& rows, auto& creaser)
 	{
-		auto s = L"x(x)x"s;
+		auto s = L"x(x)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(1, {
 			{{{3}}}
 		});
 		rows.f_folded(1, true);
-		creaser.f_open(0);
-		creaser.f_push(3);
 		assert_painted(rows, [&]
 		{
-			creaser.f_close();
-		}, 1, 2);
-		creaser.f_push(2);
+			creaser.f_push(0, 3);
+		}, 1, 3);
 		assert_not_painted(rows, [&]
 		{
-			creaser.f_flush();
+			creaser.f_end();
 		});
 		f_assert_nested(rows.f_creases(), {
 			{{{3}}},
@@ -207,22 +170,19 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& rows, auto& creaser)
 	{
-		auto s = L"x(x)x"s;
+		auto s = L"x(x)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(1, {
 			{{{3}}}
 		});
 		rows.f_folded(1, true);
-		creaser.f_push(2);
-		creaser.f_open(0);
-		creaser.f_push(3);
 		assert_painted(rows, [&]
 		{
-			creaser.f_close();
+			creaser.f_push(2, 3);
 		}, 1, 3);
 		assert_not_painted(rows, [&]
 		{
-			creaser.f_flush();
+			creaser.f_end();
 		});
 		f_assert_nested(rows.f_creases(), {
 			{2},
@@ -232,23 +192,19 @@ int main(int argc, char* argv[])
 	});
 	setup([&](auto& text, auto& rows, auto& creaser)
 	{
-		auto s = L"x(x)x"s;
+		auto s = L"x(x)x"sv;
 		text.f_replace(0, 0, s.begin(), s.end());
 		rows.f_crease(1, {
 			{{{3}}}
 		});
 		rows.f_folded(1, true);
-		creaser.f_push(2);
-		creaser.f_open(0);
-		creaser.f_push(1);
 		assert_painted(rows, [&]
 		{
-			creaser.f_close();
-		}, 1, 2);
-		creaser.f_push(2);
+			creaser.f_push(2, 1);
+		}, 1, 3);
 		assert_not_painted(rows, [&]
 		{
-			creaser.f_flush();
+			creaser.f_end();
 		});
 		f_assert_nested(rows.f_creases(), {
 			{2},
