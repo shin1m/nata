@@ -37,20 +37,50 @@ int main(int argc, char* argv[])
 		auto dump = [&]
 		{
 			std::printf("%ls\n", std::wstring(text.f_begin(), text.f_end()).c_str());
-			auto cursor = ts_tree_cursor_new(ts_tree_root_node(parser.f_parse()));
-			f_walk(cursor, 1);
-			ts_tree_cursor_delete(&cursor);
-			uint32_t p;
-			uint32_t n;
-			uint32_t index;
-			while (parser.f_next(p, n, index)) {
-				uint32_t m;
-				auto name = ts_query_capture_name_for_id(query, index, &m);
-				std::printf(" [%d, %d) %s\n", p, n, std::string(name, m).c_str());
+			size_t j = 0;
+			for (auto i = text.f_base().f_begin(); i != text.f_base().f_end(); ++i, ++j) std::printf(" %d:%02x", j, *i);
+			std::printf("\n");
+			auto root = ts_tree_root_node(parser.f_parse());
+			{
+				auto cursor = ts_tree_cursor_new(root);
+				f_walk(cursor, 1);
+				ts_tree_cursor_delete(&cursor);
+			}
+			auto list = [&]
+			{
+				uint32_t p;
+				uint32_t n;
+				uint32_t index;
+				while (parser.f_next(p, n, index)) {
+					uint32_t m;
+					auto name = ts_query_capture_name_for_id(query, index, &m);
+					std::printf(" [%d, %d) %s\n", p, n, std::string(name, m).c_str());
+				}
+			};
+			list();
+			for (auto& x : parser.v_ranges)
+			{
+				std::printf(" changed: %d, %d\n", x.first, x.second);
+				auto node = ts_node_descendant_for_byte_range(root, x.first, x.second);
+				auto cursor = ts_tree_cursor_new(node);
+				f_walk(cursor, 2);
+				ts_tree_cursor_delete(&cursor);
+				parser.f_reset(node);
+				list();
+				parser.f_reset(node, x.first, x.second);
+				list();
 			}
 		};
 		dump();
 		replace(4, 4, L"{\"\u00a3\u0939\": \"\u20ac\U00010348\"}"sv);
+		dump();
+		replace(11, 4, L"null"sv);
+		dump();
+		replace(11, 5, L"2}"sv);
+		dump();
+		replace(11, 2, L""sv);
+		dump();
+		replace(11, 0, L"false}"sv);
 		dump();
 		return 0;
 	} catch (std::pair<uint32_t, TSQueryError>& error) {

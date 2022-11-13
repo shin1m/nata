@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
 			v_message = s.str();
 		}
 
-		nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
+		nata::t_text_replaced v_replaced = [this](auto, auto, auto)
 		{
 			v_painter.f_reset();
 			v_creaser.f_reset();
@@ -219,14 +219,14 @@ int main(int argc, char* argv[])
 			v_painter.f_flush();
 		}
 
-		nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
+		nata::t_text_replaced v_replaced = [this](auto, auto, auto)
 		{
 			v_i = decltype(v_i)(v_overlay.v_text.f_begin(), v_overlay.v_text.f_end(), v_pattern);
 			v_painter.f_reset();
 		};
 	} search{*widget.f_overlays()[0].second};
 	text.v_replaced >> search.v_replaced;
-	search.v_replaced(0, 0, 0);
+	search.v_replaced({}, {}, {});
 	while (true) {
 		view.f_render();
 		size_t position = std::get<0>(widget.v_position);
@@ -306,12 +306,12 @@ int main(int argc, char* argv[])
 						search.v_pattern = {};
 					}
 					clear_overlay(overlay);
-					search.v_replaced(0, 0, 0);
+					search.v_replaced({}, {}, {});
 				}
 				break;
 			case KEY_F(4):
 				search.v_pattern = {};
-				search.v_replaced(0, 0, 0);
+				search.v_replaced({}, {}, {});
 				break;
 			case KEY_F(5):
 				if (position < text.f_size()) {

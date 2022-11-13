@@ -43,15 +43,13 @@ struct t_parser : t_proxy
 	TSTree* v_tree = nullptr;
 	TSQueryCursor* v_cursor = ts_query_cursor_new();
 
-	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto a_p, auto a_n0, auto a_n1)
+	::nata::t_text_replaced v_replaced = [this](auto a_p, auto a_n0, auto a_n1)
 	{
-		auto byte = [&](size_t p) -> uint32_t
-		{
-			return v_p.f_at(p).f_base().f_index().v_byte;
-		};
-		TSInputEdit edit{byte(a_p), byte(a_p + a_n0), byte(a_p + a_n1)};
-		ts_tree_edit(v_tree, &edit);
 		v_parsed = false;
+		if (!v_tree) return;
+		auto p = a_p.v_byte;
+		TSInputEdit edit{static_cast<uint32_t>(p), static_cast<uint32_t>(p + a_n0.v_byte), static_cast<uint32_t>(p + a_n1.v_byte)};
+		ts_tree_edit(v_tree, &edit);
 	};
 	::nata::t_connection<decltype(v_replaced)>* v_connection;
 

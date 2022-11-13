@@ -44,18 +44,18 @@ class t_parser
 	TSTree* v_tree = nullptr;
 	TSQueryCursor* v_cursor = ts_query_cursor_new();
 
-	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto a_p, auto a_n0, auto a_n1)
+	nata::t_text_replaced v_replaced = [this](auto a_p, auto a_n0, auto a_n1)
 	{
-		auto byte = [&](size_t p) -> uint32_t
-		{
-			return v_text.f_at(p).f_base().f_index().v_byte;
-		};
-		TSInputEdit edit{byte(a_p), byte(a_p + a_n0), byte(a_p + a_n1)};
-		ts_tree_edit(v_tree, &edit);
 		v_parsed = false;
+		if (!v_tree) return;
+		auto p = a_p.v_byte;
+		TSInputEdit edit{static_cast<uint32_t>(p), static_cast<uint32_t>(p + a_n0.v_byte), static_cast<uint32_t>(p + a_n1.v_byte)};
+		ts_tree_edit(v_tree, &edit);
 	};
 
 public:
+	std::vector<std::pair<size_t, size_t>> v_ranges;
+
 	t_parser(T_text& a_text, t_query& a_query) : v_text(a_text), v_query(a_query)
 	{
 		v_text.v_replaced >> v_replaced;
@@ -95,10 +95,31 @@ public:
 			},
 			TSInputEncodingUTF8
 		});
-		ts_tree_delete(old);
+		if (old) {
+			uint32_t n;
+			auto ranges = ts_tree_get_changed_ranges(old, v_tree, &n);
+			v_ranges.resize(n);
+			for (uint32_t i = 0; i < n; ++i) {
+				auto& x = ranges[i];
+				v_ranges[i] = {x.start_byte, x.end_byte};
+			}
+			std::free(ranges);
+			ts_tree_delete(old);
+		} else {
+			v_ranges.clear();
+		}
 		ts_query_cursor_exec(v_cursor, v_query, ts_tree_root_node(v_tree));
 		v_parsed = true;
 		return v_tree;
+	}
+	void f_reset(TSNode a_node)
+	{
+		ts_query_cursor_exec(v_cursor, v_query, a_node);
+	}
+	void f_reset(TSNode a_node, uint32_t a_start, uint32_t a_end)
+	{
+		ts_query_cursor_exec(v_cursor, v_query, a_node);
+		ts_query_cursor_set_byte_range(v_cursor, a_start, a_end);
 	}
 	bool f_next(uint32_t& a_p, uint32_t& a_n, uint32_t& a_index)
 	{

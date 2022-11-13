@@ -55,6 +55,8 @@ struct t_lines : t_spans<t_line, A_leaf, A_branch>
 	}
 };
 
+using t_text_replaced = t_slot<jumoku::t_utf8_traits::t_index, jumoku::t_utf8_traits::t_index, jumoku::t_utf8_traits::t_index>;
+
 template<typename T_lines = t_lines<256, 256>, size_t A_leaf = 256, size_t A_branch = 256>
 class t_text : jumoku::t_utf8<A_leaf, A_branch>
 {
@@ -64,8 +66,9 @@ class t_text : jumoku::t_utf8<A_leaf, A_branch>
 
 public:
 	using t_iterator = jumoku::t_utf32_iterator<typename t_array::t_iterator>;
+	using t_replaced = t_text_replaced;
 
-	t_signal<size_t, size_t, size_t> v_replaced;
+	t_signal<jumoku::t_utf8_traits::t_index, jumoku::t_utf8_traits::t_index, jumoku::t_utf8_traits::t_index> v_replaced;
 
 	const t_array& f_base() const
 	{
@@ -106,14 +109,16 @@ public:
 	template<typename T>
 	void f_replace(size_t a_p, size_t a_n, T a_first, T a_last)
 	{
-		auto i = this->f_erase(f_at(a_p).f_base(), f_at(a_p + a_n).f_base());
-		auto n = f_size();
+		auto p = f_at(a_p).f_base();
+		auto q = f_at(a_p + a_n).f_base();
+		auto i = this->f_erase(p, q);
+		auto n = t_array::f_size();
 		{
 			auto j = jumoku::f_utf8_inserter(*this, i);
 			std::copy(a_first, a_last, jumoku::f_utf32_output(j));
 		}
 		v_lines.f_replace(a_p, a_n, a_first, a_last);
-		v_replaced(a_p, a_n, f_size() - n);
+		v_replaced(p.f_index(), q.f_index() - p.f_index(), t_array::f_size() - n);
 	}
 };
 

@@ -13,7 +13,7 @@ struct t_creaser : t_proxy
 	t_view<T_target>& v_view;
 	::nata::t_creaser<std::decay_t<decltype(*t_view<T_target>::v_rows)>>* v_creaser;
 
-	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
+	::nata::t_text_replaced v_replaced = [this](auto, auto, auto)
 	{
 		f_reset();
 	};

@@ -13,12 +13,15 @@ class t_tokens : t_stretches<T_value, A_leaf, A_branch>
 {
 	using t_stretches = nata::t_stretches<T_value, A_leaf, A_branch>;
 
-	t_slot<size_t, size_t, size_t> v_text_replaced = [this](auto a_p, auto a_n0, auto a_n1)
+	typename T_text::t_replaced v_text_replaced = [this](auto a_p, auto a_n0, auto a_n1)
 	{
+		auto p = a_p.v_character;
+		auto n0 = a_n0.v_character;
+		auto n1 = a_n1.v_character;
 		std::deque<typename t_stretches::t_span> xs;
-		if (a_n1 > 0) xs.push_back({{}, a_n1});
-		this->f_replace(a_p, a_n0, std::move(xs));
-		v_replaced(a_p, a_n0, a_n1);
+		if (n1 > 0) xs.push_back({{}, n1});
+		this->f_replace(p, n0, std::move(xs));
+		v_replaced(p, n0, n1);
 	};
 
 public:

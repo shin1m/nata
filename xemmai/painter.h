@@ -13,7 +13,7 @@ struct t_painter : t_proxy
 	t_view<T_target>& v_view;
 	::nata::t_painter<std::decay_t<decltype(*t_view<T_target>::v_tokens)>>* v_painter;
 
-	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
+	::nata::t_text_replaced v_replaced = [this](auto, auto, auto)
 	{
 		f_reset();
 	};

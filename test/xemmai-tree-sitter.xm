@@ -87,3 +87,35 @@ nata.main(@
 	next('(15, 1, 1
 	next('(25, 1, 3
 	next(null
+	text.replace(11, 4, "null"
+	next('(0, 26, 4
+	next('(0, 1, 2
+	next('(4, 12, 4
+	next('(4, 1, 0
+	next('(15, 1, 1
+	next('(25, 1, 3
+	next(null
+	text.replace(11, 5, "2}"
+	next('(0, 23, 4
+	next('(0, 1, 2
+	next('(4, 9, 4
+	next('(4, 1, 0
+	next('(12, 1, 1
+	next('(22, 1, 3
+	next(null
+	text.replace(11, 2, ""
+	next('(0, 21, 4
+	next('(0, 1, 2
+	next('(4, 16, 4
+	next('(4, 1, 0
+	next('(20, 0, 1
+	next('(20, 1, 3
+	next(null
+	text.replace(11, 0, "false}"
+	next('(0, 27, 4
+	next('(0, 1, 2
+	next('(4, 13, 4
+	next('(4, 1, 0
+	next('(16, 1, 1
+	next('(26, 1, 3
+	next(null

@@ -15,7 +15,7 @@ struct t_search : t_proxy
 	std::regex_iterator<decltype(v_p.f_begin())> v_eos;
 	std::regex_iterator<decltype(v_p.f_begin())> v_i;
 
-	::nata::t_slot<size_t, size_t, size_t> v_replaced = [this](auto, auto, auto)
+	::nata::t_text_replaced v_replaced = [this](auto, auto, auto)
 	{
 		f_reset(0, -1);
 	};
