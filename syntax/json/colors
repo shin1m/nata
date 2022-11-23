@@ -1,0 +1,10 @@
+string: red
+number: red
+literal: red
+key: yellow
+keyword: yellow
+escape: magenta
+comment: blue
+bracket: magenta
+object: green
+array: cyan

@@ -27,7 +27,7 @@ struct t_view : t_proxy
 	template<typename T>
 	static t_pvalue f_row(typename T_target::t_library* a_library, const T& a_row)
 	{
-		return f_new(a_library->f_type_row(), a_row.v_i, a_row.v_line, a_row.v_text, a_row.v_x, a_row.v_y);
+		return f_new_value(a_library->f_type_row(), a_row.v_i, a_row.v_line, a_row.v_text, a_row.v_x, a_row.v_y);
 	}
 
 	t_view(t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_target(new T_target(a_x, a_y, a_width, a_height)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, *v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows))
@@ -101,7 +101,7 @@ struct t_view : t_proxy
 	}
 	t_pvalue f_position(typename T_target::t_library* a_library) const
 	{
-		return f_new(a_library->f_type_position(), std::get<0>(v_widget->v_position), std::get<1>(v_widget->v_position), std::get<2>(v_widget->v_position));
+		return f_new_value(a_library->f_type_position(), std::get<0>(v_widget->v_position), std::get<1>(v_widget->v_position), std::get<2>(v_widget->v_position));
 	}
 	void f_position__(size_t a_value, bool a_forward)
 	{
@@ -227,7 +227,7 @@ struct t_overlay_iterator : t_proxy
 	t_pvalue f_next(typename T_target::t_library* a_library)
 	{
 		if (v_overlay.f_disposed() || v_i == v_overlay.v_overlay->f_end()) return nullptr;
-		auto p = f_new(a_library->f_type_overlay_value(), v_i->v_x, v_i.f_index().v_i1, v_i.f_delta().v_i1);
+		auto p = f_new_value(a_library->f_type_overlay_value(), v_i->v_x, v_i.f_index().v_i1, v_i.f_delta().v_i1);
 		++v_i;
 		return p;
 	}

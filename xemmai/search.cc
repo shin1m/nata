@@ -16,7 +16,7 @@ t_pvalue t_search::f_next(t_library* a_library)
 		for (size_t i = 0; i < v_i->size(); ++i) {
 			auto& m = (*v_i)[i];
 			size_t j = m.first.f_index();
-			new(&tuple[i]) t_svalue(f_new(a_library->f_type_span(), j, m.second.f_index() - j));
+			new(&tuple[i]) t_svalue(f_new_value(a_library->f_type_span(), j, m.second.f_index() - j));
 		}
 		if (v_i != v_eos) ++v_i;
 	});

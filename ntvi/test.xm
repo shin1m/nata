@@ -119,11 +119,11 @@ test = @(name, text, f)
 	print(name
 	done = false
 	timers = [
-	vi = natavi.new((Object + @
+	vi = natavi.new(Object + @
 		$quit = @ ::done = true
 		$text = Text
 		$read = @(text, path) text.replace(text.size(), 0, path
-		$main_view = View
+		$main_view = @(text, path) View(text
 		$strip_view = View
 		$timeout = @(timeout, action)
 			x = '(timeout, action
@@ -133,7 +133,7 @@ test = @(name, text, f)
 		$overlay_iterator = OverlayIterator
 		$KEY_BACKSPACE = 0x1008
 		$KEY_ENTER = 0x100a
-	)(), text
+	, text
 	f(vi
 		@(cs)
 			n = cs.size(

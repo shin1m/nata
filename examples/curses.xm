@@ -1,8 +1,9 @@
 system = Module("system"
 io = Module("io"
+time = Module("time"
 nata = Module("nata"
 nata_curses = Module("nata-curses"
-nata_tree_sitter = Module("nata-tree-sitter"
+nata_syntax = Module("../ntvi/syntax"
 
 Session = Object + @
 	$logs
@@ -28,15 +29,17 @@ Session = Object + @
 	$undo = @ $redos.push($replay(*$undos.pop(
 	$redo = @ $undos.push($replay(*$redos.pop(
 
-read = @(text, path)
-	reader = io.Reader(io.File(path, "r"), "utf-8"
+open = @(path, action)
+	reader = io.Reader(io.File("" + path, "r"), "utf-8"
 	try
-		while true
-			s = reader.read(256
-			s == "" && break
-			text.replace(text.size(), 0, s
+		action(reader
 	finally
 		reader.close(
+
+read = @(text, path) open(path, @(reader) while true
+	s = reader.read(256
+	s == "" && break
+	text.replace(text.size(), 0, s
 
 with = @(x, f)
 	try
@@ -87,33 +90,18 @@ nata.main(@ nata_curses.main(@
 	nata_curses.define_pair(1, nata_curses.COLOR_WHITE, -1
 	nata_curses.define_pair(2, nata_curses.COLOR_BLACK, nata_curses.COLOR_WHITE
 	nata_curses.define_pair(3, -1, nata_curses.COLOR_YELLOW
-	nata_curses.define_pair(4, nata_curses.COLOR_RED, -1
-	nata_curses.define_pair(5, nata_curses.COLOR_GREEN, -1
-	nata_curses.define_pair(6, nata_curses.COLOR_YELLOW, -1
-	nata_curses.define_pair(7, nata_curses.COLOR_BLUE, -1
-	nata_curses.define_pair(8, nata_curses.COLOR_MAGENTA, -1
-	nata_curses.define_pair(9, nata_curses.COLOR_CYAN, -1
-	capture2token = {
-		"string": nata_curses.Token(nata_curses.color_pair(4
-		"number": nata_curses.Token(nata_curses.color_pair(4
-		"literal": nata_curses.Token(nata_curses.color_pair(4
-		"key": nata_curses.Token(nata_curses.color_pair(6
-		"keyword": nata_curses.Token(nata_curses.color_pair(6
-		"escape": nata_curses.Token(nata_curses.color_pair(8
-		"comment": nata_curses.Token(nata_curses.color_pair(7
-		"bracket": nata_curses.Token(nata_curses.color_pair(8
-		"object": nata_curses.Token(nata_curses.color_pair(5
-		"array": nata_curses.Token(nata_curses.color_pair(9
+	nata_syntax.initialize(4
 	text = nata.Text(
-	if system.arguments.size() > 0
-		read(text, system.arguments[0]
-	else
+	path = system.arguments.size() > 0 ? system.arguments[0] : null
+	if path === null
 		text.replace(0, -1, "{
   \"hello\": [\"Hello\", \"World!\"],
   \"by\": [\"This\", \"is\", \"shin.\"],
   \"bye\": [\"Good\", \"bye.\"]
 }
 "
+	else
+		read(text, path
 	size = nata_curses.size(
 	view = nata_curses.View(text, 0, 0, size[0], size[1] - 1
 	view.attributes(
@@ -138,61 +126,14 @@ nata.main(@ nata_curses.main(@
 		p = last_position
 		session.log(@ log_position(p
 		session.commit("edit"
-	message = ""
-	syntax = (@
-		UNIT = 4
-		query = nata_tree_sitter.Query(
-			Module("nata-tree-sitter-json").language
-			"
-(number) @number
-(string) @string
-(escape_sequence) @escape
-[(null) (true) (false)] @literal
-(pair key: (_) @key)
-[\"{\" \"}\" \"[\" \"]\"] @bracket
-(comment) @comment
-(object) @object
-(array) @array
-[(object) (array)] @crease
-"
-		parser = nata_tree_sitter.Parser(text, query
-		painter = nata_curses.Painter(view
-		creaser = nata_curses.Creaser(view
-		paint = @(p) while true
-			token = tokens[0]
-			to = p < token[1] ? p : token[1]
-			q = painter.current(
-			q < to && painter.push(token[0], to - q, 64
-			to < token[1] && break
-			tokens.shift(
-		captures = [
-		query.captures().each(@(x)
-			if x == "crease"
-				captures.push(@(p, n) creaser.push(p - creaser.current(), n
-			else
-				token = capture2token.has(x) ? capture2token[x] : null
-				captures.push(@(p, n)
-					paint(p
-					tokens.unshift('(token, p + n
-		step = @
-			parser.parsed() || (:tokens = ['(null, text.size() + 1)])
-			for i = 0; i < UNIT; i = i + 1
-				(match = parser.next()) === null && break
-				captures[match[2]](match[0], match[1]
-			if match === null
-				paint(text.size(
-				painter.flush(
-				creaser.end(
-				:message = ""
-			else
-				painter.flush(
-				:message = "running: " + painter.current() * 100 / text.size() + "%"
-		(Object + @
-			$more = @ !parser.parsed() || painter.current() < text.size()
-			$step = step
-		)(
-	)(
 	done = false
+	timers = [
+	tasks = [
+	message = ""
+	syntax = nata_syntax.new(text, path, view, @(size, current)
+		:message = "running: " + current * 100 / size + "%"
+		timers.push('(time.now(), @
+	syntax !== null && tasks.push(syntax.step
 	backspace = @
 		position = view.position().text
 		if position > 0
@@ -268,26 +209,33 @@ nata.main(@ nata_curses.main(@
 			session.undos.size() +
 			(session.logs === null ? "" : "?" + session.logs.size()) +
 			(session.redos.size() > 0 ? "|" + session.redos.size() : "") + ">"
-	update_status(
 	while !done
+		now = time.now(
+		ts = timers
+		timers = [
+		ts.each(@(x) x[0] > now ? timers.push(x) : x[1](
+		tasks.each(@(x) x(
+		if message != ""
+			status.replace(0, -1, message
+			message = ""
+		else
+			update_status(
+		view.into_view(view.position().text
 		view.render(
 		strip.render(
-		view.timeout(syntax.more() ? 0 : -1
-		c = null
+		timeout = -1
+		timers.each(@(x)
+			t = Integer((x[0] - now) * 1000.0
+			(timeout < 0 || t < timeout) && (:timeout = t)
+		view.timeout(timeout
 		try
 			c = view.get(
 		catch Throwable t
-		if c !== null
-			action = null
-			try
-				action = actions[c]
-			catch Throwable t
-				(c == nata_curses.KEY_ENTER || c == 0xd) && (c = 0xa)
-				edit(@ session.merge(view.position().text, 0, String.from_code(c
-			action !== null && action(
-			view.into_view(view.position().text
-		syntax.step(
-		if message != ""
-			status.replace(0, -1, message
-		else if c !== null || !syntax.more()
-			update_status(
+			continue
+		try
+			action = actions[c]
+		catch Throwable t
+			(c == nata_curses.KEY_ENTER || c == 0xd) && (c = 0xa)
+			edit(@ session.merge(view.position().text, 0, String.from_code(c
+			continue
+		action(

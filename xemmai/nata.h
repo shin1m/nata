@@ -134,26 +134,6 @@ XEMMAI__LIBRARY__TYPE(t_library, proxy)
 XEMMAI__LIBRARY__TYPE(t_library, text)
 XEMMAI__LIBRARY__TYPE(t_library, search)
 
-inline void f__new(t_svalue* a_p)
-{
-}
-
-template<typename T_x, typename... T_xs>
-inline void f__new(t_svalue* a_p, T_x&& a_x, T_xs&&... a_xs)
-{
-	new(a_p) t_svalue(std::forward<T_x>(a_x));
-	f__new(++a_p, std::forward<T_xs>(a_xs)...);
-}
-
-template<typename... T_xs>
-inline t_object* f_new(t_type* a_type, T_xs&&... a_xs)
-{
-	auto p = f_engine()->f_allocate(sizeof(t_svalue) * sizeof...(a_xs));
-	f__new(p->f_fields(0), std::forward<T_xs>(a_xs)...);
-	p->f_be(a_type);
-	return p;
-}
-
 }
 
 #endif

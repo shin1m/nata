@@ -1,6 +1,6 @@
 #include <nata/model.h>
-#include <string>
 #include "tree_sitter.h"
+#include <string>
 
 extern "C" TSLanguage* tree_sitter_json();
 

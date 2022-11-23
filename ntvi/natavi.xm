@@ -76,7 +76,7 @@ Buffer = Object + @
 		path !== null && host.read(text, path
 		$path = path
 		$session = TextSession(text
-		$view = host.main_view(text
+		$view = host.main_view(text, path
 		$selection = host.selection($view
 	$dispose = @
 		$selection.dispose(
@@ -562,13 +562,11 @@ $new = @(host, path)
 			session.merge(p, 0, String.from_code(c
 	)(
 	mode_visual = (Mode + @
-		each = @(overlay, f)
-			with(host.overlay_iterator(overlay), @(i)
-				while (x = i.next()) !== null
-					x.value && f(x.from, x.count
 		clear = @
 			xs = [
-			each(selection, @(p, n) xs.push('(p, n
+			with(host.overlay_iterator(selection), @(i)
+				while (x = i.next()) !== null
+					x.value && xs.push('(x.from, x.count
 			xs.each(@(x) selection.paint(x[0], x[1], false
 			xs
 		for_selection = @(c, f)

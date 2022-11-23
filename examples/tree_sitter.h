@@ -1,6 +1,7 @@
 #ifndef NATA__TREE_SITTER_H
 #define NATA__TREE_SITTER_H
 
+#include <string_view>
 #include <tree_sitter/api.h>
 
 namespace nata::tree_sitter

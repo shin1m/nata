@@ -45,7 +45,7 @@ struct t_text : t_proxy
 	static t_pvalue f_line(t_library* a_library, const T& a_line)
 	{
 		auto i = a_line.f_index();
-		return f_new(a_library->f_type_line(), i.v_i0, i.v_i1, a_line.f_delta().v_i1);
+		return f_new_value(a_library->f_type_line(), i.v_i0, i.v_i1, a_line.f_delta().v_i1);
 	}
 	t_pvalue f_line_at(t_library* a_library, size_t a_p) const
 	{

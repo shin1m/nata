@@ -4,11 +4,13 @@
 #include <nata/painter.h>
 #include <nata/creaser.h>
 #include <nata/curses.h>
+#include "tree_sitter.h"
+#include <filesystem>
 #include <fstream>
 #include <regex>
-#include "tree_sitter.h"
+#include <dlfcn.h>
 
-extern "C" TSLanguage* tree_sitter_json();
+using namespace std::literals;
 
 #if 0
 constexpr size_t c_text_chunk = 4096;
@@ -48,14 +50,168 @@ struct t_view
 	}
 };
 
+std::regex pattern_pair("\\s*([^:]+?)\\s*:\\s*(.*)");
+
+std::map<std::string, std::string> f_read_pairs(const std::filesystem::path& a_path)
+{
+	std::map<std::string, std::string> pairs;
+	std::ifstream in(a_path);
+	auto c = in.get();
+	while (c != EOF) {
+		std::vector<char> line;
+		while (true) {
+			if (c == '\r') c = in.get();
+			if (c == EOF) break;
+			if (c == '\n') {
+				c = in.get();
+				break;
+			}
+			line.push_back(c);
+			c = in.get();
+		}
+		std::cmatch match;
+		if (std::regex_match(line.data(), match, pattern_pair)) pairs.emplace(match[1], match[2]);
+	}
+	return pairs;
+}
+
+std::filesystem::path syntax_root;
+
+std::pair<std::unique_ptr<nata::tree_sitter::t_query>, std::map<std::string, std::string>> f_try_syntax(t_text& a_text, const std::string_view a_path, const std::filesystem::path& a_type)
+{
+	auto detect = f_read_pairs(a_type / "detect"sv);
+	auto match = false;
+	if (!a_path.empty()) {
+		auto i = detect.find("suffix");
+		if (i != detect.end()) {
+			auto j = a_path.size() - i->second.size();
+			if (j >= 0 && a_path.substr(j) == i->second) match = true;
+		}
+	}
+	if (!match) {
+		auto i = detect.find("first");
+		if (i != detect.end()) {
+			std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
+			if (std::regex_search(a_text.f_begin(), a_text.f_end(), std::wregex(convert.from_bytes(i->second)))) match = true;
+		}
+	}
+	if (!match) return {};
+	auto handle = dlopen(NULL, RTLD_LAZY);
+	if (!handle) throw std::runtime_error("dlopen");
+	auto language = dlsym(handle, ("tree_sitter_" + a_type.filename().string()).c_str());
+	dlclose(handle);
+	if (!language) throw std::runtime_error(dlerror());
+	std::string query;
+	{
+		std::ifstream in(a_type / "query.scm"sv);
+		query.assign(std::istreambuf_iterator<char>(in), {});
+	}
+	return {std::make_unique<nata::tree_sitter::t_query>(reinterpret_cast<TSLanguage*(*)()>(language)(), query), f_read_pairs(a_type / "colors"sv)};
+}
+
+std::pair<std::unique_ptr<nata::tree_sitter::t_query>, std::map<std::string, std::string>> f_load_syntax(t_text& a_text, const std::string_view a_path)
+{
+	for (auto& type : std::filesystem::directory_iterator(syntax_root)) {
+		auto [query, capture2color] = f_try_syntax(a_text, a_path, type);
+		if (query) return {std::move(query), std::move(capture2color)};
+	}
+	return {};
+}
+
+const std::map<std::string_view, attr_t> color2token{
+	{"red"sv, COLOR_PAIR(4)},
+	{"green"sv, COLOR_PAIR(5)},
+	{"yellow"sv, COLOR_PAIR(6)},
+	{"blue"sv, COLOR_PAIR(7)},
+	{"magenta"sv, COLOR_PAIR(8)},
+	{"cyan"sv, COLOR_PAIR(9)}
+};
+
+struct t_syntax
+{
+	decltype(t_view::v_rows)& v_rows;
+	std::unique_ptr<nata::tree_sitter::t_query> v_query;
+	nata::t_painter<decltype(t_view::v_tokens)> v_painter{v_rows.v_tokens};
+	nata::t_creaser<decltype(t_view::v_rows)> v_creaser{v_rows};
+	nata::tree_sitter::t_parser<t_text> v_parser{v_rows.v_tokens.v_text, *v_query};
+	std::vector<std::pair<attr_t, uint32_t>> v_tokens;
+	std::vector<std::function<void(uint32_t, uint32_t)>> v_captures;
+
+	nata::t_text_replaced v_replaced = [this](auto, auto, auto)
+	{
+		v_painter.f_reset();
+		v_creaser.f_reset();
+	};
+
+	void f_paint(uint32_t a_p)
+	{
+		while (true) {
+			auto [token, to] = v_tokens.back();
+			auto p = a_p < to ? a_p : to;
+			auto q = v_painter.f_current();
+			if (q < p) v_painter.f_push(token, p - q, 64);
+			if (p < to) break;
+			v_tokens.pop_back();
+		}
+	}
+	t_syntax(decltype(t_view::v_rows)& a_rows, std::unique_ptr<nata::tree_sitter::t_query>&& a_query, const std::map<std::string, std::string>& a_capture2color) : v_rows(a_rows), v_query(std::move(a_query))
+	{
+		v_rows.v_tokens.v_text.v_replaced >> v_replaced;
+		auto count = ts_query_capture_count(*v_query);
+		for (size_t i = 0; i < count; ++i) {
+			uint32_t n;
+			auto p = ts_query_capture_name_for_id(*v_query, i, &n);
+			std::string_view name(p, n);
+			if (name == "crease"sv) {
+				v_captures.emplace_back([&](uint32_t p, uint32_t n)
+				{
+					v_creaser.f_push(p - v_creaser.f_current(), n);
+				});
+			} else {
+				auto token = A_NORMAL;
+				auto i = a_capture2color.find(std::string(name));
+				if (i != a_capture2color.end()) {
+					auto j = color2token.find(i->second);
+					if (j != color2token.end()) token = j->second;
+				}
+				v_captures.emplace_back([&, token](uint32_t p, uint32_t n)
+				{
+					f_paint(p);
+					v_tokens.emplace_back(token, p + n);
+				});
+			}
+		}
+	}
+	bool operator()()
+	{
+		auto size = v_rows.v_tokens.v_text.f_size();
+		if (!v_parser.f_parsed()) {
+			v_tokens.clear();
+			v_tokens.emplace_back(A_NORMAL, size + 1);
+		}
+		for (size_t i = 0; i < c_task_unit; ++i) {
+			uint32_t p;
+			uint32_t n;
+			uint32_t index;
+			if (!v_parser.f_next(p, n, index)) {
+				f_paint(size);
+				v_painter.f_flush();
+				v_creaser.f_end();
+				return false;
+			}
+			v_captures[index](p, n);
+		}
+		v_painter.f_flush();
+		return true;
+	}
+};
+
 constexpr attr_t attribute_selected = A_REVERSE;
 constexpr attr_t attribute_highlighted = COLOR_PAIR(3);
-constexpr attr_t attribute_comment = COLOR_PAIR(4);
-constexpr attr_t attribute_keyword = COLOR_PAIR(5);
 
 int main(int argc, char* argv[])
 {
-	using namespace std::literals;
+	std::locale::global(std::locale(""));
 	nata::curses::t_session session;
 	init_pair(1, COLOR_WHITE, -1);
 	init_pair(2, COLOR_BLACK, COLOR_WHITE);
@@ -67,9 +223,9 @@ int main(int argc, char* argv[])
 	init_pair(8, COLOR_MAGENTA, -1);
 	init_pair(9, COLOR_CYAN, -1);
 	t_text text;
-	if (argc > 1) {
-		std::wifstream in(argv[1]);
-		in.imbue(std::locale(""));
+	auto path = argc > 1 ? argv[1] : nullptr;
+	if (path) {
+		std::wifstream in(path);
 		while (in.good()) {
 			wchar_t cs[256];
 			in.read(cs, sizeof(cs) / sizeof(wchar_t));
@@ -88,111 +244,21 @@ int main(int argc, char* argv[])
 	widget.f_add_overlay(attribute_selected);
 	t_text status;
 	t_view strip(status, 0, LINES - 1, COLS, 1);
-	struct
+	std::wstring message;
+	std::vector<std::pair<std::chrono::time_point<std::chrono::steady_clock>, std::function<void()>>> timers;
+	std::vector<std::function<void()>> tasks;
 	{
-		decltype(view.v_rows)& v_rows;
-		nata::t_painter<decltype(view.v_tokens)> v_painter{v_rows.v_tokens};
-		nata::t_creaser<decltype(view.v_rows)> v_creaser{v_rows};
-		nata::tree_sitter::t_query v_query{tree_sitter_json(), R"scm(
-(number) @number
-(string) @string
-(escape_sequence) @escape
-[(null) (true) (false)] @literal
-(pair key: (_) @key)
-["{" "}" "[" "]"] @bracket
-(comment) @comment
-(object) @object
-(array) @array
-[(object) (array)] @crease
-)scm"sv};
-		nata::tree_sitter::t_parser<decltype(text)> v_parser{v_rows.v_tokens.v_text, v_query};
-		std::vector<std::pair<attr_t, uint32_t>> v_tokens;
-		std::map<std::string_view, attr_t> v_capture2token{
-			{"string"sv, COLOR_PAIR(4)},
-			{"number"sv, COLOR_PAIR(4)},
-			{"literal"sv, COLOR_PAIR(4)},
-			{"key"sv, COLOR_PAIR(6)},
-			{"keyword"sv, COLOR_PAIR(6)},
-			{"escape"sv, COLOR_PAIR(8)},
-			{"comment"sv, COLOR_PAIR(7)},
-			{"bracket"sv, COLOR_PAIR(8)},
-			{"object"sv, COLOR_PAIR(5)},
-			{"array"sv, COLOR_PAIR(9)}
-		};
-		std::vector<std::function<void(uint32_t, uint32_t)>> v_captures;
-		std::wstring v_message;
-
-		void f_paint(uint32_t a_p)
+		syntax_root = std::filesystem::path(argv[0]).parent_path().parent_path() / "syntax"sv;
+		auto [query, capture2color] = f_load_syntax(text, path ? path : ""sv);
+		if (query) tasks.emplace_back([&, syntax = std::make_shared<t_syntax>(view.v_rows, std::move(query), capture2color)]
 		{
-			while (true) {
-				auto [token, to] = v_tokens.back();
-				auto p = a_p < to ? a_p : to;
-				auto q = v_painter.f_current();
-				if (q < p) v_painter.f_push(token, p - q, 64);
-				if (p < to) break;
-				v_tokens.pop_back();
-			}
-		}
-		void f_initialize()
-		{
-			v_rows.v_tokens.v_text.v_replaced >> v_replaced;
-			auto count = ts_query_capture_count(v_query);
-			for (size_t i = 0; i < count; ++i) {
-				uint32_t n;
-				auto p = ts_query_capture_name_for_id(v_query, i, &n);
-				std::string_view name(p, n);
-				if (name == "crease"sv) {
-					v_captures.emplace_back([&](uint32_t p, uint32_t n)
-					{
-						v_creaser.f_push(p - v_creaser.f_current(), n);
-					});
-				} else {
-					auto i = v_capture2token.find(name);
-					v_captures.emplace_back([&, token = i == v_capture2token.end() ? A_NORMAL : i->second](uint32_t p, uint32_t n)
-					{
-						f_paint(p);
-						v_tokens.emplace_back(token, p + n);
-					});
-				}
-			}
-		}
-		operator bool() const
-		{
-			return !v_parser.f_parsed() || v_painter.f_current() < v_rows.v_tokens.v_text.f_size();
-		}
-		void operator()()
-		{
-			auto size = v_rows.v_tokens.v_text.f_size();
-			if (!v_parser.f_parsed()) {
-				v_tokens.clear();
-				v_tokens.emplace_back(A_NORMAL, size + 1);
-			}
-			for (size_t i = 0; i < c_task_unit; ++i) {
-				uint32_t p;
-				uint32_t n;
-				uint32_t index;
-				if (!v_parser.f_next(p, n, index)) {
-					f_paint(size);
-					v_painter.f_flush();
-					v_creaser.f_end();
-					v_message.clear();
-					return;
-				}
-				v_captures[index](p, n);
-			}
-			v_painter.f_flush();
+			if (!(*syntax)()) return;
 			std::wostringstream s;
-			s << L"running: "sv << v_painter.f_current() * 100 / size << L'%';
-			v_message = s.str();
-		}
-
-		nata::t_text_replaced v_replaced = [this](auto, auto, auto)
-		{
-			v_painter.f_reset();
-			v_creaser.f_reset();
-		};
-	} syntax{view.v_rows};
-	syntax.f_initialize();
+			s << L"running: "sv << syntax->v_painter.f_current() * 100 / text.f_size() << L'%';
+			message = s.str();
+			timers.emplace_back(std::chrono::steady_clock::now(), []{});
+		});
+	}
 	struct
 	{
 		decltype(*widget.f_overlays()[0].second) v_overlay;
@@ -201,13 +267,10 @@ int main(int argc, char* argv[])
 		std::regex_iterator<decltype(text.f_begin())> v_eos;
 		std::regex_iterator<decltype(text.f_begin())> v_i;
 
-		operator bool() const
+		bool operator()()
 		{
-			return v_painter.f_current() < v_overlay.v_text.f_size();
-		}
-		void operator()()
-		{
-			if (!*this) return;
+			auto size = v_overlay.v_text.f_size();
+			if (v_painter.f_current() >= size) return false;
 			for (size_t i = 0; i < c_task_unit; ++i) {
 				if (v_i == v_eos) break;
 				auto& m = (*v_i)[0];
@@ -215,8 +278,9 @@ int main(int argc, char* argv[])
 				v_painter.f_push(true, m.second.f_index() - m.first.f_index(), 64);
 				++v_i;
 			}
-			if (v_i == v_eos) v_painter.f_push(false, v_overlay.v_text.f_size() - v_painter.f_current(), 64);
+			if (v_i == v_eos) v_painter.f_push(false, size - v_painter.f_current(), 64);
 			v_painter.f_flush();
+			return true;
 		}
 
 		nata::t_text_replaced v_replaced = [this](auto, auto, auto)
@@ -227,10 +291,23 @@ int main(int argc, char* argv[])
 	} search{*widget.f_overlays()[0].second};
 	text.v_replaced >> search.v_replaced;
 	search.v_replaced({}, {}, {});
+	tasks.emplace_back([&]
+	{
+		if (search()) timers.emplace_back(std::chrono::steady_clock::now(), []{});
+	});
 	while (true) {
-		view.f_render();
+		auto now = std::chrono::steady_clock::now();
+		{
+			auto ts = std::move(timers);
+			for (auto& x : ts)
+				if (x.first > now)
+					timers.push_back(x);
+				else
+					x.second();
+		}
+		for (auto& x : tasks) x();
 		size_t position = std::get<0>(widget.v_position);
-		if (syntax.v_message.empty()) {
+		if (message.empty()) {
 			auto line = text.f_lines().f_at_in_text(position).f_index();
 			size_t column = position - line.v_i1;
 			size_t x = std::get<1>(widget.v_position) - widget.v_line.v_x;
@@ -240,11 +317,19 @@ int main(int argc, char* argv[])
 			auto s = ss.str();
 			status.f_replace(0, status.f_size(), s.begin(), s.end());
 		} else {
-			status.f_replace(0, status.f_size(), syntax.v_message.begin(), syntax.v_message.end());
+			status.f_replace(0, status.f_size(), message.begin(), message.end());
+			message.clear();
 		}
+		widget.f_into_view(widget.v_row);
+		view.f_render();
 		strip.f_render();
 		view.v_target.f_cursor(std::get<1>(widget.v_position) - widget.v_row.f_index().v_x, widget.v_row.f_index().v_y - widget.v_top);
-		view.v_target.f_timeout(syntax || search ? 0 : -1);
+		auto timeout = -1;
+		for (auto& x : timers) {
+			auto t = (x.first - now) / 1ms;
+			if (timeout < 0 || t < timeout) timeout = t;
+		}
+		view.v_target.f_timeout(timeout);
 		wint_t c;
 		if (view.v_target.f_get(c) != ERR) {
 			if (c == 0x1b) break;
@@ -328,10 +413,7 @@ int main(int argc, char* argv[])
 			default:
 				text.f_replace(position, 0, &c, &c + 1);
 			}
-			widget.f_into_view(widget.v_row);
 		}
-		syntax();
-		search();
 	}
 	return 0;
 }
