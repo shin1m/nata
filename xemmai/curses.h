@@ -39,29 +39,7 @@ public:
 	t_library(xemmai::t_library::t_handle* a_handle, const t_pvalue& a_nata) : xemmai::t_library(a_handle), v_module_nata(a_nata), v_nata(&v_module_nata->f_as<t_module>().v_body->f_as<xemmaix::nata::t_library>())
 	{
 	}
-	virtual void f_scan(t_scan a_scan);
-	virtual std::vector<std::pair<t_root, t_rvalue>> f_define();
-	template<typename T>
-	const T* f_library() const
-	{
-		return v_nata->f_library<T>();
-	}
-	template<typename T>
-	t_slot_of<t_type>& f_type_slot()
-	{
-		return v_nata->f_type_slot<T>();
-	}
-	template<typename T>
-	t_type* f_type() const
-	{
-		return const_cast<t_library*>(this)->f_type_slot<T>();
-	}
-	template<typename T>
-	t_pvalue f_as(T&& a_value) const
-	{
-		using t = t_type_of<typename t_fundamental<T>::t_type>;
-		return t::f_transfer(f_library<typename t::t_library>(), std::forward<T>(a_value));
-	}
+	XEMMAI__LIBRARY__MEMBERS
 	t_type* f_type_position() const
 	{
 		return v_type_position;
@@ -101,12 +79,8 @@ struct t_target : ::nata::curses::t_target
 	};
 };
 
-template<>
-inline const t_library* t_library::f_library<t_library>() const
-{
-	return this;
-}
-
+XEMMAI__LIBRARY__BASE(t_library, t_global, f_global())
+XEMMAI__LIBRARY__BASE(t_library, xemmaix::nata::t_library, v_nata)
 XEMMAI__LIBRARY__TYPE(t_library, token)
 XEMMAI__LIBRARY__TYPE_AS(t_library, t_view<t_target>, view)
 XEMMAI__LIBRARY__TYPE_AS(t_library, t_overlay<t_target>, overlay)
