@@ -93,6 +93,21 @@ XEMMAI__LIBRARY__TYPE(t_library, language)
 XEMMAI__LIBRARY__TYPE(t_library, query)
 XEMMAI__LIBRARY__TYPE(t_library, parser)
 
+struct t_language_library : xemmai::t_library
+{
+	t_slot v_module_nata_tree_sitter;
+	xemmaix::nata::tree_sitter::t_library* v_nata_tree_sitter;
+	TSLanguage* v_language;
+
+	t_language_library(xemmai::t_library::t_handle* a_handle, const t_pvalue& a_nata_tree_sitter, TSLanguage* a_language) : xemmai::t_library(a_handle), v_module_nata_tree_sitter(a_nata_tree_sitter), v_nata_tree_sitter(&v_module_nata_tree_sitter->f_as<t_module>().v_body->f_as<xemmaix::nata::tree_sitter::t_library>()), v_language(a_language)
+	{
+	}
+	XEMMAI__LIBRARY__MEMBERS
+};
+
+XEMMAI__LIBRARY__BASE(t_language_library, t_global, f_global())
+XEMMAI__LIBRARY__BASE(t_language_library, xemmaix::nata::tree_sitter::t_library, v_nata_tree_sitter)
+
 }
 
 namespace xemmai

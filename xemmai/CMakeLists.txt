@@ -11,9 +11,20 @@ target_include_directories(nata-tree-sitter INTERFACE ${TREE_SITTER}/lib/include
 target_link_libraries(nata-tree-sitter INTERFACE nata)
 add_module(nata-tree-sitter tree_sitter.cc ${TREE_SITTER}/lib/src/lib.c)
 function(add_tree_sitter_language name)
-	add_library(nata-tree-sitter-${name}-xemmai MODULE tree_sitter_${name}.cc ${TREE_SITTER}-${name}/src/parser.c)
-	target_link_libraries(nata-tree-sitter-${name}-xemmai PRIVATE nata-tree-sitter xemmai)
-	set_target_properties(nata-tree-sitter-${name}-xemmai PROPERTIES OUTPUT_NAME nata-tree-sitter-${name} PREFIX "")
-	install(TARGETS nata-tree-sitter-${name}-xemmai DESTINATION lib/xemmai-${xemmai_VERSION_MAJOR})
+	file(GENERATE OUTPUT tree_sitter_${name}.cc CONTENT "\
+#include \"tree_sitter.h\"
+extern \"C\" TSLanguage* tree_sitter_${name}();
+XEMMAI__MODULE__FACTORY(xemmai::t_library::t_handle* a_handle)
+{
+	using namespace std::literals;
+	return xemmai::f_new<xemmaix::nata::tree_sitter::t_language_library>(a_handle, xemmai::t_module::f_instantiate(L\"nata-tree-sitter\"sv), tree_sitter_${name}());
+}
+")
+	set(target nata-tree-sitter-${name}-xemmai)
+	add_library(${target} MODULE ${CMAKE_CURRENT_BINARY_DIR}/tree_sitter_${name}.cc ${TREE_SITTER}-${name}/src/parser.c)
+	target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+	target_link_libraries(${target} PRIVATE nata-tree-sitter xemmai)
+	set_target_properties(${target} PROPERTIES OUTPUT_NAME nata-tree-sitter-${name} PREFIX "")
+	install(TARGETS ${target} DESTINATION lib/xemmai-${xemmai_VERSION_MAJOR})
 endfunction()
 add_tree_sitter_language(json)

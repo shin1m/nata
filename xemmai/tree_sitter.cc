@@ -157,6 +157,18 @@ std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
 	;
 }
 
+void t_language_library::f_scan(t_scan a_scan)
+{
+	a_scan(v_module_nata_tree_sitter);
+}
+
+std::vector<std::pair<t_root, t_rvalue>> t_language_library::f_define()
+{
+	return t_define(this)
+		(L"language"sv, f_new<t_language>(this, t_object::f_of(this), v_language))
+	;
+}
+
 }
 
 XEMMAI__MODULE__FACTORY(xemmai::t_library::t_handle* a_handle)
