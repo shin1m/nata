@@ -33,7 +33,7 @@ read_pairs = @(path) open(path, @(reader)
 		pairs[name] = value
 	pairs
 
-syntax_root = io.Path(system.script) / ".." / ".." / "syntax"
+syntax_root = os.Path(system.script) / ".." / ".." / "syntax"
 
 try_syntax = @(text, path, type)
 	parent = syntax_root / type
