@@ -1,0 +1,7 @@
+string: red
+number: red
+keyword: yellow
+comment: blue
+embedded: magenta
+function: cyan
+property: cyan

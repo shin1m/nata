@@ -13,7 +13,7 @@ void f_walk(TSTreeCursor& a_cursor, size_t a_indent)
 		do f_walk(a_cursor, a_indent); while (ts_tree_cursor_goto_next_sibling(&a_cursor));
 		ts_tree_cursor_goto_parent(&a_cursor);
 	}
-};
+}
 
 int main(int argc, char* argv[])
 {

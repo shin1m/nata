@@ -36,23 +36,16 @@ read_pairs = @(path) open(path, @(reader)
 syntax_root = os.Path(system.script) / ".." / ".." / "syntax"
 
 try_syntax = @(text, path, type)
+	match = @(text, pattern)
+		search = nata.Search(text
+		try
+			search.pattern(pattern, nata.Search.ECMASCRIPT
+			search.reset(0, -1
+			search.next().size() > 0
+		finally
+			search.dispose(
 	parent = syntax_root / type
-	detect = read_pairs(parent / "detect"
-	match = @
-		if path !== null && detect.has("suffix")
-			suffix = detect["suffix"]
-			i = path.size() - suffix.size()
-			i >= 0 && path.substring(i) == suffix && return true
-		if detect.has("first")
-			search = nata.Search(text
-			try
-				search.pattern(detect["first"], nata.Search.ECMASCRIPT
-				search.reset(0, -1
-				search.next().size() > 0 && return true
-			finally
-				search.dispose(
-		false
-	!match() ? null : '(
+	load = @ '(
 		nata_tree_sitter.Query(
 			Module("nata-tree-sitter-" + type).language
 			open(parent / "query.scm", @(reader)
@@ -63,6 +56,15 @@ try_syntax = @(text, path, type)
 					text = text + s
 				text
 		read_pairs(parent / "colors"
+	detect = read_pairs(parent / "detect"
+	if path !== null && detect.has("path")
+		t = nata.Text(
+		t.replace(0, 0, path
+		try
+			match(t, detect["path"]) && return load(
+		finally
+			t.dispose(
+	detect.has("content") && match(text, detect["content"]) ? load() : null
 
 load_syntax = @(text, path)
 	root = os.Directory("" + syntax_root)

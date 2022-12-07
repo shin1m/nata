@@ -69,8 +69,8 @@ std::map<std::string, std::string> f_read_pairs(const std::filesystem::path& a_p
 			line.push_back(c);
 			c = in.get();
 		}
-		std::cmatch match;
-		if (std::regex_match(line.data(), match, pattern_pair)) pairs.emplace(match[1], match[2]);
+		std::match_results<std::vector<char>::iterator> match;
+		if (std::regex_match(line.begin(), line.end(), match, pattern_pair)) pairs.emplace(match[1], match[2]);
 	}
 	return pairs;
 }
@@ -82,14 +82,11 @@ std::pair<std::unique_ptr<nata::tree_sitter::t_query>, std::map<std::string, std
 	auto detect = f_read_pairs(a_type / "detect"sv);
 	auto match = false;
 	if (!a_path.empty()) {
-		auto i = detect.find("suffix");
-		if (i != detect.end()) {
-			auto j = a_path.size() - i->second.size();
-			if (j >= 0 && a_path.substr(j) == i->second) match = true;
-		}
+		auto i = detect.find("path");
+		if (i != detect.end() && std::regex_search(a_path.begin(), a_path.end(), std::regex(i->second))) match = true;
 	}
 	if (!match) {
-		auto i = detect.find("first");
+		auto i = detect.find("content");
 		if (i != detect.end()) {
 			std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
 			if (std::regex_search(a_text.f_begin(), a_text.f_end(), std::wregex(convert.from_bytes(i->second)))) match = true;

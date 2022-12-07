@@ -1,0 +1,8 @@
+string: red
+constant: red
+type: green
+keyword: yellow
+variable.builtin: yellow
+comment: blue
+preprocessor: magenta
+function: cyan
