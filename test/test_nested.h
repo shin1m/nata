@@ -26,8 +26,7 @@ struct t_test_span
 	}
 };
 
-template<typename T>
-inline bool operator==(const T& a_x, const t_test_span& a_y)
+inline bool operator==(const auto& a_x, const t_test_span& a_y)
 {
 	if (!a_x.v_x != !a_y.v_x) return false;
 	if (a_x.v_x) {

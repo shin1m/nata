@@ -41,8 +41,7 @@ struct t_text : t_proxy
 	{
 		return v_text->f_lines().f_size().v_i0;
 	}
-	template<typename T>
-	static t_pvalue f_line(t_library* a_library, const T& a_line)
+	static t_pvalue f_line(t_library* a_library, const auto& a_line)
 	{
 		auto i = a_line.f_index();
 		return f_new_value(a_library->f_type_line(), i.v_i0, i.v_i1, a_line.f_delta().v_i1);

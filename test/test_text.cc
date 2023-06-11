@@ -4,8 +4,8 @@
 
 using namespace std::literals;
 
-template<typename T_lines, size_t A_leaf, size_t A_branch, typename T>
-void f_assert_equals(const nata::t_text<T_lines, A_leaf, A_branch>& a0, const T& a1)
+template<typename T_lines, size_t A_leaf, size_t A_branch>
+void f_assert_equals(const nata::t_text<T_lines, A_leaf, A_branch>& a0, const auto& a1)
 {
 	assert(a0.f_lines().f_size().v_i0 == a1.size());
 	auto i = a0.f_lines().f_begin();

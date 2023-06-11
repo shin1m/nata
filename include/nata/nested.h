@@ -102,8 +102,7 @@ private:
 	}
 
 public:
-	template<typename T_enter>
-	size_t f_path_at_in_text(size_t a_p, std::vector<t_iterator>& a_path, T_enter a_enter) const
+	size_t f_path_at_in_text(size_t a_p, std::vector<t_iterator>& a_path, auto a_enter) const
 	{
 		auto x = this;
 		while (true) {
@@ -115,8 +114,7 @@ public:
 		}
 		return a_p;
 	}
-	template<typename T_enter>
-	void f_leaf(std::vector<t_iterator>& a_path, T_enter a_enter) const
+	void f_leaf(std::vector<t_iterator>& a_path, auto a_enter) const
 	{
 		if (a_path.back() == this->f_end()) return;
 		while (true) {
@@ -125,8 +123,7 @@ public:
 			a_path.push_back(i->v_x->v_nested.f_begin());
 		}
 	}
-	template<typename T_enter>
-	size_t f_leaf_at_in_text(size_t a_p, std::vector<t_iterator>& a_path, T_enter a_enter) const
+	size_t f_leaf_at_in_text(size_t a_p, std::vector<t_iterator>& a_path, auto a_enter) const
 	{
 		a_p = f_path_at_in_text(a_p, a_path, a_enter);
 		if (a_p <= 0) f_leaf(a_path, a_enter);

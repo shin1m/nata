@@ -24,8 +24,7 @@ struct t_view : t_proxy
 	{
 		return a_class->f_new<t_view>(a_text, a_x, a_y, a_width, a_height);
 	}
-	template<typename T>
-	static t_pvalue f_row(typename T_target::t_library* a_library, const T& a_row)
+	static t_pvalue f_row(typename T_target::t_library* a_library, const auto& a_row)
 	{
 		return f_new_value(a_library->f_type_row(), a_row.v_i, a_row.v_line, a_row.v_text, a_row.v_x, a_row.v_y);
 	}

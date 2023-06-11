@@ -101,13 +101,11 @@ private:
 			}
 		};
 
-		template<typename T>
-		static constexpr t_index f_index(size_t a_n, const T& a_value)
+		static constexpr t_index f_index(size_t a_n, const auto& a_value)
 		{
 			return {a_n, a_value.v_line, a_value.v_text, a_value.v_width, a_value.v_height};
 		}
-		template<typename T>
-		static constexpr void f_add(T& a_value, const t_delta& a_index)
+		static constexpr void f_add(auto& a_value, const t_delta& a_index)
 		{
 			a_value.v_line += a_index.v_line;
 			a_value.v_text += a_index.v_text;
@@ -120,8 +118,7 @@ private:
 			auto d = f_delta(a_base, a_p);
 			return {d.v_line, a_p->v_tail, d.v_text, d.v_x, a_p->v_ascent, d.v_y};
 		}
-		template<typename T>
-		static constexpr t_index f_delta(T* a_base, T* a_p)
+		static constexpr t_index f_delta(auto* a_base, auto* a_p)
 		{
 			return a_p > a_base ? t_index{1, a_p->v_line - a_p[-1].v_line, a_p->v_text - a_p[-1].v_text, a_p->v_width - a_p[-1].v_width, a_p->v_height - a_p[-1].v_height} : t_index{1, a_p->v_line, a_p->v_text, a_p->v_width, a_p->v_height};
 		}
@@ -361,8 +358,7 @@ public:
 		}
 		return p;
 	}
-	template<typename T>
-	std::tuple<size_t, size_t, size_t> f_each_x(t_iterator a_i, T a_do) const
+	std::tuple<size_t, size_t, size_t> f_each_x(t_iterator a_i, auto a_do) const
 	{
 		size_t p = a_i.f_index().v_text;
 		size_t x = a_i.f_index().v_x;

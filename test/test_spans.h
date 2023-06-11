@@ -5,8 +5,7 @@
 #include <cassert>
 #include <cstdio>
 
-template<typename T, typename U>
-void f_assert_equals(const T& a0, const U& a1)
+void f_assert_equals(const auto& a0, const auto& a1)
 {
 	assert(std::equal(a0.f_begin(), a0.f_end(), a1.begin(), a1.end()));
 }

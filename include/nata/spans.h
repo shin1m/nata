@@ -87,23 +87,19 @@ protected:
 			}
 		};
 
-		template<typename T>
-		static constexpr t_index f_index(size_t a_n, const T& a_value)
+		static constexpr t_index f_index(size_t a_n, const auto& a_value)
 		{
 			return {a_n, a_value.v_n};
 		}
-		template<typename T>
-		static constexpr void f_add(T& a_value, const t_delta& a_index)
+		static constexpr void f_add(auto& a_value, const t_delta& a_index)
 		{
 			a_value.v_n += a_index.v_i1;
 		}
-		template<typename T>
-		static constexpr auto f_get(T* a_base, T* a_p) -> decltype(a_p->f_get(0))
+		static constexpr auto f_get(auto* a_base, auto* a_p) -> decltype(a_p->f_get(0))
 		{
 			return a_p->f_get(f_delta(a_base, a_p).v_i1);
 		}
-		template<typename T>
-		static constexpr t_index f_delta(T* a_base, T* a_p)
+		static constexpr t_index f_delta(auto* a_base, auto* a_p)
 		{
 			return {1, a_p > a_base ? a_p->v_n - a_p[-1].v_n : a_p->v_n};
 		}

@@ -32,8 +32,7 @@ struct t_lines : t_spans<t_line, A_leaf, A_branch>
 	{
 		this->v_array.f_insert(this->f_end(), t_span{1});
 	}
-	template<typename T>
-	void f_replace(size_t a_p, size_t a_n, T a_first, T a_last)
+	void f_replace(size_t a_p, size_t a_n, auto a_first, auto a_last)
 	{
 		auto i = this->f_at_in_text(a_p);
 		size_t n = a_p - i.f_index().v_i1;
@@ -94,8 +93,7 @@ public:
 	{
 		return v_lines;
 	}
-	template<typename T>
-	T f_slice(size_t a_p, size_t a_n, T a_out) const
+	auto f_slice(size_t a_p, size_t a_n, auto a_out) const
 	{
 		for (auto i = f_at(a_p).f_base(); a_n > 0; --a_n) {
 			*a_out++ = jumoku::t_utf32_traits::f_decode(*i, [&]
@@ -106,8 +104,7 @@ public:
 		}
 		return a_out;
 	}
-	template<typename T>
-	void f_replace(size_t a_p, size_t a_n, T a_first, T a_last)
+	void f_replace(size_t a_p, size_t a_n, auto a_first, auto a_last)
 	{
 		auto p = f_at(a_p).f_base();
 		auto q = f_at(a_p + a_n).f_base();

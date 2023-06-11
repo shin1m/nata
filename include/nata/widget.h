@@ -141,8 +141,7 @@ public:
 		v_overlays.erase(v_overlays.begin() + a_i);
 		f_dirty(0, f_height(), true);
 	}
-	template<typename T_graphics>
-	void f_render(T_graphics& a_target)
+	void f_render(auto& a_target)
 	{
 		auto row = v_rows.f_at_in_y(v_top);
 		size_t p = row.f_index().v_text;
