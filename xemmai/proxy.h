@@ -65,10 +65,9 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_bears<xemmaix::nata::t_proxy>
 		{
 			return f_cast<typename t_fundamental<T>::t_type>(std::forward<decltype(a_object)>(a_object));
 		}
-		static bool f_is(auto&& a_object)
+		static bool f_is(t_object* a_object)
 		{
-			auto p = static_cast<t_object*>(a_object);
-			return reinterpret_cast<uintptr_t>(p) >= e_tag__OBJECT && p->f_type()->f_derives<typename t_fundamental<T>::t_type>();
+			return reinterpret_cast<uintptr_t>(a_object) >= e_tag__OBJECT && a_object->f_type()->f_derives<typename t_fundamental<T>::t_type>();
 		}
 	};
 	template<typename T>
@@ -78,10 +77,9 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_bears<xemmaix::nata::t_proxy>
 		{
 			return static_cast<t_object*>(a_object) ? &f_cast<T>(std::forward<decltype(a_object)>(a_object)) : nullptr;
 		}
-		static bool f_is(auto&& a_object)
+		static bool f_is(t_object* a_object)
 		{
-			auto p = static_cast<t_object*>(a_object);
-			return reinterpret_cast<uintptr_t>(p) == e_tag__NULL || reinterpret_cast<uintptr_t>(p) >= e_tag__OBJECT && p->f_type()->f_derives<typename t_fundamental<T>::t_type>();
+			return reinterpret_cast<uintptr_t>(a_object) == e_tag__NULL || reinterpret_cast<uintptr_t>(a_object) >= e_tag__OBJECT && a_object->f_type()->f_derives<typename t_fundamental<T>::t_type>();
 		}
 	};
 
