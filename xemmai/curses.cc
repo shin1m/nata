@@ -45,6 +45,11 @@ t_pvalue f_size()
 	return f_tuple(COLS, LINES);
 }
 
+void f_flush()
+{
+	if (doupdate() == ERR) f_throw(L"doupdate"sv);
+}
+
 }
 
 void t_library::f_scan(t_scan a_scan)
@@ -100,6 +105,7 @@ std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
 		(L"define_pair"sv, t_static<void(*)(short, short, short), f_define_pair>())
 		(L"color_pair"sv, t_static<attr_t(*)(short), f_color_pair>())
 		(L"size"sv, t_static<t_pvalue(*)(), f_size>())
+		(L"flush"sv, t_static<void(*)(), f_flush>())
 		(L"COLOR_BLACK"sv, COLOR_BLACK)
 		(L"COLOR_RED"sv, COLOR_RED)
 		(L"COLOR_GREEN"sv, COLOR_GREEN)

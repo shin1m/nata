@@ -130,10 +130,12 @@ nata.main(@ nata_curses.main(@
 	timers = [
 	tasks = [
 	message = ""
-	syntax = nata_syntax.new(text, path, view, @(size, current)
-		:message = "running: " + current * 100 / size + "%"
+	syntax = nata_syntax.new(text, path, view
+	syntax !== null && tasks.push(@
+		current = syntax.step(
+		current === null && return
+		:message = "running: " + current * 100 / text.size() + "%"
 		timers.push('(time.now(), @
-	syntax !== null && tasks.push(syntax.step
 	backspace = @
 		position = view.position().text
 		if position > 0
@@ -223,6 +225,8 @@ nata.main(@ nata_curses.main(@
 		view.into_view(view.position().text
 		view.render(
 		strip.render(
+		view.focus(
+		nata_curses.flush(
 		timeout = -1
 		timers.each(@(x)
 			t = Integer((x[0] - now) * 1000.0

@@ -76,10 +76,11 @@ struct t_view : t_proxy
 	}
 	void f_render()
 	{
-		{
-			typename T_target::t_graphics g(*v_target);
-			v_widget->f_render(g);
-		}
+		typename T_target::t_graphics g(*v_target);
+		v_widget->f_render(g);
+	}
+	void f_focus()
+	{
 		v_target->f_cursor(std::get<1>(v_widget->v_position) - v_widget->v_row.f_index().v_x, v_widget->v_row.f_index().v_y - v_widget->v_top);
 	}
 	t_pvalue f_size(typename T_target::t_library* a_library) const
@@ -252,6 +253,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 			(L"crease"sv, t_member<void(t_view::*)(size_t, size_t, bool), &t_view::f_crease>())
 			(L"folded"sv, t_member<size_t(t_view::*)(size_t, bool), &t_view::f_folded>())
 			(L"render"sv, t_member<void(t_view::*)(), &t_view::f_render>())
+			(L"focus"sv, t_member<void(t_view::*)(), &t_view::f_focus>())
 			(L"size"sv, t_member<t_pvalue(t_view::*)(t_library*) const, &t_view::f_size>())
 			(L"height"sv, t_member<size_t(t_view::*)() const, &t_view::f_height>())
 			(L"range"sv, t_member<size_t(t_view::*)() const, &t_view::f_range>())

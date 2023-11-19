@@ -79,6 +79,7 @@ public:
 	void f_cursor(size_t a_x, size_t a_y)
 	{
 		wmove(v_window, a_y, a_x);
+		wnoutrefresh(v_window);
 	}
 	void f_timeout(int a_delay)
 	{
