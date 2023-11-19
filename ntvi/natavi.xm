@@ -282,7 +282,7 @@ $new = @(host, path)
 			if count > 0
 				:count = count * 10
 			else
-				view.position__(text.line_at_in_text(view.position().text).from, false
+				$finish(@ view.position__(text.line_at_in_text(view.position().text).from, false
 		letter("1"): KeyMap(@ :count = count * 10 + 1
 		letter("2"): KeyMap(@ :count = count * 10 + 2
 		letter("3"): KeyMap(@ :count = count * 10 + 3

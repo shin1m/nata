@@ -164,6 +164,12 @@ nata.main(@ test("quit", null, @(vi, type, update)
 	type("Z"
 	assert(update() === null
 
+nata.main(@ test("just 0 moves to the head", "abc", @(vi, type, update)
+	type("lll"
+	assert(update() == "NORMAL 0,3-3 100% <0> "
+	type("0"
+	assert(update() == "NORMAL 0,0-0 100% <0> "
+
 nata.main(@ test("undo & redo", "abc", @(vi, type, update)
 	type("dlllphdhhp"
 	assert(update() == "NORMAL 0,1-1 100% <4> "
