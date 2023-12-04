@@ -66,18 +66,18 @@ TextSession = Session + @
 		e.xs = p < p0 ? '(p, x, $text.slice(p, p0 - p) + y) : '(p0, p - p0 + x, y)
 		$text.replace(p, n, s
 
-Buffer = Object + @
+$Buffer = Buffer = Object + @
 	$path
 	$session
 	$view
 	$selection
-	$__initialize = @(host, path)
-		text = host.text(
-		path !== null && host.read(text, path
+	$commands
+	$__initialize = @(path, text, view, selection)
 		$path = path
 		$session = TextSession(text
-		$view = host.main_view(text, path
-		$selection = host.selection($view
+		$view = view
+		$selection = selection
+		$commands = {
 	$dispose = @
 		$selection.dispose(
 		$view.dispose(
@@ -166,12 +166,10 @@ with_search = @(text, pattern, f) with(nata.Search(text), @(search)
 	catch Throwable t
 		'(
 
-$new = @(host, path)
-	status = host.text(
-	strip = host.strip_view(status
+$new = @(host, status, strip, path)
 	buffers = [
 	add_buffer = @(path)
-		buffer = Buffer(host, path
+		buffer = host.buffer(path
 		buffers.push(buffer
 		buffer
 	remove_buffer = @(i) buffers.remove(i).dispose(
@@ -181,7 +179,14 @@ $new = @(host, path)
 		:text = session.text
 		:current = :view = buffer.view
 		:selection = buffer.selection
+		buffer
 	switch_buffer(add_buffer(path
+	open_buffer = @(path)
+		n = buffers.size(
+		for i = 0;; i = i + 1
+			i < n || return switch_buffer(add_buffer(path
+			x = buffers[i]
+			x.path == path && break switch_buffer(x
 	move_to = @(p)
 		view.folded(p, false
 		view.position__(p, false
@@ -208,7 +213,7 @@ $new = @(host, path)
 		y < x && f(y
 	current = view
 	input = [
-	message = ""
+	message = progress = ""
 	show_prompt = @(prompt, doing, done)
 		status.replace(0, -1, prompt
 		:current = strip
@@ -316,16 +321,18 @@ $new = @(host, path)
 			$post = $reset
 			$map = $map_default
 		$render = @
-			if message != ""
+			if progress != ""
+				status.replace(0, -1, progress
+				::progress = ""
+			else if message != ""
 				status.replace(0, -1, message
-				::message = ""
 			else
 				position = view.position(
 				line = text.line_at_in_text(position.text
 				n = view.range(
 				i = ""
 				input.each(@(x) :i = i + String.from_code(x)
-				status.replace(0, -1, mode.name + " " +
+				status.replace(0, -1, $name + " " +
 					line.index + "," +
 					(position.text - line.from) + "-" +
 					(position.x - view.row().x) + " " +
@@ -395,7 +402,7 @@ $new = @(host, path)
 		f(map_delete
 		f(map_yank
 		f(mode_visual.map_default
-	commands = {
+	builtin_commands = {
 		"buffers": @(i)
 			:message = "buffers"
 			n = buffers.size(
@@ -403,16 +410,11 @@ $new = @(host, path)
 				x = buffers[i]
 				:message = message + "\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path === null ? " no name" : " \"" + x.path + "\"")
 		"edit": @(i)
-			match = match_status("^\\s*(?:(#(?:\\d*))|(\\S*))", i
+			match = match_status("^\\s*(?:(#\\d*)|(\\S*))", i
 			if match[1].count > 0
 				switch_buffer(buffers[Integer(status.slice(match[1].from + 1, match[1].count - 1)) - 1]
 			else if match[2].count > 0
-				path = status.slice(match[2].from, match[2].count
-				n = buffers.size(
-				for i = 0;; i = i + 1
-					i < n || return switch_buffer(add_buffer(path
-					x = buffers[i]
-					x.path == path && break switch_buffer(x
+				open_buffer(status.slice(match[2].from, match[2].count
 		"map": @(i)
 			match = match_status("^\\s*(\\S+)\\s+(.+)", i
 			if match.size() < 2
@@ -433,6 +435,7 @@ $new = @(host, path)
 			match.size() > 1 || throw Throwable("invalid arguments"
 			lhs = status.slice(match[1].from, match[1].count
 			for_ncdyv(@(x) x.remove(lhs
+	commands = {
 	insert = @
 		:mode = mode_insert
 		mode.start = input.size(
@@ -498,9 +501,13 @@ $new = @(host, path)
 					match.size() > 0 || throw Throwable("invalid command"
 					m = match[0]
 					name = status.slice(m.from, m.count
-					try
+					if buffer.commands.has(name)
+						command = buffer.commands[name]
+					else if commands.has(name)
 						command = commands[name]
-					catch Throwable t
+					else if builtin_commands.has(name)
+						command = builtin_commands[name]
+					else
 						throw Throwable("no command: " + name
 					command[::$](m.from + m.count
 			letter("Z"): KeyMap(null, null, {
@@ -644,9 +651,17 @@ $new = @(host, path)
 	map(mode_normal.map_default.base, "x", "dl"
 	(Object + @
 		$render = @ mode.render(
-		$main = @ view
-		$strip = @ strip
 		$current = @ current
-		$__call = push
+		$__call = @(c)
+			::message = ""
+			push(c
 		$message = @(x) ::message = x
+		$progress = @(x) ::progress = x
+		$buffers = @ buffers
+		$buffer = @ buffer
+		$add_buffer = add_buffer
+		$switch_buffer = switch_buffer
+		$open_buffer = open_buffer
+		$match_status = match_status
+		$commands = @ commands
 	)(

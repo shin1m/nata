@@ -18,6 +18,8 @@ void t_type_of<xemmaix::nata::t_text>::f_define(t_library* a_library)
 	using xemmaix::nata::t_text;
 	t_define{a_library}
 		(L"size"sv, t_member<size_t(t_text::*)() const, &t_text::f_size>())
+		(L"in_bytes"sv, t_member<size_t(t_text::*)(size_t) const, &t_text::f_in_bytes>())
+		(L"in_text"sv, t_member<size_t(t_text::*)(size_t) const, &t_text::f_in_text>())
 		(L"slice"sv, t_member<t_pvalue(t_text::*)(size_t, size_t) const, &t_text::f_slice>())
 		(L"replace"sv, t_member<void(t_text::*)(size_t, size_t, std::wstring_view), &t_text::f_replace>())
 		(L"lines"sv, t_member<size_t(t_text::*)() const, &t_text::f_lines>())

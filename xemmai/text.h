@@ -21,6 +21,14 @@ struct t_text : t_proxy
 	{
 		return v_text->f_size();
 	}
+	size_t f_in_bytes(size_t a_p) const
+	{
+		return v_text->f_at(a_p).f_base().f_index().v_byte;
+	}
+	size_t f_in_text(size_t a_p) const
+	{
+		return v_text->f_base().f_at(a_p).f_index().v_character;
+	}
 	t_pvalue f_slice(size_t a_p, size_t a_n) const
 	{
 		size_t n = f_size();

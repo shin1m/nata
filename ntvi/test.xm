@@ -119,21 +119,22 @@ test = @(name, text, f)
 	print(name
 	done = false
 	timers = [
+	status = Text(
 	vi = natavi.new(Object + @
 		$quit = @ ::done = true
-		$text = Text
-		$read = @(text, path) text.replace(text.size(), 0, path
-		$main_view = @(text, path) View(text
-		$strip_view = View
+		$buffer = @(path)
+			text = Text(
+			path !== null && text.replace(text.size(), 0, path
+			view = View(text
+			natavi.Buffer(path, text, view, Overlay(view
 		$timeout = @(timeout, action)
 			x = '(timeout, action
 			timers.push(x
 			@ remove(timers, x
-		$selection = Overlay
 		$overlay_iterator = OverlayIterator
 		$KEY_BACKSPACE = 0x1008
 		$KEY_ENTER = 0x100a
-	, text
+	, status, View(status), text
 	f(vi
 		@(cs)
 			n = cs.size(
@@ -152,7 +153,7 @@ test = @(name, text, f)
 		@
 			done && return
 			vi.render(
-			status = vi.strip().text.slice(0, -1
+			status = :status.slice(0, -1
 			timers.each(@(x) :status = status + " t" + x[0]
 			print("\t" + status
 			status
@@ -173,37 +174,37 @@ nata.main(@ test("just 0 moves to the head", "abc", @(vi, type, update)
 nata.main(@ test("undo & redo", "abc", @(vi, type, update)
 	type("dlllphdhhp"
 	assert(update() == "NORMAL 0,1-1 100% <4> "
-	assert(vi.main().text.slice(0, -1) == "cba"
+	assert(vi.buffer().session.text.slice(0, -1) == "cba"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <3|1> "
-	assert(vi.main().text.slice(0, -1) == "ba"
+	assert(vi.buffer().session.text.slice(0, -1) == "ba"
 	type("u"
 	assert(update() == "NORMAL 0,2-2 100% <2|2> "
-	assert(vi.main().text.slice(0, -1) == "bca"
+	assert(vi.buffer().session.text.slice(0, -1) == "bca"
 	type("u"
 	assert(update() == "NORMAL 0,2-2 100% <1|3> "
-	assert(vi.main().text.slice(0, -1) == "bc"
+	assert(vi.buffer().session.text.slice(0, -1) == "bc"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|4> "
-	assert(vi.main().text.slice(0, -1) == "abc"
+	assert(vi.buffer().session.text.slice(0, -1) == "abc"
 	type("^R"
 	assert(update() == "NORMAL 0,0-0 100% <1|3> "
-	assert(vi.main().text.slice(0, -1) == "bc"
+	assert(vi.buffer().session.text.slice(0, -1) == "bc"
 	type("^R"
 	assert(update() == "NORMAL 0,3-3 100% <2|2> "
-	assert(vi.main().text.slice(0, -1) == "bca"
+	assert(vi.buffer().session.text.slice(0, -1) == "bca"
 	type("^R"
 	assert(update() == "NORMAL 0,1-1 100% <3|1> "
-	assert(vi.main().text.slice(0, -1) == "ba"
+	assert(vi.buffer().session.text.slice(0, -1) == "ba"
 	type("^R"
 	assert(update() == "NORMAL 0,1-1 100% <4> "
-	assert(vi.main().text.slice(0, -1) == "cba"
+	assert(vi.buffer().session.text.slice(0, -1) == "cba"
 	type("3u"
 	assert(update() == "NORMAL 0,2-2 100% <1|3> "
-	assert(vi.main().text.slice(0, -1) == "bc"
+	assert(vi.buffer().session.text.slice(0, -1) == "bc"
 	type("2^R"
 	assert(update() == "NORMAL 0,1-1 100% <3|1> "
-	assert(vi.main().text.slice(0, -1) == "ba"
+	assert(vi.buffer().session.text.slice(0, -1) == "ba"
 
 nata.main(@ test("insert", null, @(vi, type, update)
 	type("2"
@@ -212,171 +213,171 @@ nata.main(@ test("insert", null, @(vi, type, update)
 	assert(update() == "INSERT 0,0-0 100% <0> 2i"
 	type("h"
 	assert(update() == "INSERT 0,1-1 100% <0?2> 2ih"
-	assert(vi.main().text.slice(0, -1) == "h"
+	assert(vi.buffer().session.text.slice(0, -1) == "h"
 	type("e"
 	assert(update() == "INSERT 0,2-2 100% <0?2> 2ihe"
-	assert(vi.main().text.slice(0, -1) == "he"
+	assert(vi.buffer().session.text.slice(0, -1) == "he"
 	type("^H"
 	assert(update() == "INSERT 0,1-1 100% <0?2> 2ihe\b"
-	assert(vi.main().text.slice(0, -1) == "h"
+	assert(vi.buffer().session.text.slice(0, -1) == "h"
 	type("i"
 	assert(update() == "INSERT 0,2-2 100% <0?2> 2ihe\bi"
-	assert(vi.main().text.slice(0, -1) == "hi"
+	assert(vi.buffer().session.text.slice(0, -1) == "hi"
 	type("^["
 	assert(update() == "NORMAL 0,4-4 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "hihi"
+	assert(vi.buffer().session.text.slice(0, -1) == "hihi"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|1> "
-	assert(vi.main().text.slice(0, -1) == ""
+	assert(vi.buffer().session.text.slice(0, -1) == ""
 	type("^R"
 	assert(update() == "NORMAL 0,4-4 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "hihi"
+	assert(vi.buffer().session.text.slice(0, -1) == "hihi"
 	type("."
 	assert(update() == "NORMAL 0,8-8 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "hihihihi"
+	assert(vi.buffer().session.text.slice(0, -1) == "hihihihi"
 	type("3."
 	assert(update() == "NORMAL 0,14-14 100% <3> "
-	assert(vi.main().text.slice(0, -1) == "hihihihihihihi"
+	assert(vi.buffer().session.text.slice(0, -1) == "hihihihihihihi"
 
 nata.main(@ test("delete motion", "abcdefghijklmnopqr", @(vi, type, update)
 	type("2d3"
 	assert(update() == "NORMAL 0,0-0 100% <0> 2d3"
 	type("l"
 	assert(update() == "NORMAL 0,0-0 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "ghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ghijklmnopqr"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|1> "
-	assert(vi.main().text.slice(0, -1) == "abcdefghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcdefghijklmnopqr"
 	type("^R"
 	assert(update() == "NORMAL 0,0-0 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "ghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ghijklmnopqr"
 	type("3."
 	assert(update() == "NORMAL 0,0-0 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "pqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "pqr"
 
 nata.main(@ test("change motion", "abcdefghijklmnopqr", @(vi, type, update)
 	type("2c3l"
 	assert(update() == "INSERT 0,0-0 100% <0?2> 2c3l"
-	assert(vi.main().text.slice(0, -1) == "ghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ghijklmnopqr"
 	type("ABC"
 	assert(update() == "INSERT 0,3-3 100% <0?2> 2c3lABC"
-	assert(vi.main().text.slice(0, -1) == "ABCghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABCghijklmnopqr"
 	type("^["
 	assert(update() == "NORMAL 0,3-3 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "ABCghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABCghijklmnopqr"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|1> "
-	assert(vi.main().text.slice(0, -1) == "abcdefghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcdefghijklmnopqr"
 	type("^R"
 	assert(update() == "NORMAL 0,3-3 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "ABCghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABCghijklmnopqr"
 	type("3."
 	assert(update() == "NORMAL 0,6-6 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "ABCABCpqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABCABCpqr"
 
 nata.main(@ test("yank motion & paste", "abcdefghijklmnopqr", @(vi, type, update)
 	type("3y2l"
 	assert(update() == "NORMAL 0,0-0 100% <0> "
 	type("2p"
 	assert(update() == "NORMAL 0,12-12 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "abcdefabcdefabcdefghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcdefabcdefabcdefghijklmnopqr"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|1> "
-	assert(vi.main().text.slice(0, -1) == "abcdefghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcdefghijklmnopqr"
 	type("^R"
 	assert(update() == "NORMAL 0,12-12 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "abcdefabcdefabcdefghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcdefabcdefabcdefghijklmnopqr"
 	type("3."
 	assert(update() == "NORMAL 0,30-30 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "abcdefabcdefabcdefabcdefabcdefabcdefghijklmnopqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcdefabcdefabcdefabcdefabcdefabcdefghijklmnopqr"
 
 nata.main(@ test("delete lines", "abc\ndef\nghi\njkl\nmno\npqr", @(vi, type, update)
 	type("2dd"
 	assert(update() == "NORMAL 0,0-0 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "ghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ghi\njkl\nmno\npqr"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|1> "
-	assert(vi.main().text.slice(0, -1) == "abc\ndef\nghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abc\ndef\nghi\njkl\nmno\npqr"
 	type("^R"
 	assert(update() == "NORMAL 0,0-0 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "ghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ghi\njkl\nmno\npqr"
 	type("3."
 	assert(update() == "NORMAL 0,0-0 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "pqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "pqr"
 
 nata.main(@ test("change lines", "abc\ndef\nghi\njkl\nmno\npqr", @(vi, type, update)
 	type("2cc"
 	assert(update() == "INSERT 0,0-0 100% <0?2> 2cc"
-	assert(vi.main().text.slice(0, -1) == "\nghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "\nghi\njkl\nmno\npqr"
 	type("ABC"
 	assert(update() == "INSERT 0,3-3 100% <0?2> 2ccABC"
-	assert(vi.main().text.slice(0, -1) == "ABC\nghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABC\nghi\njkl\nmno\npqr"
 	type("^["
 	assert(update() == "NORMAL 0,3-3 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "ABC\nghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABC\nghi\njkl\nmno\npqr"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|1> "
-	assert(vi.main().text.slice(0, -1) == "abc\ndef\nghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abc\ndef\nghi\njkl\nmno\npqr"
 	type("^R"
 	assert(update() == "NORMAL 0,3-3 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "ABC\nghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABC\nghi\njkl\nmno\npqr"
 	type("3."
 	assert(update() == "NORMAL 0,3-3 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "ABC\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABC\nmno\npqr"
 
 nata.main(@ test("yank lines & paste", "abc\ndef\nghi\njkl\nmno\npqr", @(vi, type, update)
 	type("2yy"
 	assert(update() == "NORMAL 0,0-0 100% <0> "
 	type("2p"
 	assert(update() == "NORMAL 4,0-0 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "abc\ndef\nabc\ndef\nabc\ndef\nghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abc\ndef\nabc\ndef\nabc\ndef\nghi\njkl\nmno\npqr"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|1> "
-	assert(vi.main().text.slice(0, -1) == "abc\ndef\nghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abc\ndef\nghi\njkl\nmno\npqr"
 	type("^R"
 	assert(update() == "NORMAL 4,0-0 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "abc\ndef\nabc\ndef\nabc\ndef\nghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abc\ndef\nabc\ndef\nabc\ndef\nghi\njkl\nmno\npqr"
 	type("3."
 	assert(update() == "NORMAL 10,0-0 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "abc\ndef\nabc\ndef\nabc\ndef\nabc\ndef\nabc\ndef\nabc\ndef\nghi\njkl\nmno\npqr"
+	assert(vi.buffer().session.text.slice(0, -1) == "abc\ndef\nabc\ndef\nabc\ndef\nabc\ndef\nabc\ndef\nabc\ndef\nghi\njkl\nmno\npqr"
 
 nata.main(@ test("delete selection", "abcdefghi", @(vi, type, update)
 	type("v3l"
 	assert(update() == "VISUAL 0,3-3 100% <0> "
 	type("d"
 	assert(update() == "NORMAL 0,0-0 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "defghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "defghi"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|1> "
-	assert(vi.main().text.slice(0, -1) == "abcdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcdefghi"
 	type("^R"
 	assert(update() == "NORMAL 0,0-0 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "defghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "defghi"
 	type("3."
 	assert(update() == "NORMAL 0,0-0 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "ghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "ghi"
 
 nata.main(@ test("change selection", "abcdefghi", @(vi, type, update)
 	type("v3l"
 	assert(update() == "VISUAL 0,3-3 100% <0> "
 	type("c"
 	assert(update() == "INSERT 0,0-0 100% <0?2> v3 c"
-	assert(vi.main().text.slice(0, -1) == "defghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "defghi"
 	type("ABC"
 	assert(update() == "INSERT 0,3-3 100% <0?2> v3 cABC"
-	assert(vi.main().text.slice(0, -1) == "ABCdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABCdefghi"
 	type("^["
 	assert(update() == "NORMAL 0,3-3 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "ABCdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABCdefghi"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|1> "
-	assert(vi.main().text.slice(0, -1) == "abcdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcdefghi"
 	type("^R"
 	assert(update() == "NORMAL 0,3-3 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "ABCdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABCdefghi"
 	type("3."
 	assert(update() == "NORMAL 0,6-6 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "ABCABCghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "ABCABCghi"
 
 nata.main(@ test("yank selection & paste", "abcdefghi", @(vi, type, update)
 	type("v3l"
@@ -385,97 +386,101 @@ nata.main(@ test("yank selection & paste", "abcdefghi", @(vi, type, update)
 	assert(update() == "NORMAL 0,0-0 100% <0> "
 	type("2p"
 	assert(update() == "NORMAL 0,6-6 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "abcabcabcdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcabcabcdefghi"
 	type("u"
 	assert(update() == "NORMAL 0,0-0 100% <0|1> "
-	assert(vi.main().text.slice(0, -1) == "abcdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcdefghi"
 	type("^R"
 	assert(update() == "NORMAL 0,6-6 100% <1> "
-	assert(vi.main().text.slice(0, -1) == "abcabcabcdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcabcabcdefghi"
 	type("3."
 	assert(update() == "NORMAL 0,15-15 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "abcabcabcabcabcabcdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcabcabcabcabcabcdefghi"
 
 nata.main(@ test("search forward", "abcdefghiabcdefghi", @(vi, type, update)
 	type("/"
 	assert(update() == "/"
-	assert(vi.main().position().text == 0
+	assert(vi.buffer().view.position().text == 0
 	type("d"
 	assert(update() == "/d"
-	assert(vi.main().position().text == 3
+	assert(vi.buffer().view.position().text == 3
 	type("f"
 	assert(update() == "/df"
-	assert(vi.main().position().text == 0
+	assert(vi.buffer().view.position().text == 0
 	type("^H"
 	assert(update() == "/d"
-	assert(vi.main().position().text == 3
+	assert(vi.buffer().view.position().text == 3
 	type("e"
 	assert(update() == "/de"
-	assert(vi.main().position().text == 3
+	assert(vi.buffer().view.position().text == 3
 	type("^M"
 	assert(update() == "/de"
-	assert(vi.main().position().text == 3
+	assert(vi.buffer().view.position().text == 3
+	type("^["
 	assert(update() == "NORMAL 0,3-3 100% <0> "
 	type("n"
 	assert(update() == "/de"
-	assert(vi.main().position().text == 12
+	assert(vi.buffer().view.position().text == 12
+	type("^["
 	assert(update() == "NORMAL 0,12-12 100% <0> "
 	type("n"
 	assert(update() == "continuing at TOP: de"
-	assert(vi.main().position().text == 3
+	assert(vi.buffer().view.position().text == 3
 	type("N"
 	assert(update() == "continuing at BOTTOM: de"
-	assert(vi.main().position().text == 12
+	assert(vi.buffer().view.position().text == 12
 	type("N"
 	assert(update() == "?de"
-	assert(vi.main().position().text == 3
+	assert(vi.buffer().view.position().text == 3
 
 nata.main(@ test("search backward", "abcdefghiabcdefghi", @(vi, type, update)
-	assert(vi.main().position__(18, false
+	assert(vi.buffer().view.position__(18, false
 	type("?"
 	assert(update() == "?"
-	assert(vi.main().position().text == 18
+	assert(vi.buffer().view.position().text == 18
 	type("d"
 	assert(update() == "?d"
-	assert(vi.main().position().text == 12
+	assert(vi.buffer().view.position().text == 12
 	type("f"
 	assert(update() == "?df"
-	assert(vi.main().position().text == 18
+	assert(vi.buffer().view.position().text == 18
 	type("^H"
 	assert(update() == "?d"
-	assert(vi.main().position().text == 12
+	assert(vi.buffer().view.position().text == 12
 	type("e"
 	assert(update() == "?de"
-	assert(vi.main().position().text == 12
+	assert(vi.buffer().view.position().text == 12
 	type("^M"
 	assert(update() == "?de"
-	assert(vi.main().position().text == 12
+	assert(vi.buffer().view.position().text == 12
+	type("^["
 	assert(update() == "NORMAL 0,12-12 100% <0> "
 	type("n"
 	assert(update() == "?de"
-	assert(vi.main().position().text == 3
+	assert(vi.buffer().view.position().text == 3
+	type("^["
 	assert(update() == "NORMAL 0,3-3 100% <0> "
 	type("n"
 	assert(update() == "continuing at BOTTOM: de"
-	assert(vi.main().position().text == 12
+	assert(vi.buffer().view.position().text == 12
 	type("N"
 	assert(update() == "continuing at TOP: de"
-	assert(vi.main().position().text == 3
+	assert(vi.buffer().view.position().text == 3
 	type("N"
 	assert(update() == "/de"
-	assert(vi.main().position().text == 12
+	assert(vi.buffer().view.position().text == 12
 
 nata.main(@ test("builtin map C", "abcdefghi", @(vi, type, update)
-	assert(vi.main().position__(3, false
+	assert(vi.buffer().view.position__(3, false
 	type("C"
 	assert(update() == "INSERT 0,3-3 100% <0?2> c$"
-	assert(vi.main().text.slice(0, -1) == "abc"
+	assert(vi.buffer().view.text.slice(0, -1) == "abc"
 
 nata.main(@ test("builtin map s", "abcdefghi", @(vi, type, update)
-	assert(vi.main().position__(3, false
+	assert(vi.buffer().view.position__(3, false
 	type("2s"
 	assert(update() == "INSERT 0,3-3 100% <0?2> 2cl"
-	assert(vi.main().text.slice(0, -1) == "abcfghi"
+	assert(vi.buffer().view.text.slice(0, -1) == "abcfghi"
 
 nata.main(@ test("map", "abcdefghi", @(vi, type, update)
 	type(":"
@@ -488,14 +493,14 @@ nata.main(@ test("map", "abcdefghi", @(vi, type, update)
 	assert(update() == "NORMAL 0,0-0 100% <0> "
 	type("_ya"
 	assert(update() == "INSERT 0,4-4 100% <0?2> iYAH!"
-	assert(vi.main().text.slice(0, -1) == "YAH!abcdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "YAH!abcdefghi"
 	type("^["
 	assert(update() == "NORMAL 0,4-4 100% <1> "
 	type("_"
 	assert(update() == "NORMAL 0,4-4 100% <1> _"
 	type("_"
 	assert(update() == "NORMAL 0,9-9 100% <2> "
-	assert(vi.main().text.slice(0, -1) == "YAH!aYAH!bcdefghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "YAH!aYAH!bcdefghi"
 	type(":map^M"
 	assert(update() == "maps\n__ l.\n_ya iYAH!"
 	type(":unmap __^M:map^M"
@@ -527,21 +532,21 @@ nata.main(@ test("map ambiguous operator pending", "abcdefghi", @(vi, type, upda
 	assert(update() == "NORMAL 0,3-3 100% <0> cc t1000"
 	type(","
 	assert(update() == "INSERT 0,3-3 100% <0?2> c3l"
-	assert(vi.main().text.slice(0, -1) == "abcghi"
+	assert(vi.buffer().session.text.slice(0, -1) == "abcghi"
 
 nata.main(@ test("buffers", "foo", @(vi, type, update)
 	type(":buffers^M"
 	assert(update() == "buffers\n1 % \"foo\""
-	assert(vi.main().text.slice(0, -1) == "foo"
+	assert(vi.buffer().session.text.slice(0, -1) == "foo"
 	type(":edit bar^M"
-	assert(vi.main().text.slice(0, -1) == "bar"
+	assert(vi.buffer().session.text.slice(0, -1) == "bar"
 	type(":buffers^M"
 	assert(update() == "buffers\n1   \"foo\"\n2 % \"bar\""
 	type(":edit foo^M"
-	assert(vi.main().text.slice(0, -1) == "foo"
+	assert(vi.buffer().session.text.slice(0, -1) == "foo"
 	type(":buffers^M"
 	assert(update() == "buffers\n1 % \"foo\"\n2   \"bar\""
 	type(":quit^M"
-	assert(vi.main().text.slice(0, -1) == "bar"
+	assert(vi.buffer().session.text.slice(0, -1) == "bar"
 	type(":buffers^M"
 	assert(update() == "buffers\n1 % \"bar\""

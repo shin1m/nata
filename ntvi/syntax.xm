@@ -45,7 +45,7 @@ try_syntax = @(text, path, type)
 		finally
 			search.dispose(
 	parent = syntax_root / type
-	load = @ '(
+	load = @ '(type
 		nata_tree_sitter.Query(
 			Module("nata-tree-sitter-" + type).language
 			open(parent / "query.scm", @(reader)
@@ -89,11 +89,12 @@ $initialize = @(from)
 	define(from + 4, nata_curses.COLOR_MAGENTA, "magenta"
 	define(from + 5, nata_curses.COLOR_CYAN, "cyan"
 
-$new = @(text, path, view, more)
+$new = @(text, path, view)
 	x = load_syntax(text, path
 	x === null && return
-	query = x[0]
-	capture2color = x[1]
+	type = x[0]
+	query = x[1]
+	capture2color = x[2]
 	parser = nata_tree_sitter.Parser(text, query
 	painter = nata_curses.Painter(view
 	creaser = nata_curses.Creaser(view
@@ -117,6 +118,7 @@ $new = @(text, path, view, more)
 				tokens.unshift('(token, p + n
 	UNIT = 4
 	Object + @
+		$type = type
 		$dispose = @
 			parser.dispose(
 			query.dispose(
@@ -128,7 +130,8 @@ $new = @(text, path, view, more)
 				if (match = parser.next()) === null
 					paint(text.size(
 					painter.flush(
-					return creaser.end(
+					creaser.end(
+					return null
 				captures[match[2]](match[0], match[1]
 			painter.flush(
-			more(text.size(), painter.current()
+			painter.current(
