@@ -117,11 +117,11 @@ suisha.main(@(loop) nata.main(@ nata_curses.main(@
 	lsp_startup = @(file, arguments, environments, match, done)
 		open = @(location)
 			buffer = vi.open_buffer(location[0]
-			text = buffer.session.text
+			text = buffer.text
 			buffer.view.position__(text.in_text(text.in_bytes(text.line_at(location[1]).from) + location[2]), false
 		Module("lsp").startup(loop, invalidate, file, arguments, environments
 			@(x)
-				logs = lsp_logs().session
+				logs = lsp_logs(
 				logs.begin(
 				try
 					logs.replace(logs.text.size(), 0, x
@@ -132,7 +132,7 @@ suisha.main(@(loop) nata.main(@ nata_curses.main(@
 			@(client) done(client === null ? null : (Object + @
 				$stop = client.shutdown
 				$register = @(buffer) if match(buffer)
-					text = buffer.session.text
+					text = buffer.text
 					replaced = @(l0, c0, l1, c1, s) client.did_change(buffer.path, text.version, l0, c0, l1, c1, s
 					buffer.lsps[$] = replaced
 					text.replaced.push(replaced
@@ -149,7 +149,7 @@ suisha.main(@(loop) nata.main(@ nata_curses.main(@
 							client.hover(buffer.path, l[0], l[1], @(value, error) vi.message(value !== null ? value : error !== null ? "ERROR: " + error : "no information"
 					client.did_open(buffer.path, text.version, text.slice(0, text.size(
 				$unregister = @(buffer)
-					remove(buffer.session.text.replaced, buffer.lsps.remove($
+					remove(buffer.text.replaced, buffer.lsps.remove($
 					buffer.commands.remove("lsp"
 					client.did_close(buffer.path
 			)(

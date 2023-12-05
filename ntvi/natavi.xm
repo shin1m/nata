@@ -30,7 +30,7 @@ with = @(x, f)
 	finally
 		x.dispose(
 
-TextSession = Session + @
+$Buffer = Buffer = Session + @
 	Delta = Object + @
 		$x
 		$xs
@@ -39,10 +39,22 @@ TextSession = Session + @
 			$xs = xs
 		$__call = @ $x.replace(*$xs
 
+	$path
 	$text
-	$__initialize = @(text)
+	$view
+	$selection
+	$commands
+	$__initialize = @(path, text, view, selection)
 		Session.__initialize[$](
+		$path = path
 		$text = text
+		$view = view
+		$selection = selection
+		$commands = {
+	$dispose = @
+		$selection.dispose(
+		$view.dispose(
+		$text.dispose(
 	$replace = @(p, n, s)
 		t = $text.slice(p, n
 		$log(Delta($, '(p, s.size(), t
@@ -65,23 +77,6 @@ TextSession = Session + @
 			y = e.xs[2]
 		e.xs = p < p0 ? '(p, x, $text.slice(p, p0 - p) + y) : '(p0, p - p0 + x, y)
 		$text.replace(p, n, s
-
-$Buffer = Buffer = Object + @
-	$path
-	$session
-	$view
-	$selection
-	$commands
-	$__initialize = @(path, text, view, selection)
-		$path = path
-		$session = TextSession(text
-		$view = view
-		$selection = selection
-		$commands = {
-	$dispose = @
-		$selection.dispose(
-		$view.dispose(
-		$session.text.dispose(
 
 KeyMap = Object + @
 	$action
@@ -175,8 +170,7 @@ $new = @(host, status, strip, path)
 	remove_buffer = @(i) buffers.remove(i).dispose(
 	switch_buffer = @(buffer)
 		:buffer = buffer
-		:session = buffer.session
-		:text = session.text
+		:text = buffer.text
 		:current = :view = buffer.view
 		:selection = buffer.selection
 		buffer
@@ -190,16 +184,16 @@ $new = @(host, status, strip, path)
 	move_to = @(p)
 		view.folded(p, false
 		view.position__(p, false
-	log_position = @(p) session.log(@
+	log_position = @(p) buffer.log(@
 		move_to(p
-		session.log(@ log_position(p
+		buffer.log(@ log_position(p
 	begin = @(p)
-		session.begin(
+		buffer.begin(
 		log_position(p
-	commit = @ if session.logs !== null
+	commit = @ if buffer.logs !== null
 		p = view.position().text
-		session.log(@ log_position(p
-		session.commit("edit"
+		buffer.log(@ log_position(p
+		buffer.commit("edit"
 	count = 0
 	times = @(f) for n = count > 0 ? count : 1; n > 0; n = n - 1: f(
 	forward_n = @(x, limit, n, f)
@@ -337,9 +331,9 @@ $new = @(host, status, strip, path)
 					(position.text - line.from) + "-" +
 					(position.x - view.row().x) + " " +
 					(n > 0 ? view.top() * 100 / n : 100) + "% <" +
-					session.undos.size() +
-					(session.logs === null ? "" : "?" + session.logs.size()) +
-					(session.redos.size() > 0 ? "|" + session.redos.size() : "") + "> " + i
+					buffer.undos.size() +
+					(buffer.logs === null ? "" : "?" + buffer.logs.size()) +
+					(buffer.redos.size() > 0 ? "|" + buffer.redos.size() : "") + "> " + i
 		$reset = @
 			::count = 0
 			::input = [
@@ -441,7 +435,7 @@ $new = @(host, status, strip, path)
 		mode.start = input.size(
 	register = '(false, ""
 	yank = @(p, q, line = false) $finish(@ ::register = '(line, text.slice(p, q - p
-	delete_and_edit = @(p, q, line) :register = '(line, session.replace(p, q - p, ""
+	delete_and_edit = @(p, q, line) :register = '(line, buffer.replace(p, q - p, ""
 	replace = @(p, q, line = false)
 		delete_and_edit(p, q, line
 		insert(
@@ -485,7 +479,7 @@ $new = @(host, status, strip, path)
 			l1 = l > l0.index ? text.line_at(l) : l0
 			f(l0.from, l1.from + l1.count
 		$map_default = KeyMap(null, KeyMap(null, map_motion, {
-			control("R"): KeyMap(@ $finish(@ times(@ session.redo(
+			control("R"): KeyMap(@ $finish(@ times(@ buffer.redo(
 			letter("."): KeyMap(@
 				input.pop(
 				last = $last_input
@@ -523,9 +517,9 @@ $new = @(host, status, strip, path)
 				p = view.position().text
 				begin(p
 				register[0] && (p = text.line_at_in_text(p).from)
-				times(@ session.merge(p, 0, register[1]
+				times(@ buffer.merge(p, 0, register[1]
 				commit(
-			letter("u"): KeyMap(@ $finish(@ times(@ session.undo(
+			letter("u"): KeyMap(@ $finish(@ times(@ buffer.undo(
 			letter("v"): KeyMap(@
 				::count = 0
 				::input = [
@@ -551,8 +545,8 @@ $new = @(host, status, strip, path)
 			p = view.position().text
 			if p > 0
 				view.folded(p - 1, false
-				session.logs === null && begin(p
-				session.merge(p - 1, 1, ""
+				buffer.logs === null && begin(p
+				buffer.merge(p - 1, 1, ""
 		$map_default = KeyMap(null, {
 			control("H"): backspace
 			control("["): KeyMap(@
@@ -565,8 +559,8 @@ $new = @(host, status, strip, path)
 		$unknown = @(c)
 			(c == host.KEY_ENTER || c == 0xd) && (c = 0xa)
 			p = view.position().text
-			session.logs === null && begin(p
-			session.merge(p, 0, String.from_code(c
+			buffer.logs === null && begin(p
+			buffer.merge(p, 0, String.from_code(c
 	)(
 	mode_visual = (Mode + @
 		clear = @
