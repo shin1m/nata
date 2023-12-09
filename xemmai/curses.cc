@@ -50,6 +50,46 @@ void f_flush()
 	if (doupdate() == ERR) f_throw(L"doupdate"sv);
 }
 
+int v_resized[2];
+struct sigaction v_sigwinch;
+
+struct t_resized
+{
+	t_resized()
+	{
+		if (pipe(v_resized) != 0) portable::f_throw_system_error();
+		struct sigaction sa;
+		sa.sa_handler = [](int a_signal)
+		{
+			v_sigwinch.sa_handler(a_signal);
+			auto e = errno;
+			for (char b; write(v_resized[1], &b, 1) == -1;) if (errno != EINTR) std::exit(errno);
+			errno = e;
+		};
+		sigemptyset(&sa.sa_mask);
+		sa.sa_flags = 0;
+		if (sigaction(SIGWINCH, &sa, &v_sigwinch) == -1) portable::f_throw_system_error();
+	}
+	~t_resized() noexcept(false)
+	{
+		if (sigaction(SIGWINCH, &v_sigwinch, NULL) == -1) portable::f_throw_system_error();
+		for (auto x : v_resized) while (close(x) == -1) if (errno != EINTR) portable::f_throw_system_error();
+	}
+};
+
+void f_main_with_resized(const t_pvalue& a_callable)
+{
+	::nata::curses::t_session session;
+	t_resized resized;
+	a_callable(v_resized[0]);
+}
+
+void f_read_resized()
+{
+	for (char b; read(v_resized[0], &b, 1) == -1;) if (errno != EINTR) portable::f_throw_system_error();
+	if (doupdate() == ERR) f_throw(L"doupdate"sv);
+}
+
 }
 
 void t_library::f_scan(t_scan a_scan)
@@ -106,6 +146,8 @@ std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
 		(L"color_pair"sv, t_static<attr_t(*)(short), f_color_pair>())
 		(L"size"sv, t_static<t_pvalue(*)(), f_size>())
 		(L"flush"sv, t_static<void(*)(), f_flush>())
+		(L"main_with_resized"sv, t_static<void(*)(const t_pvalue&), f_main_with_resized>())
+		(L"read_resized"sv, t_static<void(*)(), f_read_resized>())
 		(L"COLOR_BLACK"sv, COLOR_BLACK)
 		(L"COLOR_RED"sv, COLOR_RED)
 		(L"COLOR_GREEN"sv, COLOR_GREEN)

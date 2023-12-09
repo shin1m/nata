@@ -64,7 +64,7 @@ read = @(text, path) open(path, @(reader) while true
 	s == "" && break
 	text.replace(text.size(), 0, s
 
-suisha.main(@(loop) nata.main(@ nata_curses.main(@
+suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 	nata_curses.define_pair(1, nata_curses.COLOR_WHITE, -1
 	nata_curses.define_pair(2, nata_curses.COLOR_BLACK, nata_curses.COLOR_WHITE
 	nata_curses.define_pair(3, -1, nata_curses.COLOR_YELLOW
@@ -188,11 +188,11 @@ suisha.main(@(loop) nata.main(@ nata_curses.main(@
 			vi.current().focus(
 			nata_curses.flush(
 	loop.poll(0, true, false, @(readable, writable) if readable
-		c = vi.current().get(
-		if c == nata_curses.KEY_RESIZE
-			size = nata_curses.size(
-		else
-			vi(c
+		vi(vi.current().get(
+		invalidate(
+	loop.poll(resized, true, false, @(readable, writable) if readable
+		nata_curses.read_resized(
+		:size = nata_curses.size(
 		invalidate(
 	invalidate(
 	loop.run(

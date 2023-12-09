@@ -135,15 +135,15 @@ struct t_view : t_proxy
 	{
 		v_widget->f_into_view(v_rows->f_at_in_text(a_p));
 	}
+	void f_timeout(int a_delay)
+	{
+		v_target->f_timeout(a_delay);
+	}
 	intptr_t f_get()
 	{
 		wint_t c;
 		if (v_target->f_get(c) == ERR) f_throw(L"get_wch"sv);
 		return c;
-	}
-	void f_timeout(int a_delay)
-	{
-		v_target->f_timeout(a_delay);
 	}
 };
 
@@ -268,8 +268,8 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 				t_member<void(t_view::*)(size_t, size_t), &t_view::f_into_view>(),
 				t_member<void(t_view::*)(size_t), &t_view::f_into_view>()
 			)
-			(L"get"sv, t_member<intptr_t(t_view::*)(), &t_view::f_get>())
 			(L"timeout"sv, t_member<void(t_view::*)(int), &t_view::f_timeout>())
+			(L"get"sv, t_member<intptr_t(t_view::*)(), &t_view::f_get>())
 		.template f_derive<t_view, xemmaix::nata::t_proxy>();
 	}
 
