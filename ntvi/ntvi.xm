@@ -64,6 +64,9 @@ read = @(text, path) open(path, @(reader) while true
 	s == "" && break
 	text.replace(text.size(), 0, s
 
+letter = @(x) x.code_at(0
+control = @(x) letter(x) - letter("@")
+
 suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 	nata_curses.define_pair(1, nata_curses.COLOR_WHITE, -1
 	nata_curses.define_pair(2, nata_curses.COLOR_BLACK, nata_curses.COLOR_WHITE
@@ -114,11 +117,56 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 			:lsp__logs = vi.add_buffer(null
 			lsp__logs.disposing.unshift(@ ::lsp__logs = null
 		lsp__logs
+	lsp_mode_choose = (Object + @
+		done = @(ok)
+			vi.current__(vi.buffer().view
+			vi.mode__($caller
+			$done(ok
+		map = {
+			control("M"): @ done[$](true
+			control("["): @ done[$](false
+			letter("j"): @
+				line = strip.row().line
+				line < strip.size().line - 1 && strip.line__(line + 1
+			letter("k"): @
+				line = strip.row().line
+				line > 0 && strip.line__(line - 1
+			nata_curses.KEY_ENTER: @ done[$](true
+		$caller
+		$done
+		$render = @
+		$__call = @(c)
+			try
+				map[c][$](
+			catch Throwable t
+	)(
+	lsp_choose = @(done)
+		strip.position__(0, false
+		vi.current__(strip
+		lsp_mode_choose.caller = vi.mode(
+		lsp_mode_choose.done = done
+		vi.mode__(lsp_mode_choose
+	lsp_open = @(location)
+		buffer = vi.open_buffer(location[0]
+		text = buffer.text
+		buffer.view.position__(text.in_text(text.in_bytes(text.line_at(location[1]).from) + location[2]), false
+	lsp_goto = @(value, error)
+		if value === null || value.@ === List && value.size() <= 0
+			vi.message(error === null ? "no information" : "ERROR: " + error
+		else if value.@ !== List
+			lsp_open(value
+		else if value.size() <= 1
+			lsp_open(value[0]
+		else
+			status.replace(0, -1, ""
+			value.each(@(x)
+				s = x[0] + ": " + (x[1] + 1) + "," + (x[2] + 1)
+				n = status.size(
+				status.replace(n, 0, n > 0 ? "\n" + s : s
+			lsp_choose(@(ok)
+				vi.mode().reset(
+				ok && lsp_open(value[strip.row().line]
 	lsp_startup = @(file, arguments, environments, match, done)
-		open = @(location)
-			buffer = vi.open_buffer(location[0]
-			text = buffer.text
-			buffer.view.position__(text.in_text(text.in_bytes(text.line_at(location[1]).from) + location[2]), false
 		Module("lsp").startup(loop, invalidate, file, arguments, environments
 			@(x)
 				logs = lsp_logs(
@@ -139,11 +187,10 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 					buffer.commands["lsp"] = verbify({
 						"definition": @(i)
 							l = text.location(buffer.view.position().text
-							client.definition(buffer.path, l[0], l[1], @(value, error)
-								if value === null || value.size() <= 0
-									vi.message(error === null ? "no definition" : "ERROR: " + error
-								else
-									open(value[0]
+							client.definition(buffer.path, l[0], l[1], lsp_goto
+						"references": @(i)
+							l = text.location(buffer.view.position().text
+							client.references(buffer.path, l[0], l[1], false, lsp_goto
 						"hover": @(i)
 							l = text.location(buffer.view.position().text
 							client.hover(buffer.path, l[0], l[1], @(value, error) vi.message(value !== null ? value : error !== null ? "ERROR: " + error : "no information"

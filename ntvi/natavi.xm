@@ -210,6 +210,7 @@ $new = @(host, status, strip, path)
 	message = progress = ""
 	show_prompt = @(prompt, doing, done)
 		status.replace(0, -1, prompt
+		strip.position__(prompt.size(), false
 		:current = strip
 		mode_prompt.caller = mode
 		:mode = mode_prompt
@@ -327,9 +328,9 @@ $new = @(host, status, strip, path)
 				i = ""
 				input.each(@(x) :i = i + String.from_code(x)
 				status.replace(0, -1, $name + " " +
-					line.index + "," +
-					(position.text - line.from) + "-" +
-					(position.x - view.row().x) + " " +
+					(line.index + 1) + "," +
+					(position.text - line.from + 1) + "-" +
+					(position.x - view.row().x + 1) + " " +
 					(n > 0 ? view.top() * 100 / n : 100) + "% <" +
 					buffer.undos.size() +
 					(buffer.logs === null ? "" : "?" + buffer.logs.size()) +
@@ -646,9 +647,12 @@ $new = @(host, status, strip, path)
 	(Object + @
 		$render = @ mode.render(
 		$current = @ current
+		$current__ = @(x) ::current = x
 		$__call = @(c)
 			::message = ""
 			push(c
+		$mode = @ mode
+		$mode__ = @(x) ::mode = x
 		$message = @(x) ::message = x
 		$progress = @(x) ::progress = x
 		$buffers = @ buffers

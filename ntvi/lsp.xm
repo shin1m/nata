@@ -169,6 +169,22 @@ $startup = @(loop, invalidate, file, arguments, environments, log, done)
 					start = x["range"]["start"]
 					xs.push('(x["uri"].substring(7), start["line"], start["character"]
 				done(xs, null
+			$references = @(path, line, character, declaration, done) rpc.request("textDocument/references", {
+				"textDocument": {
+					"uri": "file:" + path
+				"position": {
+					"line": line
+					"character": character
+				"context": {
+					"includeDeclaration": declaration
+				#"workDoneToken": token
+			}, @(result, error)
+				result !== null && error === null || return done(null, error
+				xs = [
+				result.each(@(x)
+					start = x["range"]["start"]
+					xs.push('(x["uri"].substring(7), start["line"], start["character"]
+				done(xs, null
 			$hover = @(path, line, character, done) rpc.request("textDocument/hover", {
 				"textDocument": {
 					"uri": "file:" + path
