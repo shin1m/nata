@@ -9,7 +9,7 @@ find_index = @(text, i, predicate)
 
 jsonrpc = @(in, out, notified)
 	writer = io.Writer(in, "utf-8"
-	lastID = 0
+	last_id = 0
 	buffer = Bytes(1024
 	head = tail = 0
 	reader = io.Reader((Object + @
@@ -54,7 +54,8 @@ jsonrpc = @(in, out, notified)
 		writer.write("Content-Length: " + length + "\r\n\r\n"
 		writer.flush(
 		buffer.each(@(x) in.write(x, 0, x.size(
-	receivers = {
+	dones = {
+	progresses = {
 	(Object + @
 		$dispatch = @ while true
 			::length = 0
@@ -69,33 +70,57 @@ jsonrpc = @(in, out, notified)
 			::read = read_buffered
 			message = json.parse(@(buffer, offset, size) read(buffer, offset, size < length ? size : length
 			if message.has("id")
-				received = receivers.remove(message["id"]
+				done = dones.remove(message["id"]
 				if message.has("error")
-					received(null, message["error"]
+					done(null, message["error"]
 				else
-					received(message["result"], null
+					done(message["result"], null
 			else
-				notified(message["method"], message["params"]
+				method = message["method"]
+				params = message["params"]
+				notified(method, params
+				method == "$/progress" && progresses[params["token"]](params["value"]
 			head < tail || break
-		$request = @(method, params, received)
-			for id = lastID + 1; receivers.has(id); id = id + 1
-			receivers[id] = received
+		$request = @(method, params, done, progress = null, partial = null)
+			for id = last_id + 1; dones.has(id); id = id + 1
+			::last_id = id
+			if progress !== null: progresses[params["workDoneToken"] = id] = @(value)
+				kind = value["kind"]
+				if kind == "begin"
+					:report = [
+						value["title"]
+						value.has("cancellable") ? value["cancellable"] : null
+						value.has("message") ? value["message"] : null
+						value.has("percentage") ? value["percentage"] : null
+				else if kind == "report"
+					report[1] = value.has("cancellable") ? value["cancellable"] : null
+					report[2] = value.has("message") ? value["message"] : null
+					report[3] = value.has("percentage") ? value["percentage"] : null
+				else if kind == "end"
+					report[1] = null
+					report[2] = value.has("message") ? value["message"] : null
+					report[3] = null
+				progress(id, *report
+			partial !== null && (progresses[params["partialResultToken"] = "p" + id] = partial)
+			dones[id] = @(result, error)
+				progress !== null && progresses.remove(id
+				partial !== null && progresses.remove("p" + id
+				done(result, error
 			send({
 				"jsonrpc": "2.0"
 				"id": id
 				"method": method
 				"params": params
-			::lastID = id
+			@ :$notify("$/cancelRequest", {"id": id
 		$notify = @(method, params) send({
 			"jsonrpc": "2.0"
 			"method": method
 			"params": params
 	)(
 
-$startup = @(loop, invalidate, file, arguments, environments, log, done)
+$startup = @(loop, invalidate, file, arguments, environments, log, progress, done)
 	child = os.Child(file, arguments, environments, '(0, 1, 1
-	rpc = jsonrpc(child.pipe(0), child.pipe(1), @(method, params)
-		log("notified: " + method + ": " + json.stringify(params, 2) + "\n"
+	rpc = jsonrpc(child.pipe(0), child.pipe(1), @(method, params) log("notified: " + method + ": " + json.stringify(params, 2) + "\n"
 	child.pipe(2).blocking__(false
 	error = io.Reader(child.pipe(2), "utf-8"
 	read_error = @ while true
@@ -124,12 +149,22 @@ $startup = @(loop, invalidate, file, arguments, environments, log, done)
 			"general": {
 				"positionEncodings": ["utf-8"
 			"offsetEncoding": ["utf-8"
-		#"workDoneToken": 0
 	}, @(result, error)
 		log("initialize: " + json.stringify(result, 2) + "\n"
 		error === null || return exit(@ done(null
 		rpc.notify("initialized", {
 		done(Object + @
+			locations = @(result)
+				xs = [
+				if result !== null
+					push = @(x)
+						start = x["range"]["start"]
+						xs.push('(x["uri"].substring(7), start["line"], start["character"]
+					if result.@ === List
+						result.each(push
+					else
+						push(result
+				xs
 			$shutdown = @(done) rpc.request("shutdown", null, @(result, error)
 				log("shutdown: " + json.stringify(result, 2) + "\n"
 				exit(done
@@ -155,21 +190,16 @@ $startup = @(loop, invalidate, file, arguments, environments, log, done)
 							"line": line1
 							"character": character1
 					"text": text
-			$definition = @(path, line, character, done) rpc.request("textDocument/definition", {
+			$definition = @(path, line, character, done, partial = null) rpc.request("textDocument/definition", {
 				"textDocument": {
 					"uri": "file:" + path
 				"position": {
 					"line": line
 					"character": character
-				#"workDoneToken": token
-			}, @(result, error)
-				result !== null && error === null || return done(null, error
-				xs = [
-				result.each(@(x)
-					start = x["range"]["start"]
-					xs.push('(x["uri"].substring(7), start["line"], start["character"]
-				done(xs, null
-			$references = @(path, line, character, declaration, done) rpc.request("textDocument/references", {
+			}, @(result, error) error === null ? done(locations(result), null) : done(null, error)
+			, progress
+			, partial === null ? null : @(result) partial(locations(result
+			$references = @(path, line, character, declaration, done, partial = null) rpc.request("textDocument/references", {
 				"textDocument": {
 					"uri": "file:" + path
 				"position": {
@@ -177,19 +207,15 @@ $startup = @(loop, invalidate, file, arguments, environments, log, done)
 					"character": character
 				"context": {
 					"includeDeclaration": declaration
-				#"workDoneToken": token
-			}, @(result, error)
-				result !== null && error === null || return done(null, error
-				xs = [
-				result.each(@(x)
-					start = x["range"]["start"]
-					xs.push('(x["uri"].substring(7), start["line"], start["character"]
-				done(xs, null
+			}, @(result, error) error === null ? done(locations(result), null) : done(null, error)
+			, progress
+			, partial === null ? null : @(result) partial(locations(result
 			$hover = @(path, line, character, done) rpc.request("textDocument/hover", {
 				"textDocument": {
 					"uri": "file:" + path
 				"position": {
 					"line": line
 					"character": character
-				#"workDoneToken": token
 			}, @(result, error) error === null ? done(result === null ? null : result["contents"]["value"], null) : done(null, error)
+			, progress
+	, progress

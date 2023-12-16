@@ -67,6 +67,42 @@ read = @(text, path) open(path, @(reader) while true
 letter = @(x) x.code_at(0
 control = @(x) letter(x) - letter("@")
 
+Chooser = Object + @
+	$text
+	$view
+	$selection
+	$done
+	$__initialize = @(done)
+		$text = nata.Text(
+		$view = View($text, 0, 0, 0, 0
+		$selection = nata_curses.Overlay($view, nata_curses.A_REVERSE
+		$done = done
+	$dispose = @
+		$selection.dispose(
+		$view.dispose(
+		$text.dispose(
+	$at = @ $view.row().line
+	$at__ = @(i)
+		line = $text.line_at($view.row().line
+		$selection.paint(line.from, line.count, false
+		$view.line__(i
+		line = $text.line_at($view.row().line
+		$selection.paint(line.from, line.count, true
+	map = {
+		control("M"): @ $done(true
+		control("["): @ $done(false
+		letter("j"): @
+			line = $view.row().line
+			line < $view.size().line - 1 && $at__(line + 1
+		letter("k"): @
+			line = $view.row().line
+			line > 0 && $at__(line - 1
+		nata_curses.KEY_ENTER: @ $done(true
+	$__call = @(c)
+		try
+			map[c][$](
+		catch Throwable t
+
 suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 	nata_curses.define_pair(1, nata_curses.COLOR_WHITE, -1
 	nata_curses.define_pair(2, nata_curses.COLOR_BLACK, nata_curses.COLOR_WHITE
@@ -103,6 +139,7 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 		$KEY_BACKSPACE = nata_curses.KEY_BACKSPACE
 		$KEY_ENTER = nata_curses.KEY_ENTER
 	, status, strip, system.arguments.size() > 0 ? system.arguments[0] : null
+	mode = vi
 	verbify = @(verbs) @(i)
 		match = vi.match_status("^\\s*(\\S+)", i
 		match.size() > 0 || return
@@ -112,60 +149,47 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 			verbs[verb](group.from + group.count
 		else
 			vi.message("unknown verb: " + verb
+	lsp_modal = @(message, action)
+		cancel = action(@ ::mode = vi
+		vi.message(message + " (ESC to cancel)"
+		:mode = @(c) c == control("[") && cancel(
 	lsp_logs = @
 		if lsp__logs === null
 			:lsp__logs = vi.add_buffer(null
 			lsp__logs.disposing.unshift(@ ::lsp__logs = null
 		lsp__logs
-	lsp_mode_choose = (Object + @
-		done = @(ok)
-			vi.current__(vi.buffer().view
-			vi.mode__($caller
-			$done(ok
-		map = {
-			control("M"): @ done[$](true
-			control("["): @ done[$](false
-			letter("j"): @
-				line = strip.row().line
-				line < strip.size().line - 1 && strip.line__(line + 1
-			letter("k"): @
-				line = strip.row().line
-				line > 0 && strip.line__(line - 1
-			nata_curses.KEY_ENTER: @ done[$](true
-		$caller
-		$done
-		$render = @
-		$__call = @(c)
-			try
-				map[c][$](
-			catch Throwable t
-	)(
-	lsp_choose = @(done)
-		strip.position__(0, false
-		vi.current__(strip
-		lsp_mode_choose.caller = vi.mode(
-		lsp_mode_choose.done = done
-		vi.mode__(lsp_mode_choose
 	lsp_open = @(location)
 		buffer = vi.open_buffer(location[0]
 		text = buffer.text
 		buffer.view.position__(text.in_text(text.in_bytes(text.line_at(location[1]).from) + location[2]), false
-	lsp_goto = @(value, error)
-		if value === null || value.@ === List && value.size() <= 0
-			vi.message(error === null ? "no information" : "ERROR: " + error
-		else if value.@ !== List
-			lsp_open(value
-		else if value.size() <= 1
-			lsp_open(value[0]
-		else
-			status.replace(0, -1, ""
-			value.each(@(x)
-				s = x[0] + ": " + (x[1] + 1) + "," + (x[2] + 1)
-				n = status.size(
-				status.replace(n, 0, n > 0 ? "\n" + s : s
-			lsp_choose(@(ok)
-				vi.mode().reset(
-				ok && lsp_open(value[strip.row().line]
+	lsp_goto = @(message, action) lsp_modal(message, @(done)
+		locations = [
+		append = @(x)
+			s = x[0] + ": " + (x[1] + 1) + "," + (x[2] + 1)
+			n = chooser.text.size(
+			chooser.text.replace(n, 0, n > 0 ? "\n" + s : s
+		push = @(xs)
+			xs.each(locations.push
+			locations.size() > 1 || return
+			:chooser = Chooser(@(ok)
+				ok && lsp_open(locations[chooser.at()]
+				::::mode = vi
+				::::popup = null
+				chooser.dispose(
+			locations.each(append
+			:push = @(xs) xs.each(@(x)
+				locations.push(x
+				append(x
+			chooser.at__(0
+			:::mode = chooser
+			:::popup = chooser.view
+		action(@(xs) push(xs), @(xs, error)
+			done(
+			error === null || return vi.message("ERROR: " + error
+			push(xs
+			locations.size() > 0 || return vi.message("no information"
+			vi.message(""
+			chooser === null && lsp_open(locations[0]
 	lsp_startup = @(file, arguments, environments, match, done)
 		Module("lsp").startup(loop, invalidate, file, arguments, environments
 			@(x)
@@ -177,6 +201,11 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 				catch Throwable t
 					logs.cancel(
 				logs.undos.clear(
+			@(token, title, cancellable, message, percentage)
+				s = "" + token + " " + title + ":"
+				message !== null && (s = s + " " + message)
+				percentage !== null && (s = s + " " + percentage + "%")
+				vi.progress(s
 			@(client) done(client === null ? null : (Object + @
 				$stop = client.shutdown
 				$register = @(buffer) if match(buffer)
@@ -185,15 +214,17 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 					buffer.lsps[$] = replaced
 					text.replaced.push(replaced
 					buffer.commands["lsp"] = verbify({
-						"definition": @(i)
+						"definition": @(i) lsp_goto("definition...", @(partial, done)
 							l = text.location(buffer.view.position().text
-							client.definition(buffer.path, l[0], l[1], lsp_goto
-						"references": @(i)
+							client.definition(buffer.path, l[0], l[1], done, partial
+						"references": @(i) lsp_goto("references...", @(partial, done)
 							l = text.location(buffer.view.position().text
-							client.references(buffer.path, l[0], l[1], false, lsp_goto
-						"hover": @(i)
+							client.references(buffer.path, l[0], l[1], false, done, partial
+						"hover": @(i) lsp_modal("hover...", @(done)
 							l = text.location(buffer.view.position().text
-							client.hover(buffer.path, l[0], l[1], @(value, error) vi.message(value !== null ? value : error !== null ? "ERROR: " + error : "no information"
+							client.hover(buffer.path, l[0], l[1], @(value, error)
+								vi.message(value !== null ? value : error !== null ? "ERROR: " + error : "no information"
+								done(
 					client.did_open(buffer.path, text.version, text.slice(0, text.size(
 				$unregister = @(buffer)
 					remove(buffer.text.replaced, buffer.lsps.remove($
@@ -223,19 +254,40 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 			::invalid = false
 			tasks.each(@(x) x(
 			vi.render(
-			n = strip.size().index
-			n > size[1] && (n = size[1])
-			main = vi.buffer().view
-			main.move(0, 0, size[0], size[1] - n
-			main.into_view(main.position().text
-			strip.move(0, size[1] - n, size[0], n
+			sh = strip.size().y
+			limit = size[1] - 2
+			sh > limit && (sh = limit)
+			strip.move(0, size[1] - sh, size[0], sh
 			strip.into_view(strip.position().text
+			mh = size[1] - sh
+			main = vi.buffer().view
+			if popup === null
+				main.move(0, 0, size[0], mh
+				main.into_view(main.position().text
+			else
+				limit = size[1] - sh - 1
+				ph = popup.size().y
+				ph > limit && (ph = limit)
+				row = main.row().y
+				b = main.size().y
+				mh > b && (b = mh)
+				if b - row < ph + 1
+					y = size[1] - sh - ph
+					main.move(0, 0, size[0], y
+					main.into_view(row, 1
+				else
+					main.move(0, 0, size[0], mh
+					main.into_view(row, ph + 1
+					y = row - main.top() + 1
+				popup.move(0, y, size[0], ph
+				popup.into_view(popup.position().text
 			main.render(
 			strip.render(
+			popup !== null && popup.render(
 			vi.current().focus(
 			nata_curses.flush(
 	loop.poll(0, true, false, @(readable, writable) if readable
-		vi(vi.current().get(
+		mode(vi.current().get(
 		invalidate(
 	loop.poll(resized, true, false, @(readable, writable) if readable
 		nata_curses.read_resized(

@@ -647,12 +647,9 @@ $new = @(host, status, strip, path)
 	(Object + @
 		$render = @ mode.render(
 		$current = @ current
-		$current__ = @(x) ::current = x
 		$__call = @(c)
 			::message = ""
 			push(c
-		$mode = @ mode
-		$mode__ = @(x) ::mode = x
 		$message = @(x) ::message = x
 		$progress = @(x) ::progress = x
 		$buffers = @ buffers
