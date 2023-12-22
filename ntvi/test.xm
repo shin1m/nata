@@ -122,11 +122,11 @@ test = @(name, text, f)
 	status = Text(
 	vi = natavi.new(Object + @
 		$quit = @ ::done = true
-		$buffer = @(path)
+		$buffer = @(path, maps)
 			text = Text(
 			path !== null && text.replace(text.size(), 0, path
 			view = View(text
-			natavi.Buffer(path, text, view, Overlay(view
+			natavi.Buffer(path, maps, text, view, Overlay(view
 		$timeout = @(timeout, action)
 			x = '(timeout, action
 			timers.push(x
@@ -218,10 +218,10 @@ nata.main(@ test("insert", null, @(vi, type, update)
 	assert(update() == "INSERT 1,3-3 100% <0?2> 2ihe"
 	assert(vi.buffer().text.slice(0, -1) == "he"
 	type("^H"
-	assert(update() == "INSERT 1,2-2 100% <0?2> 2ihe\b"
+	assert(update() == "INSERT 1,2-2 100% <0?2> 2ihe^H"
 	assert(vi.buffer().text.slice(0, -1) == "h"
 	type("i"
-	assert(update() == "INSERT 1,3-3 100% <0?2> 2ihe\bi"
+	assert(update() == "INSERT 1,3-3 100% <0?2> 2ihe^Hi"
 	assert(vi.buffer().text.slice(0, -1) == "hi"
 	type("^["
 	assert(update() == "NORMAL 1,5-5 100% <1> "
