@@ -136,10 +136,10 @@ test = @(name, text, f)
 		$KEY_ENTER = 0x100a
 	, status, View(status), text
 	f(vi
-		@(cs)
-			n = cs.size(
+		@(s)
+			n = s.size(
 			for i = 0; i < n; i = i + 1
-				c = cs.code_at(i
+				c = s.code_at(i
 				if c == 0
 					ts = timers
 					:timers = [
@@ -147,7 +147,7 @@ test = @(name, text, f)
 					return
 				if c == 0x5e
 					i = i + 1
-					c = cs.code_at(i
+					c = s.code_at(i
 					c == 0x5e || (c = c - 0x40)
 				vi(c
 		@
@@ -550,3 +550,26 @@ nata.main(@ test("buffers", "foo", @(vi, type, update)
 	assert(vi.buffer().text.slice(0, -1) == "bar"
 	type(":buffers^M"
 	assert(update() == "buffers\n1 % \"bar\""
+
+nata.main(@ test("insert literally", "", @(vi, type, update)
+	type("i^V^["
+	assert(update() == "INSERT 1,2-2 100% <0?2> i^V^["
+	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b
+	type("^V032"
+	assert(update() == "INSERT 1,3-3 100% <0?2> i^V^[^V032"
+	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " "
+	type("^V33a"
+	assert(update() == "INSERT 1,5-5 100% <0?2> i^V^[^V032^V33a"
+	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a"
+	type("^Vo042"
+	assert(update() == "INSERT 1,6-6 100% <0?2> i^V^[^V032^V33a^Vo042"
+	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\""
+	type("^Vo438"
+	assert(update() == "INSERT 1,8-8 100% <0?2> i^V^[^V032^V33a^Vo042^Vo438"
+	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\"#8"
+	type("^Vx24"
+	assert(update() == "INSERT 1,9-9 100% <0?2> i^V^[^V032^V33a^Vo042^Vo438^Vx24"
+	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\"#8$"
+	type("^Vxfg"
+	assert(update() == "INSERT 1,11-11 100% <0?2> i^V^[^V032^V33a^Vo042^Vo438^Vx24^Vxfg"
+	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\"#8$" + String.from_code(0xf) + "g"
