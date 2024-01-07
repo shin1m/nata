@@ -343,6 +343,7 @@ $new = @(host, status, strip, path)
 		$post
 		$map
 		$__initialize = @ $post = $reset
+		$keys = @(f) input.each(@(x) f(escape(x
 		$render = @
 			if progress != ""
 				status.replace(0, -1, progress
@@ -360,7 +361,7 @@ $new = @(host, status, strip, path)
 					(n > 0 ? view.top() * 100 / n : 100) + "% <" +
 					buffer.undos.size() +
 					(buffer.logs === null ? "" : "?" + buffer.logs.size()) +
-					(buffer.redos.size() > 0 ? "|" + buffer.redos.size() : "") + "> " + join(@(f) input.each(@(x) f(escape(x))))
+					(buffer.redos.size() > 0 ? "|" + buffer.redos.size() : "") + "> " + join($keys
 		$rewind = @ $map = buffer.maps.($name)
 		$reset = @
 			::count = 0
@@ -455,7 +456,7 @@ $new = @(host, status, strip, path)
 	commands = {
 	insert = @
 		:mode = mode_insert
-		mode.start = input.size(
+		mode.start = mode.from = input.size(
 	register = '(false, ""
 	yank = @(p, q, line = false) $finish(@ ::register = '(line, text.slice(p, q - p
 	delete_and_edit = @(p, q, line) :register = '(line, buffer.replace(p, q - p, ""
@@ -599,6 +600,7 @@ $new = @(host, status, strip, path)
 				view.folded(p - 1, false
 				buffer.logs === null && begin(p
 				buffer.merge(p - 1, 1, ""
+			$from = input.size(
 		$map_default = KeyMap(null, {
 			control("H"): backspace
 			control("V"): literal(@(c) $unknown(c
@@ -609,11 +611,16 @@ $new = @(host, status, strip, path)
 			host.KEY_BACKSPACE: backspace
 		$name = 'INSERT
 		$start
+		$from
+		$keys = @(f)
+			n = input.size(
+			for i = $from; i < n; i = i + 1: f(escape(input[i]
 		$unknown = @(c)
 			(c == host.KEY_ENTER || c == 0xd) && (c = 0xa)
 			p = view.position().text
 			buffer.logs === null && begin(p
 			buffer.merge(p, 0, String.from_code(c
+			$from = input.size(
 	mode_visual = do(Mode + @
 		clear = @
 			xs = [
