@@ -13,12 +13,13 @@ Text = nata.Text + @
 		nata.Text.__initialize[$](
 		$replaced = [
 		$version = 0
-	$location = @(p)
-		l = $line_at_in_text(p
-		'(l.index, $in_bytes(p) - $in_bytes(l.from)
+	$to_location = @(x)
+		l = $line_at_in_text(x
+		'(l.index, $in_bytes(x) - $in_bytes(l.from)
+	$from_location = @(x) $in_text($in_bytes($line_at(x.line).from) + x.character
 	$replace = @(p, n, s)
-		l0 = $location(p
-		l1 = $location(p + n
+		l0 = $to_location(p
+		l1 = $to_location(p + n
 		nata.Text.replace[$](p, n, s
 		$version = $version + 1
 		$replaced.each(@(x) x(l0[0], l0[1], l1[0], l1[1], s
@@ -165,104 +166,204 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 			:lsp__logs = vi.add_buffer(null
 			lsp__logs.disposing.unshift(@ ::lsp__logs = null
 		lsp__logs
-	lsp_open = @(location)
-		buffer = vi.open_buffer(location[0]
-		text = buffer.text
-		buffer.view.position__(text.in_text(text.in_bytes(text.line_at(location[1]).from) + location[2]), false
-	lsp_goto = @(message, action)
-		locations = [
+	lsp_choose = @(message, action, popup, result2items, item2text, mode, choose, finalize)
+		items = [
 		append = @(x)
-			s = x[0] + ": " + (x[1] + 1) + "," + (x[2] + 1)
+			s = item2text(x
 			n = chooser.text.size(
 			chooser.text.replace(n, 0, n > 0 ? "\n" + s : s
-		push = @(xs)
-			xs.each(locations.push
-			locations.size() > 1 || return
+		push = @(result)
+			result2items(result).each(items.push
+			items.size() > popup || return
 			:chooser = Chooser(@(ok)
 				if ok
-					lsp_open(locations[chooser.at()]
+					cancel === null || cancel(
+					choose(items[chooser.at()]
 				else
 					cancel === null || return cancel(
+				::push = @(result)
+				::done = @(result, error)
 				mode__(vi
 				popup__(null
 				chooser.dispose(
-			locations.each(append
+				finalize(
+			items.each(append
 			chooser.at__(0
-			mode__(chooser
+			mode__(mode(chooser, @
+				cancel === null || cancel(
+				::push = @(result)
+					xs = result2items(result
+					xs.size() > 0 || return
+					:::items = xs
+					chooser.text.replace(0, -1, ""
+					items.each(append
+					chooser.at__(0
+					:::push = push_items
+				call(
 			popup__(chooser.view
-			:push = @(xs) xs.each(@(x)
-				locations.push(x
+			:push = push_items = @(result) result2items(result).each(@(x)
+				items.push(x
 				append(x
-			:done = @(xs, error)
+			:done = @(result, error)
 				error === null || return vi.message("ERROR: " + error
-				push(xs
+				push(result
 				vi.message(""
-		done = @(xs, error)
+		done = @(result, error) try
 			mode__(vi
 			error === null || return vi.message("ERROR: " + error
-			push(xs
+			push(result
 			vi.message(""
 			if chooser === null
-				locations.size() > 0 || return vi.message("no information"
-				lsp_open(locations[0]
-		cancel = action(@(xs) push(xs), @(xs, error)
-			:cancel = null
-			done(xs, error
-		cancellable(message, cancel
-	lsp_startup = @(file, arguments, environments, match, done)
-		Module("lsp").startup(loop, invalidate, file, arguments, environments
+				items.size() > 0 || return vi.message("no information"
+				choose(items[0]
+		finally
+			finalize(
+		call = @ :cancel = action(@(result) push(result), @(result, error)
+			::cancel = null
+			done(result, error
+		cancellable(message, call(
+	lsp_goto = @(message, action) lsp_choose(message, action, 1
+		@(x) x
+		@(x) x.path + ": " + (x.line + 1) + "," + (x.character + 1)
+		@(chooser, reload) chooser
+		@(location)
+			buffer = vi.open_buffer(location.path
+			text = buffer.text
+			buffer.view.position__(text.from_location(location), false
+		@
+	lsp_literal = @(c)
+		vi(0x16
+		if c >= 0x30 && c < 0x3a
+			vi(0x58
+			vi(0x33
+			vi(c
+		else if c == 0x4f
+			vi(0x58
+			vi(0x34
+			vi(0x46
+		else if c == 0x58
+			vi(0x58
+			vi(0x35
+			vi(0x38
+		else if c == 0x6f
+			vi(0x58
+			vi(0x36
+			vi(0x46
+		else if c == 0x78
+			vi(0x58
+			vi(0x37
+			vi(0x38
+		else
+			vi(c
+	lsp_completion = @(client, buffer, popup) if lsp__completion === null
+		:lsp__completion = true
+		lsp_choose("completion..."
+			@(partial, done)
+				l = buffer.text.to_location(buffer.view.position().text
+				client.completion(buffer.path, l[0], l[1], done, partial
+			popup
 			@(x)
-				logs = lsp_logs(
-				logs.begin(
-				try
-					logs.replace(logs.text.size(), 0, x
-					logs.commit(null
-				catch Throwable t
-					logs.cancel(
-				logs.undos.clear(
-			@(token, title, cancellable, message, percentage)
-				s = "" + token + " " + title + ":"
-				message !== null && (s = s + " " + message)
-				percentage !== null && (s = s + " " + percentage + "%")
-				vi.progress(s
-			@(client) done(client === null ? null : (Object + @
-				$stop = client.shutdown
-				$register = @(buffer) if match(buffer)
-					text = buffer.text
-					replaced = @(l0, c0, l1, c1, s) client.did_change(buffer.path, text.version, l0, c0, l1, c1, s
-					buffer.lsps[$] = replaced
-					text.replaced.push(replaced
-					buffer.commands["lsp"] = verbify({
-						"definition": @(i) lsp_goto("definition...", @(partial, done)
-							l = text.location(buffer.view.position().text
-							client.definition(buffer.path, l[0], l[1], done, partial
-						"references": @(i) lsp_goto("references...", @(partial, done)
-							l = text.location(buffer.view.position().text
-							client.references(buffer.path, l[0], l[1], false, done, partial
-						"hover": @(i)
-							l = text.location(buffer.view.position().text
-							cancellable("hover...", client.hover(buffer.path, l[0], l[1], @(value, error)
+				x.incomplete !== null && (:incomplete = x.incomplete)
+				x.items
+			@(x) x.label
+			@(chooser, reload) @(c)
+				c == control("I") && return chooser(control("M"
+				c == control("[") && return chooser(c
+				vi(c
+				#if incomplete
+				#	::incomplete = null
+				#	reload(
+				reload(
+			@(x)
+				times = @(n, f) for ; n > 0; n = n - 1: f(
+				p = buffer.view.position().text
+				text = buffer.text
+				if x.edit === null
+					# match and delete identifier
+					s = x.insert
+					n = s.size(
+					n > p && (n = p)
+					while n > 0 && text.slice(p - n, n) != s.substring(0, n): n = n - 1
+					s = s.substring(n
+				else
+					times(text.from_location(x.edit.end) - p, @vi(0x7f
+					times(p - text.from_location(x.edit.start), @ vi(0x8
+					s = x.edit.text
+				natavi.each_code(s, lsp_literal
+			@ ::lsp__completion = null
+	lsp_startup = @(file, arguments, environments, match, done) Module("lsp").startup(loop, invalidate, file, arguments, environments
+		@(x)
+			logs = lsp_logs(
+			logs.begin(
+			try
+				logs.replace(logs.text.size(), 0, x
+				logs.commit(null
+			catch Throwable t
+				logs.cancel(
+			logs.undos.clear(
+		@(token, title, cancellable, message, percentage)
+			s = "" + token + " " + title + ":"
+			message !== null && (s = s + " " + message)
+			percentage !== null && (s = s + " " + percentage + "%")
+			vi.progress(s
+		@(client) done(client === null ? null : (Object + @
+			completion_triggers = [
+			if client.capabilities.has("completionProvider")
+				completion_privider =  client.capabilities["completionProvider"]
+				completion_privider.has("triggerCharacters") && completion_privider["triggerCharacters"].each(completion_triggers.push
+			$stop = client.shutdown
+			$register = @(buffer) if match(buffer)
+				text = buffer.text
+				replaced = @(l0, c0, l1, c1, s) client.did_change(buffer.path, text.version, l0, c0, l1, c1, s
+				buffer.lsps[$] = replaced
+				text.replaced.push(replaced
+				buffer.commands["lsp"] = verbify({
+					"definition": @(i) lsp_goto("definition...", @(partial, done)
+						l = text.to_location(buffer.view.position().text
+						client.definition(buffer.path, l[0], l[1], done, partial
+					"references": @(i) lsp_goto("references...", @(partial, done)
+						l = text.to_location(buffer.view.position().text
+						client.references(buffer.path, l[0], l[1], false, done, partial
+					"hover": @(i)
+						l = text.to_location(buffer.view.position().text
+						cancellable("hover...", client.hover(buffer.path, l[0], l[1], @(value, error)
+							mode__(vi
+							error === null || return vi.message("ERROR: " + error
+							value === null && return vi.message("no information"
+							vi.message(""
+							popup = Popup(
+							popup.text.replace(0, -1, value
+							mode__(@(c)
 								mode__(vi
-								error === null || return vi.message("ERROR: " + error
-								value === null && return vi.message("no information"
-								vi.message(""
-								popup = Popup(
-								popup.text.replace(0, -1, value
-								mode__(@(c)
-									mode__(vi
-									popup__(null
-									popup.dispose(
-									vi(c
-								popup__(popup.view
-					vi.map(buffer.maps.NORMAL, "\fd", ":lsp definition\r"
-					vi.map(buffer.maps.NORMAL, "\fh", ":lsp hover\r"
-					vi.map(buffer.maps.NORMAL, "\fr", ":lsp references\r"
-					client.did_open(buffer.path, text.version, text.slice(0, text.size(
-				$unregister = @(buffer)
-					remove(buffer.text.replaced, buffer.lsps.remove($
-					buffer.commands.remove("lsp"
-					client.did_close(buffer.path
-			)(
+								popup__(null
+								popup.dispose(
+								vi(c
+							popup__(popup.view
+					"completion": @(i) loop.post(@
+						vi(letter("i"
+						lsp_completion(client, buffer, 1
+				vi.map(buffer.maps.NORMAL, "\fc", ":lsp completion\r"
+				vi.map(buffer.maps.NORMAL, "\fd", ":lsp definition\r"
+				vi.map(buffer.maps.NORMAL, "\fh", ":lsp hover\r"
+				vi.map(buffer.maps.NORMAL, "\fr", ":lsp references\r"
+				vi.map_action(buffer.maps.INSERT, "\fc", "lsp completion", @ lsp_completion(client, buffer, 1
+				completion_triggers.each(@(x)
+					c = x.code_at(0
+					vi.map_action(buffer.maps.INSERT, x, "lsp completion", @
+						lsp_literal(c
+						lsp_completion(client, buffer, 0
+				client.did_open(buffer.path, text.version, text.slice(0, text.size(
+			$unregister = @(buffer)
+				remove(buffer.text.replaced, buffer.lsps.remove($
+				buffer.commands.remove("lsp"
+				buffer.maps.NORMAL.remove("\fc"
+				buffer.maps.NORMAL.remove("\fd"
+				buffer.maps.NORMAL.remove("\fh"
+				buffer.maps.NORMAL.remove("\fr"
+				buffer.maps.INSERT.remove("\fc"
+				completion_triggers.each(buffer.maps.INSERT.remove
+				client.did_close(buffer.path
+		)(
 	vi.commands["clangd"] = verbify({
 		"start": @(i) if !lsps.has("clangd")
 			lsp_startup("clangd", '("--log=verbose"), '()
@@ -301,12 +402,12 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 				ph = popup.size().y
 				ph > limit && (ph = limit)
 				row = main.row().y
-				b = main.size().y
-				mh > b && (b = mh)
-				if b - row < ph + 1
+				bh = main.size().y
+				bh = (mh > bh ? mh : bh) - row
+				if bh < ph + 1
 					y = size[1] - sh - ph
-					main.move(0, 0, size[0], y
-					main.into_view(row, 1
+					main.move(0, 0, size[0], y + bh - 1
+					main.into_view(row, bh
 				else
 					main.move(0, 0, size[0], mh
 					main.into_view(row, ph + 1

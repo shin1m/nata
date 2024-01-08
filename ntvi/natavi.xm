@@ -32,7 +32,7 @@ with = @(x, f)
 		x.dispose(
 letter = @(x) x.code_at(0
 control = @(x) letter(x) - letter("@")
-each_code = @(s, f)
+$each_code = each_code = @(s, f)
 	n = s.size(
 	for i = 0; i < n; i = i + 1: f(s.code_at(i
 join = @(each)
@@ -731,4 +731,7 @@ $new = @(host, status, strip, path)
 		$open_buffer = open_buffer
 		$match_status = match_status
 		$map = map
+		$map_action = @(map, lhs, name, action) map.put(lhs, KeyMapAction(name, @
+			each_code(lhs, @(c) input.pop(
+			action[$](
 		$commands = commands
