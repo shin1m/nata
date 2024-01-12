@@ -138,7 +138,10 @@ nata_lsp = @(loop, lsps, status, vi, mode__, popup__, invalidate)
 		catch Throwable t
 			logs.cancel(
 		logs.undos.clear(
-	choose = @(message, action, popup, result2items, item2text, mode, choose, finalize)
+	choose = @(action, popup, result2items, item2text, opening, choose, finalize)
+		end = @
+			mode__(vi
+			finalize(
 		items = [
 		append = @(x)
 			s = item2text(x
@@ -153,15 +156,12 @@ nata_lsp = @(loop, lsps, status, vi, mode__, popup__, invalidate)
 					choose(items[chooser.at()]
 				else
 					cancel === null || return cancel(
-				::push = @(result)
-				::done = @(result, error)
-				mode__(vi
 				popup__(null
 				chooser.dispose(
-				finalize(
+				end(
 			items.each(append
 			chooser.at__(0
-			mode__(mode(chooser, @
+			mode__(opening(chooser, @
 				cancel === null || cancel(
 				::push = @(result)
 					xs = result2items(result
@@ -181,21 +181,32 @@ nata_lsp = @(loop, lsps, status, vi, mode__, popup__, invalidate)
 				push(result
 				vi.message(""
 		done = @(result, error)
-			mode__(vi
 			if error !== null
 				vi.message("ERROR: " + error
-				return finalize(
+				return end(
 			push(result
 			vi.message(""
 			chooser === null || return
-			items.size() > 0 || return vi.message("no information"
-			choose(items[0]
-			finalize(
-		call = @ :cancel = action(@(result) push(result), @(result, error)
-			::cancel = null
-			done(result, error
-		cancellable(message, call(
-	goto = @(message, action) choose(message, action, 1
+			items.size() > 0 ? choose(items[0]) : vi.message("no information"
+			end(
+		call = @
+			discard = @
+				::cancel = null
+				:push = @(result)
+				:done = @(result, error)
+			push = @(result) ::push(result)
+			done = @(result, error)
+				discard(
+				::done(result, error)
+			cancel = action(@(result) push(result), @(result, error) done(result, error
+			:cancel = @
+				discard(
+				cancel(
+		call(
+		@
+			cancel(
+			end(
+	goto = @(message, action) cancellable(message, choose(action, 1
 		@(x) x
 		@(x) x.path + ": " + (x.line + 1) + "," + (x.character + 1)
 		@(chooser, reload) chooser
@@ -228,42 +239,49 @@ nata_lsp = @(loop, lsps, status, vi, mode__, popup__, invalidate)
 			vi(0x38
 		else
 			vi(c
-	completion = do(@ @(client, buffer, popup) if running === null
-		:running = true
-		choose("completion..."
-			@(partial, done)
-				l = buffer.text.to_location(buffer.view.position().text
-				client.completion(buffer.path, l[0], l[1], done, partial
-			popup
-			@(x)
-				x.incomplete !== null && (:incomplete = x.incomplete)
-				x.items
-			@(x) x.label
-			@(chooser, reload) @(c)
-				c == control("I") && return chooser(control("M"
-				c == control("[") && return chooser(c
-				vi(c
-				#if incomplete
-				#	::incomplete = null
-				#	reload(
-				reload(
-			@(x)
-				times = @(n, f) for ; n > 0; n = n - 1: f(
-				p = buffer.view.position().text
-				text = buffer.text
-				if x.edit === null
-					# match and delete identifier
-					s = x.insert
-					n = s.size(
-					n > p && (n = p)
-					while n > 0 && text.slice(p - n, n) != s.substring(0, n): n = n - 1
-					s = s.substring(n
-				else
-					times(text.from_location(x.edit.end) - p, @vi(0x7f
-					times(p - text.from_location(x.edit.start), @ vi(0x8
-					s = x.edit.text
-				natavi.each_code(s, literal
-			@ ::running = null
+	completion = do(@
+		call = start = @(client, buffer, popup)
+			cancel = choose(
+				@(partial, done)
+					l = buffer.text.to_location(buffer.view.position().text
+					client.completion(buffer.path, l[0], l[1], done, partial
+				popup
+				@(x)
+					x.incomplete !== null && (:incomplete = x.incomplete)
+					x.items
+				@(x) x.label
+				@(chooser, reload)
+					::call = @(client, buffer, popup)
+					@(c)
+						c == control("I") && return chooser(control("M"
+						c == control("[") && return chooser(c
+						vi(c
+						#if incomplete
+						#	::incomplete = null
+						#	reload(
+						reload(
+				@(x)
+					times = @(n, f) for ; n > 0; n = n - 1: f(
+					p = buffer.view.position().text
+					text = buffer.text
+					if x.edit === null
+						# match and delete identifier
+						s = x.insert
+						n = s.size(
+						n > p && (n = p)
+						while n > 0 && text.slice(p - n, n) != s.substring(0, n): n = n - 1
+						s = s.substring(n
+					else
+						times(text.from_location(x.edit.end) - p, @vi(0x7f
+						times(p - text.from_location(x.edit.start), @ vi(0x8
+						s = x.edit.text
+					natavi.each_code(s, literal
+				@ ::call = start
+			popup > 0 && return cancellable("completion...", cancel
+			:call = @(client, buffer, popup)
+				cancel(
+				call(client, buffer, popup
+		@(client, buffer, popup) call(client, buffer, popup
 	startup = @(file, arguments, environments, match, done) Module("lsp").startup(loop, invalidate, file, arguments, environments, log
 		@(token, title, cancellable, message, percentage)
 			s = "" + token + " " + title + ":"
