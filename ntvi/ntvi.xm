@@ -128,14 +128,14 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 			syntax = nata_syntax.new(text, path, view
 			buffer = Buffer(path, maps, text, view, syntax, lsps
 			if syntax !== null
-				buffer.disposing.unshift(@
-					remove(tasks, syntax.step
-					syntax.dispose(
-				tasks.push(@
+				tasks.push(step = @
 					current = syntax.step(
 					current === null && return
 					vi.progress("running: " + current * 100 / text.size() + "%"
 					invalidate(
+				buffer.disposing.unshift(@
+					remove(tasks, step
+					syntax.dispose(
 			buffer
 		$timeout = @(timeout, action) loop.timer(@
 			action(
