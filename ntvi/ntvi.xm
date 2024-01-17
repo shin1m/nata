@@ -34,18 +34,15 @@ View = nata_curses.View + @
 Buffer = natavi.Buffer + @
 	$disposing
 	$syntax
-	$lsps
-	$__initialize = @(path, maps, text, view, syntax, lsps)
+	$hooks
+	$__initialize = @(path, maps, text, view, syntax)
 		natavi.Buffer.__initialize[$](path, maps, text, view, nata_curses.Overlay(view, nata_curses.A_REVERSE
 		$disposing = [
 		$syntax = syntax
-		$lsps = {
-		lsps.each(@(k, v) v.register(:$
+		$hooks = {
 	$dispose = @
+		$hooks.each(@(k, v) v(
 		$disposing.each(@(x) x(
-		lsps = [
-		$lsps.each(@(k, v) lsps.push(k
-		lsps.each(@(x) x.unregister($
 		natavi.Buffer.dispose[$](
 
 remove = @(xs, x)
@@ -111,7 +108,7 @@ Chooser = Popup + @
 			map[c][$](
 		catch Throwable t
 
-nata_lsp = @(loop, lsps, status, vi, mode__, popup__, invalidate)
+nata_lsp = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 	cancellable = @(message, cancel)
 		vi.message(message + " (ESC to cancel)"
 		mode__(@(c) c == control("[") && cancel(
@@ -294,7 +291,7 @@ nata_lsp = @(loop, lsps, status, vi, mode__, popup__, invalidate)
 				cancel(
 				call(popup
 		@(popup) call(popup
-	startup = @(file, arguments, environments, match, done) Module("lsp").startup(loop, invalidate, file, arguments, environments, log
+	startup = @(file, arguments, environments, done) Module("lsp").startup(loop, invalidate, file, arguments, environments, log
 		@(token, title, cancellable, message, percentage)
 			s = "" + token + " " + title + ":"
 			message !== null && (s = s + " " + message)
@@ -306,14 +303,11 @@ nata_lsp = @(loop, lsps, status, vi, mode__, popup__, invalidate)
 				completion_privider =  client.capabilities["completionProvider"]
 				completion_privider.has("triggerCharacters") && completion_privider["triggerCharacters"].each(completion_triggers.push
 			$stop = client.shutdown
-			$register = @(buffer) if match(buffer)
+			$register = @(buffer)
 				text = buffer.text
 				replaced = @(l0, c0, l1, c1, s) client.did_change(buffer.path, text.version, l0, c0, l1, c1, s
-				search = nata.Search(text
-				buffer.lsps[$] = @
-					remove(text.replaced, replaced
-					search.dispose(
 				text.replaced.push(replaced
+				search = nata.Search(text
 				completion = :completion(client, buffer, search
 				buffer.commands["lsp"] = verbify({
 					"definition": @(i) goto("definition...", @(partial, done)
@@ -351,26 +345,33 @@ nata_lsp = @(loop, lsps, status, vi, mode__, popup__, invalidate)
 						literal(c
 						completion(0
 				client.did_open(buffer.path, text.version, text.slice(0, text.size(
-			$unregister = @(buffer)
-				buffer.lsps.remove($)(
-				buffer.commands.remove("lsp"
-				buffer.maps.NORMAL.remove("\fc"
-				buffer.maps.NORMAL.remove("\fd"
-				buffer.maps.NORMAL.remove("\fh"
-				buffer.maps.NORMAL.remove("\fr"
-				buffer.maps.INSERT.remove("\fc"
-				completion_triggers.each(buffer.maps.INSERT.remove
-				client.did_close(buffer.path
-	@(name, file, arguments, environments, match) vi.commands["clangd"] = verbify({
-		"start": @(i) lsps.has(name) || startup(file, arguments, environments, match, @(lsp)
-			lsp === null && return vi.message(name + ": failed."
-			lsps[name] = lsp
-			vi.buffers.each(lsp.register
+				@
+					buffer.commands.remove("lsp"
+					buffer.maps.NORMAL.remove("\fc"
+					buffer.maps.NORMAL.remove("\fd"
+					buffer.maps.NORMAL.remove("\fh"
+					buffer.maps.NORMAL.remove("\fr"
+					buffer.maps.INSERT.remove("\fc"
+					completion_triggers.each(buffer.maps.INSERT.remove
+					remove(text.replaced, replaced
+					search.dispose(
+					client.did_close(buffer.path
+	instances = {
+	@(name, file, arguments, environments, match) vi.commands[name] = verbify({
+		"start": @(i) if !instances.has(name): instances[name] = startup(file, arguments, environments, @(hook)
+			if hook === null
+				instances.remove(name
+				return vi.message(name + ": failed."
+			register = @(x) if match(x): x.hooks[hook] = hook.register(x
+			hooks.push(register
+			instances[name] = @
+				instances.remove(name
+				vi.buffers.each(@(x) x.hooks.has(hook) && x.hooks.remove(hook)(
+				remove(hooks, register
+				hook.stop(@ vi.message(name + ": stopped."
+			vi.buffers.each(register
 			vi.message(name + ": started."
-		"stop": @(i) if lsps.has(name)
-			lsp = lsps.remove(name
-			vi.buffers.each(@(x) x.lsps.has(lsp) && lsp.unregister(x
-			lsp.stop(@ vi.message(name + ": stopped."
+		"stop": @(i) instances.has(name) && instances[name](
 		"log": @(i) vi.switch_buffer(logs(
 
 suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
@@ -379,7 +380,7 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 	nata_curses.define_pair(3, -1, nata_curses.COLOR_YELLOW
 	nata_syntax.initialize(4
 	tasks = [
-	lsps = {
+	hooks = [
 	size = nata_curses.size(
 	status = nata.Text(
 	strip = View(status, 0, size[1] - 1, size[0], 1
@@ -390,7 +391,7 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 			path !== null && read(text, path
 			view = View(text, 0, 0, size[0], size[1] - 1
 			syntax = nata_syntax.new(text, path, view
-			buffer = Buffer(path, maps, text, view, syntax, lsps
+			buffer = Buffer(path, maps, text, view, syntax
 			if syntax !== null
 				tasks.push(step = @
 					current = syntax.step(
@@ -400,6 +401,7 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 				buffer.disposing.unshift(@
 					remove(tasks, step
 					syntax.dispose(
+			hooks.each(@(x) x(buffer
 			buffer
 		$timeout = @(timeout, action) loop.timer(@
 			action(
@@ -451,7 +453,7 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 			popup !== null && popup.render(
 			vi.current().focus(
 			nata_curses.flush(
-	lsp = nata_lsp(loop, lsps, status, vi, mode__, popup__, invalidate
+	lsp = nata_lsp(loop, hooks, status, vi, mode__, popup__, invalidate
 	lsp("clangd", "clangd", '("--log=verbose"), '(), @(buffer) buffer.syntax !== null && buffer.syntax.type == "cpp"
 	loop.poll(0, true, false, @(readable, writable) if readable
 		mode(vi.current().get(
