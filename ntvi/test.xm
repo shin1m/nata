@@ -144,14 +144,13 @@ test = @(name, text, f)
 					ts = timers
 					:timers = [
 					ts.each(@(x) x[1](
-					return
+					continue
 				if c == 0x5e
 					i = i + 1
 					c = s.code_at(i
 					c == 0x5e || (c = c - 0x40)
 				vi(c
-		@
-			done && return
+		@ if !done
 			vi.render(
 			status = :status.slice(0, -1
 			timers.each(@(x) :status = status + " t" + x[0]
@@ -497,7 +496,7 @@ nata.main(@ test("map", "abcdefghi", @(vi, type, update)
 	type("^["
 	assert(update() == "NORMAL 1,5-5 100% <1> "
 	type("_"
-	assert(update() == "NORMAL 1,5-5 100% <1> _"
+	assert(update() == "NORMAL 1,5-5 100% <1> _ t1000"
 	type("_"
 	assert(update() == "NORMAL 1,10-10 100% <2> "
 	assert(vi.buffer().text.slice(0, -1) == "YAH!aYAH!bcdefghi"
@@ -507,6 +506,18 @@ nata.main(@ test("map", "abcdefghi", @(vi, type, update)
 	assert(update() == "maps\n_ya iYAH!"
 	type(":unmap _ya^M:map^M"
 	assert(update() == "maps"
+
+nata.main(@ test("map timeout", "abc", @(vi, type, update)
+	type(":map ll $^M"
+	assert(update() == "NORMAL 1,1-1 100% <0> "
+	type("l"
+	assert(update() == "NORMAL 1,1-1 100% <0> l t1000"
+	type(String.from_code(0
+	assert(update() == "NORMAL 1,2-2 100% <0> "
+	type("l"
+	assert(update() == "NORMAL 1,2-2 100% <0> l t1000"
+	type("l"
+	assert(update() == "NORMAL 1,4-4 100% <0> "
 
 nata.main(@ test("map ambiguous", "abc", @(vi, type, update)
 	type(":map _ $^M"
