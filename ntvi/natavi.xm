@@ -104,13 +104,6 @@ KeyMapAction = Object + @
 	$__string = @ $name
 	$__get_at = @(mode) $action[mode]
 
-KeyMapLiteral = Object + @
-	$at
-	$__initialize = @(at) $at = at[$]
-	$__get_at = @(c) $at(c
-	$get = @ null
-	$more = @ true
-
 Maps = Object + @
 	$NORMAL
 	$INSERT
@@ -202,12 +195,7 @@ $new = @(host, status, strip, path)
 		:text = buffer.text
 		:current = :view = buffer.view
 		:selection = buffer.selection
-		mode_normal.rewind(
-		mode_change.rewind(
-		mode_delete.rewind(
-		mode_yank.rewind(
-		mode_insert.rewind(
-		mode_visual.rewind(
+		Mode.rewind(
 		buffer
 	open_buffer = @(path)
 		n = buffers.size(
@@ -339,15 +327,12 @@ $new = @(host, status, strip, path)
 			l = text.line_at_in_text(p
 			forward(p, l.from + l.count - 1, @(p) view.position__(p, true
 		letter("n"): KeyMap(@ $finish(@ search_next[:$](false
-	repeat = @(n, start, end, f)
-		for ; n > 1; n = n - 1
-			for i = start; i < end; i = i + 1
-				f(input[i]
+	repeat = @(n, start) for ; n > 1; n = n - 1
+		cs = [
+		while input.size() > start: cs.unshift(input.pop(
+		cs.each(push
 	escape = @(x) x < 0x20 ? "^" + String.from_code(x + 0x40) : String.from_code(x)
 	Mode = Object + @
-		$map
-		$fallback
-		$partial
 		$echo = @(f) input.each(@(x) f(escape(x
 		$render = @
 			if progress != ""
@@ -367,40 +352,44 @@ $new = @(host, status, strip, path)
 					buffer.undos.size() +
 					(buffer.logs === null ? "" : "?" + buffer.logs.size()) +
 					(buffer.redos.size() > 0 ? "|" + buffer.redos.size() : "") + "> " + join($echo
-		$rewind = @
-			$map = buffer.maps.($name)
+		rewind_builtin = @
+			:map = builtin_maps.(mode.name)
+			:fallback = @(c)
+				mode.unknown(c
+				rewind(
+			:partial = @
+				action = map.get(
+				action === null && return
+				::pending = '(@
+					:::pending = null
+					action[mode](
+					rewind(
+				, @
+		rewind = @
+			:map = buffer.maps.(mode.name)
 			n = 0
 			commit = @
 				::pending = null
 				cs = [
 				for ; n > 0; (:n = n - 1): cs.unshift(input.pop(
 				if action === null
-					:$rewind_builtin(
+					rewind_builtin(
 				else
-					:$rewind(
-					action[:$](
+					action[mode](
+					rewind(
 				cs.each(push
-			$fallback = @(c)
-				:$rewind_builtin(
-				:$(c
-			$partial = @
-				action = :$map.get(
+			:fallback = @(c)
+				rewind_builtin(
+				mode(c
+			:partial = @
+				action = map.get(
 				if action === null
 					:n = n + 1
 				else
 					:n = 0
 					:action = action
 				::pending = '(commit, host.timeout(1000, commit
-		$rewind_builtin = @
-			$map = builtin_maps.($name)
-			$fallback = @(c)
-				:$rewind(
-				:$unknown(c
-			$partial = @
-				action = :$map.get(
-				action === null && return
-				:$rewind(
-				action[:$](
+		$rewind = rewind
 		$reset = @
 			::count = 0
 			::input = [
@@ -414,9 +403,9 @@ $new = @(host, status, strip, path)
 		$__call = @(c)
 			try
 				try
-					map = $map[c]
+					map = :map[c]
 				catch Throwable t
-					pending === null && return $fallback(c
+					pending === null && return fallback(c
 					pending[1](
 					input.pop(
 					pending[0](
@@ -425,16 +414,16 @@ $new = @(host, status, strip, path)
 					pending[1](
 					:pending = null
 				if map.more()
-					$map = map
-					$partial(
+					:map = map
+					partial(
 				else
 					action = map.get(
-					$rewind(
 					action !== null && action[$](
+					rewind(
 			catch Throwable t
 				::message = t.__string(
-				$rewind(
-				$reset(
+				mode.reset(
+				rewind(
 	match_status = @(pattern, i) with_search(status, pattern, @(search)
 		search.reset(i, -1
 		search.next(
@@ -502,24 +491,20 @@ $new = @(host, status, strip, path)
 			::code = code
 			map
 		@(commit)
-			map_commit = KeyMap(@ commit[$](code
-			map_commit_push = KeyMap(@
-				c = input.pop(
-				commit[$](code
-				push(c
-			map_digit = @(f)
-				map = {
-				f(@(base, c, i, n) for ; i < n; i = i + 1: map[c + i] = add(base, i
-				KeyMapLiteral(@(c)
-					try
-						map[c](
-						:::depth = depth - 1
-						depth > 0 ? $ : map_commit
-					catch Throwable t
-						map_commit_push
-			decimal = map_digit(@(put) put(10, 0x30, 0, 10
-			octal = map_digit(@(put) put(8, 0x30, 0, 8
-			hexadecimal = map_digit(@(put)
+			Digit = Object + @
+				$map
+				$__initialize = @(f)
+					$map = {
+					f(@(base, c, i, n) for ; i < n; i = i + 1: :$map[c + i] = add(base, i
+				$__get_at = @(c)
+					$map[c](
+					:::depth = depth - 1
+					$
+				$get = @ @ commit[$](code
+				$more = @ depth > 0
+			decimal = Digit(@(put) put(10, 0x30, 0, 10
+			octal = Digit(@(put) put(8, 0x30, 0, 8
+			hexadecimal = Digit(@(put)
 				put(16, 0x30, 0, 10
 				put(16, 0x37, 10, 16
 				put(16, 0x57, 10, 16
@@ -529,12 +514,16 @@ $new = @(host, status, strip, path)
 				letter("o"): digit(octal, 3, 0
 				letter("x"): digit(hexadecimal, 2, 0
 			for i = 0; i < 10; i = i + 1: map[0x30 + i] = digit(decimal, 2, i
-			KeyMapLiteral(@(c)
-				try
-					map[c](
-				catch Throwable t
-					::code = c
-					map_commit
+			map_commit = KeyMap(@ commit[$](code
+			do(Object + @
+				$__get_at = @(c)
+					try
+						map[c](
+					catch Throwable t
+						:::code = c
+						map_commit
+				$get = @ null
+				$more = @ true
 	mode = mode_normal = do(Mode + @
 		$map_default = KeyMap(null, map_motion, {
 			control("R"): KeyMap(@ $finish(@ times(@ buffer.redo(
@@ -599,7 +588,7 @@ $new = @(host, status, strip, path)
 			$post = @
 				:::count = 0
 				:$post = @ ::::count = 0
-				repeat(:$count, start, input.size(), mode
+				repeat(:$count, start
 				:$post = :$reset
 				p1 = view.position().text
 				begin(p0
@@ -642,7 +631,9 @@ $new = @(host, status, strip, path)
 			control("H"): backspace
 			control("V"): literal(@(c) $unknown(c
 			control("["): KeyMap(@
-				repeat(count, $start, input.size() - 1, $
+				c = input.pop(
+				repeat(count, $start
+				input.push(c
 				::mode = mode_normal
 				mode.commit(commit
 			host.KEY_BACKSPACE: backspace
@@ -721,6 +712,7 @@ $new = @(host, status, strip, path)
 				done[$](false
 			host.KEY_BACKSPACE: backspace
 			host.KEY_ENTER: @ done[$](true
+		$name = 'NORMAL
 		$caller
 		$prompt
 		$doing

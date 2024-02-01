@@ -563,45 +563,76 @@ nata.main(@ test("buffers", "foo", @(vi, type, update)
 	assert(update() == "buffers\n1 % \"bar\""
 
 nata.main(@ test("insert literally", "", @(vi, type, update)
-	type("i^V"
+	type("3i^V"
 	assert(update() == "INSERT 1,1-1 100% <0> ^V"
 	assert(vi.buffer().text.slice(0, -1) == ""
 	type("^["
 	assert(update() == "INSERT 1,2-2 100% <0?2> "
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b
-	type("^V03"
-	assert(update() == "INSERT 1,2-2 100% <0?2> ^V03"
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b)
+	E = String.from_code(0x1b
+	assert(vi.buffer().text.slice(0, -1) == E
+	type("^["
+	assert(update() == "NORMAL 1,4-4 100% <1> "
+	assert(vi.buffer().text.slice(0, -1) == E + E + E
+	type("2."
+	assert(update() == "NORMAL 1,6-6 100% <2> "
+	assert(vi.buffer().text.slice(0, -1) == E + E + E + E + E
+
+nata.main(@ test("insert by decimal digits", "", @(vi, type, update)
+	type("3i^V03"
+	assert(update() == "INSERT 1,1-1 100% <0> ^V03"
+	assert(vi.buffer().text.slice(0, -1) == ""
 	type("2"
-	assert(update() == "INSERT 1,3-3 100% <0?2> "
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " "
-	type("^V33"
-	assert(update() == "INSERT 1,3-3 100% <0?2> ^V33"
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " "
+	assert(update() == "INSERT 1,2-2 100% <0?2> "
+	assert(vi.buffer().text.slice(0, -1) == " "
+	type("^["
+	assert(update() == "NORMAL 1,4-4 100% <1> "
+	assert(vi.buffer().text.slice(0, -1) == "   "
+	type("2."
+	assert(update() == "NORMAL 1,6-6 100% <2> "
+	assert(vi.buffer().text.slice(0, -1) == "     "
+
+nata.main(@ test("insert by decimal digits followed by non digit", "", @(vi, type, update)
+	type("3i^V33"
+	assert(update() == "INSERT 1,1-1 100% <0> ^V33"
+	assert(vi.buffer().text.slice(0, -1) == ""
 	type("a"
-	assert(update() == "INSERT 1,5-5 100% <0?2> "
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a"
-	type("^Vo04"
-	assert(update() == "INSERT 1,5-5 100% <0?2> ^Vo04"
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a"
+	assert(update() == "INSERT 1,3-3 100% <0?2> "
+	assert(vi.buffer().text.slice(0, -1) == "!a"
+	type("^["
+	assert(update() == "NORMAL 1,7-7 100% <1> "
+	assert(vi.buffer().text.slice(0, -1) == "!a!a!a"
+	type("2."
+	assert(update() == "NORMAL 1,11-11 100% <2> "
+	assert(vi.buffer().text.slice(0, -1) == "!a!a!a!a!a"
+
+nata.main(@ test("insert by octal digits", "", @(vi, type, update)
+	type("i^Vo04"
+	assert(update() == "INSERT 1,1-1 100% <0> ^Vo04"
+	assert(vi.buffer().text.slice(0, -1) == ""
 	type("2"
-	assert(update() == "INSERT 1,6-6 100% <0?2> "
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\""
-	type("^Vo43"
-	assert(update() == "INSERT 1,6-6 100% <0?2> ^Vo43"
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\""
+	assert(update() == "INSERT 1,2-2 100% <0?2> "
+	assert(vi.buffer().text.slice(0, -1) == "\""
+
+nata.main(@ test("insert by octal digits followed by non digit", "", @(vi, type, update)
+	type("i^Vo43"
+	assert(update() == "INSERT 1,1-1 100% <0> ^Vo43"
+	assert(vi.buffer().text.slice(0, -1) == ""
 	type("8"
-	assert(update() == "INSERT 1,8-8 100% <0?2> "
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\"#8"
-	type("^Vx2"
-	assert(update() == "INSERT 1,8-8 100% <0?2> ^Vx2"
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\"#8"
+	assert(update() == "INSERT 1,3-3 100% <0?2> "
+	assert(vi.buffer().text.slice(0, -1) == "#8"
+
+nata.main(@ test("insert by hexadecimal digits", "", @(vi, type, update)
+	type("i^Vx2"
+	assert(update() == "INSERT 1,1-1 100% <0> ^Vx2"
+	assert(vi.buffer().text.slice(0, -1) == ""
 	type("4"
-	assert(update() == "INSERT 1,9-9 100% <0?2> "
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\"#8$"
-	type("^Vxf"
-	assert(update() == "INSERT 1,9-9 100% <0?2> ^Vxf"
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\"#8$"
+	assert(update() == "INSERT 1,2-2 100% <0?2> "
+	assert(vi.buffer().text.slice(0, -1) == "$"
+
+nata.main(@ test("insert by hexadecimal digits followed by non digit", "", @(vi, type, update)
+	type("i^Vxf"
+	assert(update() == "INSERT 1,1-1 100% <0> ^Vxf"
+	assert(vi.buffer().text.slice(0, -1) == ""
 	type("g"
-	assert(update() == "INSERT 1,11-11 100% <0?2> "
-	assert(vi.buffer().text.slice(0, -1) == String.from_code(0x1b) + " !a\"#8$" + String.from_code(0xf) + "g"
+	assert(update() == "INSERT 1,3-3 100% <0?2> "
+	assert(vi.buffer().text.slice(0, -1) == String.from_code(0xf) + "g"
