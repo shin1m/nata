@@ -107,16 +107,12 @@ KeyMapAction = Object + @
 Maps = Object + @
 	$NORMAL
 	$VISUAL
-	$change
-	$delete
-	$yank
+	$operator
 	$INSERT
-	$__initialize = @(normal, visual, change, delete, yank, insert)
+	$__initialize = @(normal, visual, operator, insert)
 		$NORMAL = normal
 		$VISUAL = visual
-		$change = change
-		$delete = delete
-		$yank = yank
+		$operator = operator
 		$INSERT = insert
 
 $Buffer = Buffer = Session + @
@@ -140,13 +136,10 @@ $Buffer = Buffer = Session + @
 		$text = text
 		$view = view
 		$selection = selection
-		operator = KeyMap(null, maps.change
 		$maps = Maps(
 			KeyMap(null, maps.NORMAL
 			KeyMap(null, maps.VISUAL
-			operator
-			operator
-			operator
+			KeyMap(null, maps.operator
 			KeyMap(null, maps.INSERT
 		$commands = {
 	$dispose = @
@@ -184,6 +177,11 @@ with_search = @(text, pattern, f) with(nata.Search(text), @(search)
 		'(
 
 $new = @(host, status, strip, path)
+	maps = Maps(
+		KeyMap(null
+		KeyMap(null
+		KeyMap(null
+		KeyMap(null
 	buffers = [
 	add_buffer = @(path)
 		buffer = host.buffer(path, maps
@@ -349,7 +347,7 @@ $new = @(host, status, strip, path)
 					(buffer.logs === null ? "" : "?" + buffer.logs.size()) +
 					(buffer.redos.size() > 0 ? "|" + buffer.redos.size() : "") + "> " + join($echo
 		rewind_builtin = @
-			:map = builtin_maps.(mode.name)
+			:map = mode.map
 			:fallback = @(c)
 				mode.unknown(c
 				rewind(
@@ -442,7 +440,7 @@ $new = @(host, status, strip, path)
 	for_nvo = @(f)
 		f(buffer.maps.NORMAL
 		f(buffer.maps.VISUAL
-		f(buffer.maps.change
+		f(buffer.maps.operator
 	for_ip = @(f)
 		f(buffer.maps.INSERT
 	command_map = @(for_, noremap) @(i)
@@ -490,12 +488,12 @@ $new = @(host, status, strip, path)
 		:mode = mode_insert
 		mode.start = mode.from = input.size(
 	register = '(false, ""
-	yank = @(p, q, line = false) $finish(@ ::register = '(line, text.slice(p, q - p
+	yank = @(p, q, line = false) mode.finish(@ ::register = '(line, text.slice(p, q - p
 	delete_and_edit = @(p, q, line) :register = '(line, buffer.replace(p, q - p, ""
 	replace = @(p, q, line = false)
 		delete_and_edit(p, q, line
 		insert(
-	delete = @(p, q, line = false) $commit(@
+	delete = @(p, q, line = false) mode.commit(@
 		delete_and_edit(p, q, line
 		commit(
 	push = @(c)
@@ -546,7 +544,7 @@ $new = @(host, status, strip, path)
 				$get = @ null
 				$more = @ true
 	mode = mode_normal = do(Mode + @
-		$map_default = KeyMap(null, map_motion, {
+		$map = KeyMap(null, map_motion, {
 			control("R"): KeyMap(@ $finish(@ times(@ buffer.redo(
 			letter("."): KeyMap(@ Mode.nomap(@
 				input.pop(
@@ -574,12 +572,14 @@ $new = @(host, status, strip, path)
 					command[::$](m.from + m.count
 			letter("Z"): KeyMap(null, null, {
 				letter("Z"): KeyMap(@ host.quit(
-			letter("c"): KeyMap(@
-				::mode = mode_change
-				mode.for_motion(begin, replace
-			letter("d"): KeyMap(@
-				::mode = mode_delete
-				mode.for_motion(begin, delete[mode]
+			letter("c"): KeyMap(@ ::mode = ModeOperator(begin, replace, {
+				letter("c"): KeyMap(@ $for_lines(@(p, q)
+					begin(p
+					replace(p, q - 1, true
+			letter("d"): KeyMap(@ ::mode = ModeOperator(begin, delete, {
+				letter("d"): KeyMap(@ $for_lines(@(p, q)
+					begin(p
+					delete(p, q, true
 			letter("i"): KeyMap(insert
 			letter("p"): KeyMap(@ $commit(@
 				p = view.position().text
@@ -593,9 +593,8 @@ $new = @(host, status, strip, path)
 				::input = [
 				::mode = mode_visual
 				mode.base = view.position().text
-			letter("y"): KeyMap(@
-				::mode = mode_yank
-				mode.for_motion(@(p) view.position__(p, false), yank[mode]
+			letter("y"): KeyMap(@ ::mode = ModeOperator(@(p) view.position__(p, false), yank, {
+				letter("y"): KeyMap(@ $for_lines(@(p, q) yank(p, q, true
 			letter("z"): KeyMap(null, null, {
 				letter("c"): KeyMap(@ $finish(@ view.position__(view.folded(view.position().text, true), false
 				letter("o"): KeyMap(@ $finish(@ view.folded(view.position().text, false
@@ -615,7 +614,7 @@ $new = @(host, status, strip, path)
 			each_code("v" + x[1] + " " + c, input.push
 			::count = 0
 			f(x[0], x[0] + x[1]
-		$map_default = KeyMap(null, map_motion, {
+		$map = KeyMap(null, map_motion, {
 			control("["): KeyMap(@
 				clear(
 				::mode = mode_normal
@@ -626,11 +625,11 @@ $new = @(host, status, strip, path)
 			letter("d"): KeyMap(@ for_selection("d", @(p, q)
 				begin(:$base
 				:::mode = mode_normal
-				delete[mode](p, q
+				delete(p, q
 			letter("y"): KeyMap(@ for_selection("y", @(p, q)
 				view.position__(:$base, false
 				:::mode = mode_normal
-				yank[mode](p, q
+				yank(p, q
 		$name = 'VISUAL
 		$base
 		$reset = @
@@ -642,9 +641,20 @@ $new = @(host, status, strip, path)
 				selection.paint($base, position - $base, true
 			::count = 0
 			::input = [
-	# TODO: construct per use
 	ModeOperator = Mode + @
-		$for_motion = @(begin, f)
+		$for_lines = @(f)
+			$post = $reset
+			l0 = text.line_at_in_text(view.position().text
+			l = l0.index + (count > 0 ? count : $count > 0 ? $count : 1) - 1
+			l >= text.lines() && (l = text.lines() - 1)
+			l1 = l > l0.index ? text.line_at(l) : l0
+			f(l0.from, l1.from + l1.count
+		$map
+		$name = 'operator
+		$count
+		$post
+		$__initialize = @(begin, f, map)
+			Mode.__initialize[$](
 			$count = count
 			::count = 0
 			start = input.size(
@@ -660,19 +670,7 @@ $new = @(host, status, strip, path)
 					f(p1, p0
 				else
 					f(p0, p1
-		$for_lines = @(f)
-			$post = $reset
-			l0 = text.line_at_in_text(view.position().text
-			l = l0.index + (count > 0 ? count : $count > 0 ? $count : 1) - 1
-			l >= text.lines() && (l = text.lines() - 1)
-			l1 = l > l0.index ? text.line_at(l) : l0
-			f(l0.from, l1.from + l1.count
-		$name
-		$count
-		$post
-		$__initialize = @(name)
-			Mode.__initialize[$](
-			$name = name
+			$map = KeyMap(null, map_motion, map
 		$render = @ mode_normal.render(
 		$reset = @
 			::mode = mode_normal
@@ -680,9 +678,6 @@ $new = @(host, status, strip, path)
 		$finish = @(f)
 			f[$](
 			$post(
-	mode_change = ModeOperator('change
-	mode_delete = ModeOperator('delete
-	mode_yank = ModeOperator('yank
 	mode_insert = do(Mode + @
 		backspace = KeyMap(@
 			p = view.position().text
@@ -691,7 +686,7 @@ $new = @(host, status, strip, path)
 				buffer.logs === null && begin(p
 				buffer.merge(p - 1, 1, ""
 			$from = input.size(
-		$map_default = KeyMap(null, {
+		$map = KeyMap(null, {
 			control("H"): backspace
 			control("V"): literal(@(c) $unknown(c
 			control("["): KeyMap(@
@@ -747,34 +742,12 @@ $new = @(host, status, strip, path)
 			catch Throwable t
 				status.replace(status.size(), 0, String.from_code(c
 				$doing(
-	builtin_maps = Maps(
-		mode_normal.map_default
-		mode_visual.map_default
-		KeyMap(null, map_motion, {
-			letter("c"): KeyMap(@ $for_lines(@(p, q)
-				begin(p
-				replace(p, q - 1, true
-		KeyMap(null, map_motion, {
-			letter("d"): KeyMap(@ $for_lines(@(p, q)
-				begin(p
-				delete[:$](p, q, true
-		KeyMap(null, map_motion, {
-			letter("y"): KeyMap(@ $for_lines(@(p, q) yank[:$](p, q, true
-		mode_insert.map_default
-	map(builtin_maps.NORMAL, "C", "c$", true
-	map(builtin_maps.NORMAL, "D", "d$", true
-	map(builtin_maps.NORMAL, "S", "cc", true
-	map(builtin_maps.NORMAL, "X", "dh", true
-	map(builtin_maps.NORMAL, "s", "cl", true
-	map(builtin_maps.NORMAL, "x", "dl", true
-	map_operator = KeyMap(null
-	maps = Maps(
-		KeyMap(null
-		KeyMap(null
-		map_operator
-		map_operator
-		map_operator
-		KeyMap(null
+	map(mode_normal.map, "C", "c$", true
+	map(mode_normal.map, "D", "d$", true
+	map(mode_normal.map, "S", "cc", true
+	map(mode_normal.map, "X", "dh", true
+	map(mode_normal.map, "s", "cl", true
+	map(mode_normal.map, "x", "dl", true
 	switch_buffer(add_buffer(path
 	do(Object + @
 		$render = @ mode.render(
