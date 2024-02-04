@@ -106,18 +106,18 @@ KeyMapAction = Object + @
 
 Maps = Object + @
 	$NORMAL
-	$INSERT
+	$VISUAL
 	$change
 	$delete
 	$yank
-	$VISUAL
-	$__initialize = @(normal, insert, change, delete, yank, visual)
+	$INSERT
+	$__initialize = @(normal, visual, change, delete, yank, insert)
 		$NORMAL = normal
-		$INSERT = insert
+		$VISUAL = visual
 		$change = change
 		$delete = delete
 		$yank = yank
-		$VISUAL = visual
+		$INSERT = insert
 
 $Buffer = Buffer = Session + @
 	Delta = Object + @
@@ -143,11 +143,11 @@ $Buffer = Buffer = Session + @
 		operator = KeyMap(null, maps.change
 		$maps = Maps(
 			KeyMap(null, maps.NORMAL
-			KeyMap(null, maps.INSERT
-			operator
-			operator
-			operator
 			KeyMap(null, maps.VISUAL
+			operator
+			operator
+			operator
+			KeyMap(null, maps.INSERT
 		$commands = {
 	$dispose = @
 		$selection.dispose(
@@ -327,10 +327,6 @@ $new = @(host, status, strip, path)
 			l = text.line_at_in_text(p
 			forward(p, l.from + l.count - 1, @(p) view.position__(p, true
 		letter("n"): KeyMap(@ $finish(@ search_next[:$](false
-	repeat = @(n, start) for ; n > 1; n = n - 1
-		cs = [
-		while input.size() > start: cs.unshift(input.pop(
-		cs.each(push
 	escape = @(x) x < 0x20 ? "^" + String.from_code(x + 0x40) : String.from_code(x)
 	Mode = Object + @
 		$echo = @(f) input.each(@(x) f(escape(x
@@ -365,7 +361,7 @@ $new = @(host, status, strip, path)
 					action[mode](
 					rewind(
 				, @
-		rewind = @
+		rewind_mapping = @
 			:map = buffer.maps.(mode.name)
 			n = 0
 			commit = @
@@ -389,7 +385,17 @@ $new = @(host, status, strip, path)
 					:n = 0
 					:action = action
 				::pending = '(commit, host.timeout(1000, commit
-		$rewind = rewind
+		rewind = rewind_mapping
+		$rewind = @ rewind(
+		$nomap = @(f)
+			last = rewind
+			:rewind = rewind_builtin
+			try
+				rewind(
+				f(
+			finally
+				:rewind = last
+				rewind(
 		$reset = @
 			::count = 0
 			::input = [
@@ -428,13 +434,32 @@ $new = @(host, status, strip, path)
 		search.reset(i, -1
 		search.next(
 	# TODO: rebuild buffer maps
-	map = @(map, lhs, rhs) map.put(lhs, KeyMapAction(join(@(f) each_code(rhs, @(c) f(escape(c)))), @
-		each_code(lhs, @(c) input.pop(
-		each_code(rhs, push
-	for_nov = @(f)
+	map = @(map, lhs, rhs, noremap = false)
+		action = @
+			each_code(lhs, @(c) input.pop(
+			each_code(rhs, push
+		map.put(lhs, KeyMapAction(join(@(f) each_code(rhs, @(c) f(escape(c)))), noremap ? @ Mode.nomap(action) : action
+	for_nvo = @(f)
 		f(buffer.maps.NORMAL
-		f(buffer.maps.change
 		f(buffer.maps.VISUAL
+		f(buffer.maps.change
+	for_ip = @(f)
+		f(buffer.maps.INSERT
+	command_map = @(for_, noremap) @(i)
+		match = match_status("^\\s*(\\S+)\\s+(.+)", i
+		if match.size() < 2
+			::message = "maps"
+			# TODO: merged list.
+			buffer.maps.NORMAL.list().each(@(x) :::message = message + "\n" + x[0] + " " + x[1]
+		else
+			lhs = status.slice(match[1].from, match[1].count
+			rhs = status.slice(match[2].from, match[2].count
+			for_(@(x) map(x, lhs, rhs, noremap
+	command_unmap = @(for_) @(i)
+		match = match_status("^\\s*(\\S+)", i
+		match.size() > 1 || throw Throwable("invalid arguments"
+		lhs = status.slice(match[1].from, match[1].count
+		for_(@(x) x.remove(lhs
 	builtin_commands = {
 		"buffers": @(i)
 			:message = "buffers"
@@ -448,26 +473,18 @@ $new = @(host, status, strip, path)
 				switch_buffer(buffers[Integer(status.slice(match[1].from + 1, match[1].count - 1)) - 1]
 			else if match[2].count > 0
 				open_buffer(status.slice(match[2].from, match[2].count
-		"map": @(i)
-			match = match_status("^\\s*(\\S+)\\s+(.+)", i
-			if match.size() < 2
-				:message = "maps"
-				buffer.maps.NORMAL.list().each(@(x) ::message = message + "\n" + x[0] + " " + x[1]
-			else
-				lhs = status.slice(match[1].from, match[1].count
-				rhs = status.slice(match[2].from, match[2].count
-				for_nov(@(x) map(x, lhs, rhs
+		"map": command_map(for_nvo, false
+		"map!": command_map(for_ip, false
+		"noremap": command_map(for_nvo, true
+		"noremap!": command_map(for_ip, true
 		"quit": @(i)
 			n = buffers.size(
 			n > 1 || return host.quit(
 			for i = 0; i < n; i = i + 1: buffers[i] === buffer && break
 			switch_buffer(buffers[i > 0 ? i - 1 : i + 1]
 			remove_buffer(i
-		"unmap": @(i)
-			match = match_status("^\\s*(\\S+)", i
-			match.size() > 1 || throw Throwable("invalid arguments"
-			lhs = status.slice(match[1].from, match[1].count
-			for_nov(@(x) x.remove(lhs
+		"unmap": command_unmap(for_nvo
+		"unmap!": command_unmap(for_ip
 	commands = {
 	insert = @
 		:mode = mode_insert
@@ -484,6 +501,10 @@ $new = @(host, status, strip, path)
 	push = @(c)
 		input.push(c
 		mode(c
+	repeat = @(n, start) Mode.nomap(@ for ; n > 1; (:n = n - 1)
+		cs = [
+		while input.size() > start: cs.unshift(input.pop(
+		cs.each(push
 	literal = do(@
 		add = @(base, i) @ ::code = code * base + i
 		digit = @(map, depth, code) @
@@ -527,7 +548,7 @@ $new = @(host, status, strip, path)
 	mode = mode_normal = do(Mode + @
 		$map_default = KeyMap(null, map_motion, {
 			control("R"): KeyMap(@ $finish(@ times(@ buffer.redo(
-			letter("."): KeyMap(@
+			letter("."): KeyMap(@ Mode.nomap(@
 				input.pop(
 				last = last_input
 				c = last.shift(
@@ -538,7 +559,7 @@ $new = @(host, status, strip, path)
 			letter(":"): KeyMap(@ show_prompt(":"
 				@
 				@(ok) !ok ? :$reset() : :$finish(@
-					match = match_status("^\\w+", 1
+					match = match_status("^(\\w|!)+", 1
 					match.size() > 0 || throw Throwable("invalid command"
 					m = match[0]
 					name = status.slice(m.from, m.count
@@ -579,6 +600,49 @@ $new = @(host, status, strip, path)
 				letter("c"): KeyMap(@ $finish(@ view.position__(view.folded(view.position().text, true), false
 				letter("o"): KeyMap(@ $finish(@ view.folded(view.position().text, false
 		$name = 'NORMAL
+	mode_visual = do(Mode + @
+		clear = @
+			xs = [
+			with(host.overlay_iterator(selection), @(i)
+				while (x = i.next()) !== null
+					x.value && xs.push('(x.from, x.count
+			xs.each(@(x) selection.paint(x[0], x[1], false
+			xs
+		for_selection = @(c, f)
+			xs = clear(
+			x = xs.size() > 0 ? xs[0] : '(0, 0
+			::input = [
+			each_code("v" + x[1] + " " + c, input.push
+			::count = 0
+			f(x[0], x[0] + x[1]
+		$map_default = KeyMap(null, map_motion, {
+			control("["): KeyMap(@
+				clear(
+				::mode = mode_normal
+				mode.reset(
+			letter("c"): KeyMap(@ for_selection("c", @(p, q)
+				begin(:$base
+				replace(p, q
+			letter("d"): KeyMap(@ for_selection("d", @(p, q)
+				begin(:$base
+				:::mode = mode_normal
+				delete[mode](p, q
+			letter("y"): KeyMap(@ for_selection("y", @(p, q)
+				view.position__(:$base, false
+				:::mode = mode_normal
+				yank[mode](p, q
+		$name = 'VISUAL
+		$base
+		$reset = @
+			clear(
+			position = view.position().text
+			if position < $base
+				selection.paint(position, $base - position, true
+			else
+				selection.paint($base, position - $base, true
+			::count = 0
+			::input = [
+	# TODO: construct per use
 	ModeOperator = Mode + @
 		$for_motion = @(begin, f)
 			$count = count
@@ -649,48 +713,7 @@ $new = @(host, status, strip, path)
 			buffer.logs === null && begin(p
 			buffer.merge(p, 0, String.from_code(c
 			$from = input.size(
-	mode_visual = do(Mode + @
-		clear = @
-			xs = [
-			with(host.overlay_iterator(selection), @(i)
-				while (x = i.next()) !== null
-					x.value && xs.push('(x.from, x.count
-			xs.each(@(x) selection.paint(x[0], x[1], false
-			xs
-		for_selection = @(c, f)
-			xs = clear(
-			x = xs.size() > 0 ? xs[0] : '(0, 0
-			::input = [
-			each_code("v" + x[1] + " " + c, input.push
-			::count = 0
-			f(x[0], x[0] + x[1]
-		$map_default = KeyMap(null, map_motion, {
-			control("["): KeyMap(@
-				clear(
-				::mode = mode_normal
-				mode.reset(
-			letter("c"): KeyMap(@ for_selection("c", @(p, q)
-				begin(:$base
-				replace(p, q
-			letter("d"): KeyMap(@ for_selection("d", @(p, q)
-				begin(:$base
-				:::mode = mode_normal
-				delete[mode](p, q
-			letter("y"): KeyMap(@ for_selection("y", @(p, q)
-				view.position__(:$base, false
-				:::mode = mode_normal
-				yank[mode](p, q
-		$name = 'VISUAL
-		$base
-		$reset = @
-			clear(
-			position = view.position().text
-			if position < $base
-				selection.paint(position, $base - position, true
-			else
-				selection.paint($base, position - $base, true
-			::count = 0
-			::input = [
+	# TODO: inherit Mode
 	mode_prompt = do(Object + @
 		done = @(ok)
 			::current = view
@@ -726,7 +749,7 @@ $new = @(host, status, strip, path)
 				$doing(
 	builtin_maps = Maps(
 		mode_normal.map_default
-		mode_insert.map_default
+		mode_visual.map_default
 		KeyMap(null, map_motion, {
 			letter("c"): KeyMap(@ $for_lines(@(p, q)
 				begin(p
@@ -737,14 +760,13 @@ $new = @(host, status, strip, path)
 				delete[:$](p, q, true
 		KeyMap(null, map_motion, {
 			letter("y"): KeyMap(@ $for_lines(@(p, q) yank[:$](p, q, true
-		mode_visual.map_default
-	# TODO: do noremap
-	map(builtin_maps.NORMAL, "C", "c$"
-	map(builtin_maps.NORMAL, "D", "d$"
-	map(builtin_maps.NORMAL, "S", "cc"
-	map(builtin_maps.NORMAL, "X", "dh"
-	map(builtin_maps.NORMAL, "s", "cl"
-	map(builtin_maps.NORMAL, "x", "dl"
+		mode_insert.map_default
+	map(builtin_maps.NORMAL, "C", "c$", true
+	map(builtin_maps.NORMAL, "D", "d$", true
+	map(builtin_maps.NORMAL, "S", "cc", true
+	map(builtin_maps.NORMAL, "X", "dh", true
+	map(builtin_maps.NORMAL, "s", "cl", true
+	map(builtin_maps.NORMAL, "x", "dl", true
 	map_operator = KeyMap(null
 	maps = Maps(
 		KeyMap(null
@@ -769,6 +791,7 @@ $new = @(host, status, strip, path)
 		$open_buffer = open_buffer
 		$match_status = match_status
 		$map = map
+		$nomap = Mode.nomap
 		$map_action = @(map, lhs, name, action) map.put(lhs, KeyMapAction(name, @
 			each_code(lhs, @(c) input.pop(
 			action[$](

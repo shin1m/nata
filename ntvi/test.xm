@@ -545,6 +545,34 @@ nata.main(@ test("map ambiguous operator pending", "abcdefghi", @(vi, type, upda
 	assert(update() == "INSERT 1,4-4 100% <0?2> "
 	assert(vi.buffer().text.slice(0, -1) == "abcghi"
 
+nata.main(@ test("noremap", "abcdefghi", @(vi, type, update)
+	type(":noremap h l^M"
+	assert(update() == "NORMAL 1,1-1 100% <0> "
+	type(":noremap l h^M"
+	assert(update() == "NORMAL 1,1-1 100% <0> "
+	type("h"
+	assert(update() == "NORMAL 1,2-2 100% <0> "
+	type("l"
+	assert(update() == "NORMAL 1,1-1 100% <0> "
+	type("3c2h"
+	assert(update() == "INSERT 1,1-1 100% <0?2> "
+	assert(vi.buffer().text.slice(0, -1) == "ghi"
+
+nata.main(@ test("noremap!", "", @(vi, type, update)
+	type(":map! a b^M"
+	assert(update() == "NORMAL 1,1-1 100% <0> "
+	type(":noremap! b abc^M"
+	assert(update() == "NORMAL 1,1-1 100% <0> "
+	type("2ia"
+	assert(update() == "INSERT 1,4-4 100% <0?2> "
+	assert(vi.buffer().text.slice(0, -1) == "abc"
+	type("^["
+	assert(update() == "NORMAL 1,7-7 100% <1> "
+	assert(vi.buffer().text.slice(0, -1) == "abcabc"
+	type("3."
+	assert(update() == "NORMAL 1,16-16 100% <2> "
+	assert(vi.buffer().text.slice(0, -1) == "abcabcabcabcabc"
+
 nata.main(@ test("buffers", "foo", @(vi, type, update)
 	type(":buffers^M"
 	assert(update() == "buffers\n1 % \"foo\""
