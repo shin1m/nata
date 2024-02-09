@@ -334,25 +334,29 @@ nata_lsp = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 					"completion": @(i) loop.post(@
 						vi(letter("i"
 						completion(1
-				vi.map(buffer.maps.NORMAL, "\fc", ":lsp completion\r"
-				vi.map(buffer.maps.NORMAL, "\fd", ":lsp definition\r"
-				vi.map(buffer.maps.NORMAL, "\fh", ":lsp hover\r"
-				vi.map(buffer.maps.NORMAL, "\fr", ":lsp references\r"
-				vi.map_action(buffer.maps.INSERT, "\fc", "lsp completion", @ completion(1
+				for_n = @(f) f(buffer.maps.NORMAL
+				vi.map(for_n, "\fc", ":lsp completion\r"
+				vi.map(for_n, "\fd", ":lsp definition\r"
+				vi.map(for_n, "\fh", ":lsp hover\r"
+				vi.map(for_n, "\fr", ":lsp references\r"
+				for_i = @(f) f(buffer.maps.INSERT
+				vi.map_action(for_i, "\fc", "lsp completion", @ completion(1
 				completion_triggers.each(@(x)
 					c = x.code_at(0
-					vi.map_action(buffer.maps.INSERT, x, "lsp completion", @
+					vi.map_action(for_i, x, "lsp completion", @
 						literal(c
 						completion(0
 				client.did_open(buffer.path, text.version, text.slice(0, text.size(
 				@
 					buffer.commands.remove("lsp"
-					buffer.maps.NORMAL.remove("\fc"
-					buffer.maps.NORMAL.remove("\fd"
-					buffer.maps.NORMAL.remove("\fh"
-					buffer.maps.NORMAL.remove("\fr"
-					buffer.maps.INSERT.remove("\fc"
-					completion_triggers.each(buffer.maps.INSERT.remove
+					for_n(@(x)
+						x.remove("\fc"
+						x.remove("\fd"
+						x.remove("\fh"
+						x.remove("\fr"
+					for_i(@(x)
+						x.remove("\fc"
+						completion_triggers.each(x.remove
 					remove(text.replaced, replaced
 					search.dispose(
 					client.did_close(buffer.path

@@ -501,9 +501,9 @@ nata.main(@ test("map", "abcdefghi", @(vi, type, update)
 	assert(update() == "NORMAL 1,10-10 100% <2> "
 	assert(vi.buffer().text.slice(0, -1) == "YAH!aYAH!bcdefghi"
 	type(":map^M"
-	assert(update() == "maps\n__ l.\n_ya iYAH!"
+	assert(update() == "maps\n__\tl.\n_ya\tiYAH!"
 	type(":unmap __^M:map^M"
-	assert(update() == "maps\n_ya iYAH!"
+	assert(update() == "maps\n_ya\tiYAH!"
 	type(":unmap _ya^M:map^M"
 	assert(update() == "maps"
 
@@ -572,6 +572,24 @@ nata.main(@ test("noremap!", "", @(vi, type, update)
 	type("3."
 	assert(update() == "NORMAL 1,16-16 100% <2> "
 	assert(vi.buffer().text.slice(0, -1) == "abcabcabcabcabc"
+
+nata.main(@ test("map <buffer>", "abcdefghi", @(vi, type, update)
+	type(":map <buffer> __ l.^M"
+	assert(update() == "NORMAL 1,1-1 100% <0> "
+	type(":map _ya iYAH!^M"
+	assert(update() == "NORMAL 1,1-1 100% <0> "
+	type("_ya^["
+	assert(update() == "NORMAL 1,5-5 100% <1> "
+	assert(vi.buffer().text.slice(0, -1) == "YAH!abcdefghi"
+	type("__"
+	assert(update() == "NORMAL 1,10-10 100% <2> "
+	assert(vi.buffer().text.slice(0, -1) == "YAH!aYAH!bcdefghi"
+	type(":map^M"
+	assert(update() == "maps\n__\t@l.\n_ya\tiYAH!"
+	type(":unmap _ya^M:map^M"
+	assert(update() == "maps\n__\t@l."
+	type(":unmap <buffer> __^M:map^M"
+	assert(update() == "maps"
 
 nata.main(@ test("buffers", "foo", @(vi, type, update)
 	type(":buffers^M"
