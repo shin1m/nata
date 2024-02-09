@@ -113,11 +113,13 @@ Maps = Object + @
 	$VISUAL
 	$operator
 	$INSERT
-	$__initialize = @(normal, visual, operator, insert)
+	$prompt
+	$__initialize = @(normal, visual, operator, insert, prompt)
 		$NORMAL = normal
 		$VISUAL = visual
 		$operator = operator
 		$INSERT = insert
+		$prompt = prompt
 
 $Buffer = Buffer = Session + @
 	Delta = Object + @
@@ -145,6 +147,7 @@ $Buffer = Buffer = Session + @
 			KeyMap(null, maps.VISUAL
 			KeyMap(null, maps.operator
 			KeyMap(null, maps.INSERT
+			KeyMap(null, maps.prompt
 		$commands = {
 	$dispose = @
 		$selection.dispose(
@@ -181,6 +184,7 @@ catch Throwable t
 
 $new = @(host, status, strip, path)
 	maps = Maps(
+		KeyMap(null
 		KeyMap(null
 		KeyMap(null
 		KeyMap(null
@@ -235,12 +239,16 @@ $new = @(host, status, strip, path)
 	show_prompt = @(prompt, doing, done)
 		status.replace(0, -1, prompt
 		strip.position__(prompt.size(), false
+		current = :current
 		:current = strip
-		mode_prompt.caller = mode
+		mode = :mode
 		:mode = mode_prompt
-		mode.prompt = prompt
-		mode.doing = doing
-		mode.done = done
+		:mode.prompt = prompt
+		:mode.doing = doing
+		:mode.done = @(ok)
+			::current = current
+			::mode = mode
+			done(ok
 	search_forward = @(pattern, p) with_search(text, pattern, @(search)
 		f = @(p)
 			search.reset(p, -1
@@ -448,6 +456,7 @@ $new = @(host, status, strip, path)
 		f(maps.operator
 	for_ip = @(maps) @(f)
 		f(maps.INSERT
+		f(maps.prompt
 	command_map = @(for_, noremap) @(i)
 		match = match_status("^\\s*(<buffer>)?\\s*(\\S+)\\s+(.+)", i
 		if match.size() > 0
@@ -721,37 +730,29 @@ $new = @(host, status, strip, path)
 			buffer.logs === null && begin(p
 			buffer.merge(p, 0, String.from_code(c
 			$from = input.size(
-	# TODO: inherit Mode
-	mode_prompt = do(Object + @
-		done = @(ok)
-			::current = view
-			::mode = $caller
-			$done(ok
-		backspace = @
+	mode_prompt = do(Mode + @
+		backspace = KeyMap(@
 			n = status.size(
 			if n > $prompt.size()
 				status.replace(n - 1, 1, ""
 				$doing(
 			else
-				done[$](false
-		map = {
+				$done(false
+		$map = KeyMap(null, {
 			control("H"): backspace
-			control("M"): @ done[$](true
-			control("["): @
+			control("M"): KeyMap(@ $done(true
+			control("["): KeyMap(@
 				status.replace($prompt.size(), -1, ""
 				$doing(
-				done[$](false
+				$done(false
 			host.KEY_BACKSPACE: backspace
-			host.KEY_ENTER: @ done[$](true
-		$name = 'NORMAL
-		$caller
+			host.KEY_ENTER: KeyMap(@ $done(true
+		$name = 'prompt
 		$prompt
 		$doing
 		$done
 		$render = @
-		$__call = @(c) try
-			map[c][$](
-		catch Throwable t
+		$unknown = @(c)
 			status.replace(status.size(), 0, String.from_code(c
 			$doing(
 	(@(for_n)

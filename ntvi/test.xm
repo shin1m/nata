@@ -559,9 +559,9 @@ nata.main(@ test("noremap", "abcdefghi", @(vi, type, update)
 	assert(vi.buffer().text.slice(0, -1) == "ghi"
 
 nata.main(@ test("noremap!", "", @(vi, type, update)
-	type(":map! a b^M"
+	type(":noremap! A a^M:map! a b^M"
 	assert(update() == "NORMAL 1,1-1 100% <0> "
-	type(":noremap! b abc^M"
+	type(":noremAp! b Abc^M"
 	assert(update() == "NORMAL 1,1-1 100% <0> "
 	type("2ia"
 	assert(update() == "INSERT 1,4-4 100% <0?2> "
