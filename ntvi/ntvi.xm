@@ -216,30 +216,6 @@ nata_lsp = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 			text = buffer.text
 			buffer.view.position__(text.from_location(location), false
 		@
-	literal = @(c)
-		vi(0x16
-		if c >= 0x30 && c < 0x3a
-			vi(0x58
-			vi(0x33
-			vi(c
-		else if c == 0x4f
-			vi(0x58
-			vi(0x34
-			vi(0x46
-		else if c == 0x58
-			vi(0x58
-			vi(0x35
-			vi(0x38
-		else if c == 0x6f
-			vi(0x58
-			vi(0x36
-			vi(0x46
-		else if c == 0x78
-			vi(0x58
-			vi(0x37
-			vi(0x38
-		else
-			vi(c
 	completion = @(client, buffer, search)
 		search.pattern("\\b[_A-Za-z]\\w*\\b", nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
 		target = @(p)
@@ -281,9 +257,10 @@ nata_lsp = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 					times = @(n, f) for ; n > 0; n = n - 1: f(
 					p = buffer.view.position().text
 					t = target(p
-					times(t.from + t.count - p, @ vi(0x7f
-					times(p - t.from, @ vi(0x8
-					natavi.each_code(x.insert, literal
+					vi.nomap(@
+						times(t.from + t.count - p, @ vi(0x7f
+						times(p - t.from, @ vi(0x8
+						natavi.each_code(x.insert, vi
 				@ ::call = start
 			popup > 0 && return cancellable("completion...", cancel
 			:call = @(popup)
@@ -331,7 +308,7 @@ nata_lsp = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 								vi(c
 							popup__(popup.view
 					"completion": @(i) loop.post(@
-						vi(letter("i"
+						vi.nomap(@ vi(letter("i"
 						completion(1
 				for_n = @(f) f(buffer.maps.NORMAL
 				vi.map(for_n, "\fc", ":lsp completion\r"
@@ -343,7 +320,7 @@ nata_lsp = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 				completion_triggers.each(@(x)
 					c = x.code_at(0
 					vi.map_action(for_i, x, "lsp completion", @
-						literal(c
+						vi.nomap(@ vi(c
 						completion(0
 				client.did_open(buffer.path, text.version, text.slice(0, text.size(
 				@
