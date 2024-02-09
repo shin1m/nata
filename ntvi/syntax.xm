@@ -67,7 +67,7 @@ try_syntax = @(text, path, type)
 	detect.has("content") && match(text, detect["content"]) ? load() : null
 
 load_syntax = @(text, path)
-	root = os.Directory("" + syntax_root)
+	root = os.Directory("" + syntax_root
 	try
 		while (type = root.read()) !== null
 			x = try_syntax(text, path, type.name

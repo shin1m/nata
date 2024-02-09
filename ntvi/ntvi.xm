@@ -103,10 +103,9 @@ Chooser = Popup + @
 			line = $view.row().line
 			line > 0 && $at__(line - 1
 		nata_curses.KEY_ENTER: @ $done(true
-	$__call = @(c)
-		try
-			map[c][$](
-		catch Throwable t
+	$__call = @(c) try
+		map[c][$](
+	catch Throwable t
 
 nata_lsp = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 	cancellable = @(message, cancel)

@@ -25,11 +25,10 @@ Session = Object + @
 	$redo = @ $undos.push($replay(*$redos.pop(
 
 do = @(f) f(
-with = @(x, f)
-	try
-		f(x
-	finally
-		x.dispose(
+with = @(x, f) try
+	f(x
+finally
+	x.dispose(
 letter = @(x) x.code_at(0
 control = @(x) letter(x) - letter("@")
 $each_code = each_code = @(s, f)
@@ -48,11 +47,10 @@ KeyMap = Object + @
 		$action = action
 		$base = base
 		$map = map === null ? {} : map
-	$__get_at = @(c)
-		try
-			$map[c]
-		catch Throwable t
-			$base[c]
+	$__get_at = @(c) try
+		$map[c]
+	catch Throwable t
+		$base[c]
 	$get = @ $action !== null ? $action : $base !== null ? $base.get() : null
 	$more = @ $map.size() > 0 || $base !== null && $base.more()
 	$list = @
@@ -69,25 +67,21 @@ KeyMap = Object + @
 		list
 	$put = @(s, action)
 		map = $
-		each_code(s, @(c)
-			try
-				:map = map.map[c]
+		each_code(s, @(c) :map = try
+			map.map[c]
+		catch Throwable t
+			map.map[c] = KeyMap(null, try
+				map.base[c]
 			catch Throwable t
-				try
-					base = map.base[c]
-				catch Throwable t
-					base = null
-				:map = map.map[c] = KeyMap(null, base
 		map.action = action
 	$remove = @(s)
 		map = $
 		path = [
-		each_code(s, @(c)
-			try
-				path.push('(map, c
-				:map = map.map[c]
-			catch Throwable t
-				return
+		each_code(s, @(c) try
+			path.push('(map, c
+			:map = map.map[c]
+		catch Throwable t
+			return
 		map.action = null
 		while map.map.size() <= 0 && path.size() > 0
 			parent = path.pop(
@@ -179,12 +173,11 @@ $Buffer = Buffer = Session + @
 		e.xs = p < p0 ? '(p, x, $text.slice(p, p0 - p) + y) : '(p0, p - p0 + x, y)
 		$text.replace(p, n, s
 
-with_search = @(text, pattern, f) with(nata.Search(text), @(search)
-	try
-		search.pattern(pattern, nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
-		f(search
-	catch Throwable t
-		'(
+with_search = @(text, pattern, f) with(nata.Search(text), @(search) try
+	search.pattern(pattern, nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
+	f(search
+catch Throwable t
+	'(
 
 $new = @(host, status, strip, path)
 	maps = Maps(
@@ -414,30 +407,29 @@ $new = @(host, status, strip, path)
 			f(
 			:::last_input = input
 		$unknown = @(c) $reset(
-		$__call = @(c)
+		$__call = @(c) try
 			try
-				try
-					map = :map[c]
-				catch Throwable t
-					pending === null && return fallback(c
-					pending[1](
-					input.pop(
-					pending[0](
-					return push(c
-				if pending !== null
-					pending[1](
-					:pending = null
-				if map.more()
-					:map = map
-					partial(
-				else
-					action = map.get(
-					action !== null && action[$](
-					rewind(
+				map = :map[c]
 			catch Throwable t
-				::message = t.__string(
-				mode.reset(
+				pending === null && return fallback(c
+				pending[1](
+				input.pop(
+				pending[0](
+				return push(c
+			if pending !== null
+				pending[1](
+				:pending = null
+			if map.more()
+				:map = map
+				partial(
+			else
+				action = map.get(
+				action !== null && action[$](
 				rewind(
+		catch Throwable t
+			::message = t.__string(
+			mode.reset(
+			rewind(
 	match_status = @(pattern, i) with_search(status, pattern, @(search)
 		search.reset(i, -1
 		search.next(
@@ -557,12 +549,11 @@ $new = @(host, status, strip, path)
 			for i = 0; i < 10; i = i + 1: map[0x30 + i] = digit(decimal, 2, i
 			map_commit = KeyMap(@ commit[$](code
 			do(Object + @
-				$__get_at = @(c)
-					try
-						map[c](
-					catch Throwable t
-						:::code = c
-						map_commit
+				$__get_at = @(c) try
+					map[c](
+				catch Throwable t
+					:::code = c
+					map_commit
 				$get = @ null
 				$more = @ true
 	mode = mode_normal = do(Mode + @
@@ -758,12 +749,11 @@ $new = @(host, status, strip, path)
 		$doing
 		$done
 		$render = @
-		$__call = @(c)
-			try
-				map[c][$](
-			catch Throwable t
-				status.replace(status.size(), 0, String.from_code(c
-				$doing(
+		$__call = @(c) try
+			map[c][$](
+		catch Throwable t
+			status.replace(status.size(), 0, String.from_code(c
+			$doing(
 	(@(for_n)
 		map(for_n, "C", "c$", true
 		map(for_n, "D", "d$", true
