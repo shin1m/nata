@@ -118,54 +118,6 @@ jsonrpc = @(in, out, notified)
 			"params": params
 	)(
 
-Position = Object + @
-	$line
-	$character
-	$__initialize = @(x)
-		$line = x["line"]
-		$character = x["character"]
-
-Location = Position + @
-	$path
-	$__initialize = @(x)
-		Position.__initialize[$](x["range"]["start"]
-		$path = x["uri"].substring(7
-
-CompletionItems = Object + @
-	Edit = Object + @
-		$start
-		$end
-		$text
-		$__initialize = @(x)
-			range = x["range"]
-			$start = Position(range["start"]
-			$end = Position(range["end"]
-			$text = x["newText"]
-	Item = Object + @
-		$label
-		$sort
-		$filter
-		$insert
-		$edit
-		$__initialize = @(x)
-			$label = x["label"]
-			$sort = x.has("sortText") ? x["sortText"] : $label
-			$filter = x.has("filterText") ? x["filterText"] : $label
-			$insert = x.has("insertText") ? x["insertText"] : $label
-			x.has("textEdit") && ($edit = Edit(x["textEdit"]))
-
-	$incomplete
-	$items
-	$__initialize = @(result)
-		$items = [
-		result === null && return
-		push = @(x) $items.push(Item(x
-		if result.@ === List
-			result.each(push[$]
-		else
-			$incomplete = result["isIncomplete"]
-			result["items"].each(push[$]
-
 $startup = @(loop, invalidate, file, arguments, environments, log, progress, done)
 	child = os.Child(file, arguments, environments, '(0, 1, 1
 	rpc = jsonrpc(child.pipe(0), child.pipe(1), @(method, params) log("notified: " + method + ": " + json.stringify(params, 2) + "\n"
@@ -202,15 +154,6 @@ $startup = @(loop, invalidate, file, arguments, environments, log, progress, don
 		error === null || return exit(@ done(null
 		rpc.notify("initialized", {
 		done(Object + @
-			locations = @(result)
-				xs = [
-				if result !== null
-					push = @(x) xs.push(Location(x
-					if result.@ === List
-						result.each(push
-					else
-						push(result
-				xs
 			$capabilities = result["capabilities"]
 			$shutdown = @(done) rpc.request("shutdown", null, @(result, error)
 				log("shutdown: " + json.stringify(result, 2) + "\n"
@@ -243,9 +186,7 @@ $startup = @(loop, invalidate, file, arguments, environments, log, progress, don
 				"position": {
 					"line": line
 					"character": character
-			}, @(result, error) error === null ? done(locations(result), null) : done(null, error)
-			, progress
-			, partial === null ? null : @(result) partial(locations(result
+			}, done, progress, partial
 			$references = @(path, line, character, declaration, done, partial = null) rpc.request("textDocument/references", {
 				"textDocument": {
 					"uri": "file:" + path
@@ -254,24 +195,19 @@ $startup = @(loop, invalidate, file, arguments, environments, log, progress, don
 					"character": character
 				"context": {
 					"includeDeclaration": declaration
-			}, @(result, error) error === null ? done(locations(result), null) : done(null, error)
-			, progress
-			, partial === null ? null : @(result) partial(locations(result
+			}, done, progress, partial
 			$hover = @(path, line, character, done) rpc.request("textDocument/hover", {
 				"textDocument": {
 					"uri": "file:" + path
 				"position": {
 					"line": line
 					"character": character
-			}, @(result, error) error === null ? done(result === null ? null : result["contents"]["value"], null) : done(null, error)
-			, progress
+			}, done, progress
 			$completion = @(path, line, character, done, partial = null) rpc.request("textDocument/completion", {
 				"textDocument": {
 					"uri": "file:" + path
 				"position": {
 					"line": line
 					"character": character
-			}, @(result, error) error === null ? done(CompletionItems(result), null) : done(null, error)
-			, progress
-			, partial === null ? null : @(result) partial(CompletionItems(result
+			}, done, progress, partial
 	, progress

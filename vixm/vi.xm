@@ -16,7 +16,7 @@ Text = nata.Text + @
 	$to_location = @(x)
 		l = $line_at_in_text(x
 		'(l.index, $in_bytes(x) - $in_bytes(l.from)
-	$from_location = @(x) $in_text($in_bytes($line_at(x.line).from) + x.character
+	$from_location = @(x) $in_text($in_bytes($line_at(x["line"]).from) + x["character"]
 	$replace = @(p, n, s)
 		l0 = $to_location(p
 		l1 = $to_location(p + n
@@ -208,13 +208,15 @@ vixm_assist = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 			cancel(
 			end(
 	goto = @(message, action) cancellable(message, choose(action, 1
-		@(x) x
-		@(x) x.path + ": " + (x.line + 1) + "," + (x.character + 1)
+		@(x) x === null ? [] : x.@ === List ? x : [x
+		@(x)
+			s = x["range"]["start"]
+			x["uri"].substring(7) + ": " + (s["line"] + 1) + "," + (s["character"] + 1)
 		@(chooser, reload) chooser
-		@(location)
-			buffer = vi.open_buffer(location.path
+		@(x)
+			buffer = vi.open_buffer(x["uri"].substring(7
 			text = buffer.text
-			buffer.view.position__(text.from_location(location), false
+			buffer.view.position__(text.from_location(x["range"]["start"]), false
 		@
 	completion = @(client, buffer, search)
 		search.pattern("\\b[_A-Za-z]\\w*\\b", nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
@@ -236,9 +238,11 @@ vixm_assist = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 					client.completion(buffer.path, l[0], l[1], done, partial
 				popup
 				@(x)
-					x.incomplete !== null && (:incomplete = x.incomplete)
-					x.items
-				@(x) x.label
+					if x === null: return [
+					if x.@ === List: return x
+					:incomplete = x["isIncomplete"]
+					x["items"]
+				@(x) x["label"]
 				@(chooser, reload)
 					::call = @(popup)
 					t = target(buffer.view.position().text
@@ -260,7 +264,7 @@ vixm_assist = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 					vi.nomap(@
 						times(t.from + t.count - p, @ vi(0x7f
 						times(p - t.from, @ vi(0x8
-						vixm_core.each_code(x.insert, vi
+						vixm_core.each_code(x[x.has("insertText") ? "insertText" : "label"], vi
 				@ ::call = start
 			popup > 0 && return cancellable("completion...", cancel
 			:call = @(popup)
@@ -294,13 +298,13 @@ vixm_assist = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 						client.references(buffer.path, l[0], l[1], false, done, partial
 					"hover": @(i)
 						l = text.to_location(buffer.view.position().text
-						cancellable("hover...", client.hover(buffer.path, l[0], l[1], @(value, error)
+						cancellable("hover...", client.hover(buffer.path, l[0], l[1], @(result, error)
 							mode__(vi
 							error === null || return vi.message("ERROR: " + error
-							value === null && return vi.message("no information"
+							result === null && return vi.message("no information"
 							vi.message(""
 							popup = Popup(
-							popup.text.replace(0, -1, value
+							popup.text.replace(0, -1, result["contents"]["value"]
 							mode__(@(c)
 								mode__(vi
 								popup__(null
