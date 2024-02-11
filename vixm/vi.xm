@@ -3,8 +3,8 @@ io = Module("io"
 suisha = Module("suisha"
 nata = Module("nata"
 nata_curses = Module("nata-curses"
-nata_syntax = Module("syntax"
-natavi = Module("natavi"
+vixm_syntax = Module("syntax"
+vixm_core = Module("core"
 
 Text = nata.Text + @
 	$replaced
@@ -31,19 +31,19 @@ View = nata_curses.View + @
 			nata_curses.A_DIM | nata_curses.color_pair(1
 			nata_curses.A_DIM | nata_curses.color_pair(2
 
-Buffer = natavi.Buffer + @
+Buffer = vixm_core.Buffer + @
 	$disposing
 	$syntax
 	$hooks
 	$__initialize = @(path, maps, text, view, syntax)
-		natavi.Buffer.__initialize[$](path, maps, text, view, nata_curses.Overlay(view, nata_curses.A_REVERSE
+		vixm_core.Buffer.__initialize[$](path, maps, text, view, nata_curses.Overlay(view, nata_curses.A_REVERSE
 		$disposing = [
 		$syntax = syntax
 		$hooks = {
 	$dispose = @
 		$hooks.each(@(k, v) v(
 		$disposing.each(@(x) x(
-		natavi.Buffer.dispose[$](
+		vixm_core.Buffer.dispose[$](
 
 remove = @(xs, x)
 	n = xs.size(
@@ -107,7 +107,7 @@ Chooser = Popup + @
 		map[c][$](
 	catch Throwable t
 
-nata_lsp = @(loop, hooks, status, vi, mode__, popup__, invalidate)
+vixm_assist = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 	cancellable = @(message, cancel)
 		vi.message(message + " (ESC to cancel)"
 		mode__(@(c) c == control("[") && cancel(
@@ -260,7 +260,7 @@ nata_lsp = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 					vi.nomap(@
 						times(t.from + t.count - p, @ vi(0x7f
 						times(p - t.from, @ vi(0x8
-						natavi.each_code(x.insert, vi
+						vixm_core.each_code(x.insert, vi
 				@ ::call = start
 			popup > 0 && return cancellable("completion...", cancel
 			:call = @(popup)
@@ -358,19 +358,19 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 	nata_curses.define_pair(1, nata_curses.COLOR_WHITE, -1
 	nata_curses.define_pair(2, nata_curses.COLOR_BLACK, nata_curses.COLOR_WHITE
 	nata_curses.define_pair(3, -1, nata_curses.COLOR_YELLOW
-	nata_syntax.initialize(4
+	vixm_syntax.initialize(4
 	tasks = [
 	hooks = [
 	size = nata_curses.size(
 	status = nata.Text(
 	strip = View(status, 0, size[1] - 1, size[0], 1
-	vi = natavi.new(Object + @
+	vi = vixm_core.new(Object + @
 		$quit = loop.exit
 		$buffer = @(path, maps)
 			text = Text(
 			path !== null && read(text, path
 			view = View(text, 0, 0, size[0], size[1] - 1
-			syntax = nata_syntax.new(text, path, view
+			syntax = vixm_syntax.new(text, path, view
 			buffer = Buffer(path, maps, text, view, syntax
 			if syntax !== null
 				tasks.push(step = @
@@ -433,8 +433,8 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 			popup !== null && popup.render(
 			vi.current().focus(
 			nata_curses.flush(
-	lsp = nata_lsp(loop, hooks, status, vi, mode__, popup__, invalidate
-	lsp("clangd", "clangd", '("--log=verbose"), '(), @(buffer) buffer.syntax !== null && buffer.syntax.type == "cpp"
+	assist = vixm_assist(loop, hooks, status, vi, mode__, popup__, invalidate
+	assist("clangd", "clangd", '("--log=verbose"), '(), @(buffer) buffer.syntax !== null && buffer.syntax.type == "cpp"
 	loop.poll(0, true, false, @(readable, writable) if readable
 		mode(vi.current().get(
 		invalidate(

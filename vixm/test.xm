@@ -2,7 +2,7 @@ system = Module("system"
 print = system.out.write_line
 assert = @(x) x || throw Throwable("Assertion failed."
 nata = Module("nata"
-natavi = Module("natavi"
+vixm_core = Module("core"
 
 Text = nata.Text + @
 	$replaced
@@ -120,13 +120,13 @@ test = @(name, text, f)
 	done = false
 	timers = [
 	status = Text(
-	vi = natavi.new(Object + @
+	vi = vixm_core.new(Object + @
 		$quit = @ ::done = true
 		$buffer = @(path, maps)
 			text = Text(
 			path !== null && text.replace(text.size(), 0, path
 			view = View(text
-			natavi.Buffer(path, maps, text, view, Overlay(view
+			vixm_core.Buffer(path, maps, text, view, Overlay(view
 		$timeout = @(timeout, action)
 			x = '(timeout, action
 			timers.push(x
