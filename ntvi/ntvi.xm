@@ -311,10 +311,10 @@ nata_lsp = @(loop, hooks, status, vi, mode__, popup__, invalidate)
 						vi.nomap(@ vi(letter("i"
 						completion(1
 				for_n = @(f) f(buffer.maps.NORMAL
-				vi.map(for_n, "\fc", ":lsp completion\r"
-				vi.map(for_n, "\fd", ":lsp definition\r"
-				vi.map(for_n, "\fh", ":lsp hover\r"
-				vi.map(for_n, "\fr", ":lsp references\r"
+				vi.map(for_n, "\fc", ":lsp completion\r", true
+				vi.map(for_n, "\fd", ":lsp definition\r", true
+				vi.map(for_n, "\fh", ":lsp hover\r", true
+				vi.map(for_n, "\fr", ":lsp references\r", true
 				for_i = @(f) f(buffer.maps.INSERT
 				vi.map_action(for_i, "\fc", "lsp completion", @ completion(1
 				completion_triggers.each(@(x)

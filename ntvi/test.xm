@@ -501,11 +501,11 @@ nata.main(@ test("map", "abcdefghi", @(vi, type, update)
 	assert(update() == "NORMAL 1,10-10 100% <2> "
 	assert(vi.buffer().text.slice(0, -1) == "YAH!aYAH!bcdefghi"
 	type(":map^M"
-	assert(update() == "maps\n__\tl.\n_ya\tiYAH!"
+	assert(update() == "maps <buffer>\nmaps\n nvo\t__\t l.\n nvo\t_ya\t iYAH!"
 	type(":unmap __^M:map^M"
-	assert(update() == "maps\n_ya\tiYAH!"
+	assert(update() == "maps <buffer>\nmaps\n nvo\t_ya\t iYAH!"
 	type(":unmap _ya^M:map^M"
-	assert(update() == "maps"
+	assert(update() == "maps <buffer>\nmaps"
 
 nata.main(@ test("map timeout", "abc", @(vi, type, update)
 	type(":map ll $^M"
@@ -585,11 +585,11 @@ nata.main(@ test("map <buffer>", "abcdefghi", @(vi, type, update)
 	assert(update() == "NORMAL 1,10-10 100% <2> "
 	assert(vi.buffer().text.slice(0, -1) == "YAH!aYAH!bcdefghi"
 	type(":map^M"
-	assert(update() == "maps\n__\t@l.\n_ya\tiYAH!"
+	assert(update() == "maps <buffer>\n nvo\t__\t l.\nmaps\n nvo\t_ya\t iYAH!"
 	type(":unmap _ya^M:map^M"
-	assert(update() == "maps\n__\t@l."
+	assert(update() == "maps <buffer>\n nvo\t__\t l.\nmaps"
 	type(":unmap <buffer> __^M:map^M"
-	assert(update() == "maps"
+	assert(update() == "maps <buffer>\nmaps"
 
 nata.main(@ test("buffers", "foo", @(vi, type, update)
 	type(":buffers^M"

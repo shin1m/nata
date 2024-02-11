@@ -53,18 +53,12 @@ KeyMap = Object + @
 		$base[c]
 	$get = @ $action !== null ? $action : $base !== null ? $base.get() : null
 	$more = @ $map.size() > 0 || $base !== null && $base.more()
-	$list = @
-		list = [
-		f = @(map, lhs)
-			entries = [
-			map.map.each(@(k, v) entries.push('(k, v
-			entries.sort(@(x, y) x[0] < y[0]
-			entries.each(@(x)
-				s = lhs + String.from_code(x[0])
-				x[1].action === null || list.push('(s, x[1].action
-				f(x[1], s
+	$each = @(do)
+		f = @(map, lhs) map.map.each(@(k, v)
+			s = lhs + String.from_code(k)
+			v.action === null || do(s, v.action
+			f(v, s
 		f($, ""
-		list
 	$put = @(s, action)
 		map = $
 		each_code(s, @(c) :map = try
@@ -337,6 +331,7 @@ $new = @(host, status, strip, path)
 			forward(p, l.from + l.count - 1, @(p) view.position__(p, true
 		letter("n"): KeyMap(@ $finish(@ search_next[:$](false
 	escape = @(x) x < 0x20 ? "^" + String.from_code(x + 0x40) : String.from_code(x)
+	escape_string = @(s) join(@(f) each_code(s, @(c) f(escape(c
 	Mode = Object + @
 		$echo = @(f) input.each(@(x) f(escape(x
 		$render = @
@@ -442,13 +437,12 @@ $new = @(host, status, strip, path)
 		search.reset(i, -1
 		search.next(
 	map = @(for_, lhs, rhs, noremap = false)
-		name = join(@(f) each_code(rhs, @(c) f(escape(c
 		action = @
 			each_code(lhs, @(c) input.pop(
 			each_code(rhs, push
-		kma = noremap ?
-			KeyMapAction("*" + name, @ Mode.nomap(action)) :
-			KeyMapAction(name, action
+		kma = KeyMapAction(
+			(noremap ? "*" : " ") + escape_string(rhs
+			noremap ? @ Mode.nomap(action) : action
 		for_(@(x) x.put(lhs, kma
 	for_nvo = @(maps) @(f)
 		f(maps.NORMAL
@@ -468,10 +462,35 @@ $new = @(host, status, strip, path)
 				map(for_(maps), lhs, rhs, noremap
 				buffers.each(@(x) for_(x.maps)(@(x) x.merge(lhs
 		else
-			::message = "maps"
-			# TODO: merge modes.
-			buffer.maps.NORMAL.list().each(@(x) :::message = message + "\n" + x[0] + "\t@" + x[1]
-			maps.NORMAL.list().each(@(x) :::message = message + "\n" + x[0] + "\t" + x[1]
+			list = @(maps) join(@(push)
+				modes = {
+					maps.NORMAL: '(1 << 0, "n"
+					maps.VISUAL: '(1 << 1, "v"
+					maps.operator: '(1 << 2, "o"
+					maps.INSERT: '(1 << 3, "i"
+					maps.prompt: '(1 << 4, "p"
+				lhs2a2ms = {
+				f = @(map, mode) map.each(@(lhs, action)
+					a2ms = try
+						lhs2a2ms[lhs]
+					catch Throwable t
+						lhs2a2ms[lhs] = {
+					a2ms[action] = mode + (try
+						a2ms[action]
+					catch Throwable t
+						0
+					)
+				for_maps = for_(maps
+				for_maps(@(x) f(x, modes[x][0]
+				xs = [
+				lhs2a2ms.each(@(lhs, a2ms) a2ms.each(@(a, ms) xs.push('(lhs, a, ms
+				xs.sort(@(x, y) x[0] != y[0] ? x[0] < y[0] : x[2] < y[2]
+				xs.each(@(x)
+					ms = join(@(f) for_maps(@(y)
+						m = modes[y]
+						f((x[2] & m[0]) == 0 ? " " : m[1]
+					push("\n " + ms + "\t" + escape_string(x[0]) + "\t" + x[1]
+			::message = "maps <buffer>" + list(buffer.maps) + "\nmaps" + list(maps
 	command_unmap = @(for_) @(i)
 		match = match_status("^\\s*(<buffer>)?\\s*(\\S+)", i
 		match.size() > 0 || throw Throwable("invalid arguments"
@@ -483,11 +502,11 @@ $new = @(host, status, strip, path)
 			buffers.each(@(x) for_(x.maps)(@(x) x.merge(lhs
 	builtin_commands = {
 		"buffers": @(i)
-			:message = "buffers"
-			n = buffers.size(
-			for i = 0; i < n; i = i + 1
-				x = buffers[i]
-				:message = message + "\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path === null ? " no name" : " \"" + x.path + "\"")
+			:message = "buffers" + join(@(f)
+				n = buffers.size(
+				for i = 0; i < n; i = i + 1
+					x = buffers[i]
+					f("\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path === null ? " no name" : " \"" + x.path + "\"")
 		"edit": @(i)
 			match = match_status("^\\s*(?:(#\\d*)|(\\S*))", i
 			if match[1].count > 0
@@ -781,7 +800,7 @@ $new = @(host, status, strip, path)
 		$map = map
 		$nomap = Mode.nomap
 		$map_action = @(for_, lhs, name, action)
-			kma = KeyMapAction(name, @
+			kma = KeyMapAction("&" + name, @
 				each_code(lhs, @(c) input.pop(
 				action[$](
 			for_(@(x) x.put(lhs, kma
