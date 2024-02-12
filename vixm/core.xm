@@ -1,4 +1,9 @@
 nata = Module("nata"
+utilities = Module("utilities"
+do = utilities.do
+letter = utilities.letter
+control = utilities.control
+each_code = utilities.each_code
 
 Session = Object + @
 	$logs
@@ -24,16 +29,10 @@ Session = Object + @
 	$undo = @ $redos.push($replay(*$undos.pop(
 	$redo = @ $undos.push($replay(*$redos.pop(
 
-do = @(f) f(
 with = @(x, f) try
 	f(x
 finally
 	x.dispose(
-letter = @(x) x.code_at(0
-control = @(x) letter(x) - letter("@")
-$each_code = each_code = @(s, f)
-	n = s.size(
-	for i = 0; i < n; i = i + 1: f(s.code_at(i
 join = @(each)
 	s = ""
 	each(@(x) :s = s + x

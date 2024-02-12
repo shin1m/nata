@@ -2,7 +2,9 @@ system = Module("system"
 print = system.out.write_line
 assert = @(x) x || throw Throwable("Assertion failed."
 nata = Module("nata"
-vixm_core = Module("core"
+utilities = Module("utilities"
+remove = utilities.remove
+core = Module("core"
 
 Text = nata.Text + @
 	$replaced
@@ -36,11 +38,6 @@ Row = Object + @
 		$text = text
 		$x = x
 		$y = y
-
-remove = @(xs, x)
-	n = xs.size(
-	for i = 0; i < n; i = i + 1
-		xs[i] === x && break xs.remove(i
 
 View = Object + @
 	$text
@@ -120,13 +117,13 @@ test = @(name, text, f)
 	done = false
 	timers = [
 	status = Text(
-	vi = vixm_core.new(Object + @
+	vi = core.new(Object + @
 		$quit = @ ::done = true
 		$buffer = @(path, maps)
 			text = Text(
 			path !== null && text.replace(text.size(), 0, path
 			view = View(text
-			vixm_core.Buffer(path, maps, text, view, Overlay(view
+			core.Buffer(path, maps, text, view, Overlay(view
 		$timeout = @(timeout, action)
 			x = '(timeout, action
 			timers.push(x

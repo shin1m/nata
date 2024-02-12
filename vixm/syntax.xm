@@ -1,22 +1,11 @@
 system = Module("system"
-io = Module("io"
 os = Module("os"
 nata = Module("nata"
 nata_curses = Module("nata-curses"
 nata_tree_sitter = Module("nata-tree-sitter"
-
-open = @(path, action)
-	reader = io.Reader(io.File("" + path, "r"), "utf-8"
-	try
-		action(reader
-	finally
-		reader.close(
-
-find_index = @(text, i, predicate)
-	n = text.size(
-	for ; i < n; i = i + 1
-		predicate(text.code_at(i)) && break
-	i
+utilities = Module("utilities"
+find_index = utilities.find_index
+open = utilities.open
 
 read_pairs = @(path) open(path, @(reader)
 	pairs = {

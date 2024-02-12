@@ -1,11 +1,8 @@
 io = Module("io"
 os = Module("os"
 json = Module("json"
-
-find_index = @(text, i, predicate)
-	n = text.size(
-	for ; i < n; i = i + 1: predicate(text.code_at(i)) && break
-	i
+utilities = Module("utilities"
+find_index = utilities.find_index
 
 jsonrpc = @(in, out, notified)
 	writer = io.Writer(in, "utf-8"
