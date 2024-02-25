@@ -49,7 +49,7 @@ with = @(x, f)
 
 each = @(overlay, f)
 	with(nata_curses.OverlayIterator(overlay), @(i)
-		while (x = i.next()) !== null
+		while x = i.next()
 			x.value && f(x.from, x.count
 
 TextSession = Session + @
@@ -93,7 +93,7 @@ nata.main(@ nata_curses.main(@
 	nata_syntax.initialize(4
 	text = nata.Text(
 	path = system.arguments.size() > 0 ? system.arguments[0] : null
-	if path === null
+	if !path
 		text.replace(0, -1, "{
   \"hello\": [\"Hello\", \"World!\"],
   \"by\": [\"This\", \"is\", \"shin.\"],
@@ -117,12 +117,12 @@ nata.main(@ nata_curses.main(@
 		session.log(@ log_position(p
 	last_position = 0
 	edit = @(f)
-		if session.logs === null
+		if !session.logs
 			session.begin(
 			log_position(view.position().text
 		f(
 		:last_position = view.position().text
-	commit = @ if session.logs !== null
+	commit = @ if session.logs
 		p = last_position
 		session.log(@ log_position(p
 		session.commit("edit"
@@ -131,9 +131,9 @@ nata.main(@ nata_curses.main(@
 	tasks = [
 	message = ""
 	syntax = nata_syntax.new(text, path, view
-	syntax !== null && tasks.push(@
+	syntax && tasks.push(@
 		current = syntax.step(
-		current === null && return
+		current || return
 		:message = "running: " + current * 100 / text.size() + "%"
 		timers.push('(time.now(), @
 	backspace = @
@@ -209,7 +209,7 @@ nata.main(@ nata_curses.main(@
 			(position.x - view.row().x) + " " +
 			(n > 0 ? view.top() * 100 / n : 100) + "% <" +
 			session.undos.size() +
-			(session.logs === null ? "" : "?" + session.logs.size()) +
+			(session.logs ? "?" + session.logs.size() : "") +
 			(session.redos.size() > 0 ? "|" + session.redos.size() : "") + ">"
 	while !done
 		now = time.now(

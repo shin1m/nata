@@ -121,7 +121,7 @@ test = @(name, text, f)
 		$quit = @ ::done = true
 		$buffer = @(path, maps)
 			text = Text(
-			path !== null && text.replace(text.size(), 0, path
+			path && text.replace(text.size(), 0, path
 			view = View(text
 			core.Buffer(path, maps, text, view, Overlay(view
 		$timeout = @(timeout, action)

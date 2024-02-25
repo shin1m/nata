@@ -21,7 +21,7 @@ $new = @(host)
 		else
 			vi.message("unknown verb: " + verb
 	logs = do(@ @
-		if logs === null
+		if !logs
 			:logs = vi.add_buffer(null
 			logs.disposing.unshift(@ ::logs = null
 		logs
@@ -48,17 +48,17 @@ $new = @(host)
 			items.size() > popup || return
 			:chooser = host.chooser(@(ok)
 				if ok
-					cancel === null || cancel(
+					cancel && cancel(
 					choose(items[chooser.at()]
 				else
-					cancel === null || return cancel(
+					cancel && return cancel(
 				host.popup__(null
 				chooser.dispose(
 				end(
 			items.each(append
 			chooser.at__(0
 			host.mode__(opening(chooser, @(done)
-				cancel === null || cancel(
+				cancel && cancel(
 				items = [
 				::push = @(result)
 					result2items(result).each(items.push
@@ -69,7 +69,7 @@ $new = @(host)
 					chooser.at__(0
 					:::push = push_items
 				::done = @(result, error)
-					error === null || return vi.message("ERROR: " + error
+					error && return vi.message("ERROR: " + error
 					push(result
 					done(items
 				call(
@@ -78,16 +78,16 @@ $new = @(host)
 				items.push(x
 				append(x
 			:done = @(result, error)
-				error === null || return vi.message("ERROR: " + error
+				error && return vi.message("ERROR: " + error
 				push(result
 				vi.message(""
 		done = @(result, error)
-			if error !== null
+			if error
 				vi.message("ERROR: " + error
 				return end(
 			push(result
 			vi.message(""
-			chooser === null || return
+			chooser && return
 			items.size() > 0 ? choose(items[0]) : vi.message("no information"
 			end(
 		call = @
@@ -108,7 +108,7 @@ $new = @(host)
 			cancel(
 			end(
 	goto = @(message, action) cancellable(message, choose(action, 1
-		@(x) x === null ? [] : x.@ === List ? x : [x
+		@(x) !x ? [] : x.@ === List ? x : [x
 		@(x)
 			s = x["range"]["start"]
 			x["uri"].substring(7) + ": " + (s["line"] + 1) + "," + (s["character"] + 1)
@@ -138,8 +138,8 @@ $new = @(host)
 					client.completion(buffer.path, l[0], l[1], done, partial
 				popup
 				@(x)
-					if x === null: return [
-					if x.@ === List: return x
+					!x && return [
+					x.@ === List && return x
 					:incomplete = x["isIncomplete"]
 					x["items"]
 				@(x) x["label"]
@@ -174,10 +174,10 @@ $new = @(host)
 	startup = @(file, arguments, environments, done) Module("lsp").startup(host.loop, host.invalidate, file, arguments, environments, log
 		@(token, title, cancellable, message, percentage)
 			s = "" + token + " " + title + ":"
-			message !== null && (s = s + " " + message)
-			percentage !== null && (s = s + " " + percentage + "%")
+			message && (s = s + " " + message)
+			percentage && (s = s + " " + percentage + "%")
 			vi.progress(s
-		@(client) done(client === null ? null : do(Object + @
+		@(client) done(client && do(Object + @
 			completion_triggers = [
 			if client.capabilities.has("completionProvider")
 				completion_privider =  client.capabilities["completionProvider"]
@@ -200,8 +200,8 @@ $new = @(host)
 						l = text.to_location(buffer.view.position().text
 						cancellable("hover...", client.hover(buffer.path, l[0], l[1], @(result, error)
 							host.mode__(vi
-							error === null || return vi.message("ERROR: " + error
-							result === null && return vi.message("no information"
+							error && return vi.message("ERROR: " + error
+							result || return vi.message("no information"
 							vi.message(""
 							popup = host.popup(
 							popup.text.replace(0, -1, result["contents"]["value"]
@@ -243,7 +243,7 @@ $new = @(host)
 	instances = {
 	@(name, file, arguments, environments, match) vi.commands[name] = verbify({
 		"start": @(i) if !instances.has(name): instances[name] = startup(file, arguments, environments, @(hook)
-			if hook === null
+			if !hook
 				instances.remove(name
 				return vi.message(name + ": failed."
 			register = @(x) if match(x): x.hooks[hook] = hook.register(x

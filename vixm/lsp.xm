@@ -81,7 +81,7 @@ jsonrpc = @(in, out, notified)
 		$request = @(method, params, done, progress = null, partial = null)
 			for id = last_id + 1; dones.has(id); id = id + 1
 			::last_id = id
-			if progress !== null: progresses[params["workDoneToken"] = id] = @(value)
+			if progress: progresses[params["workDoneToken"] = id] = @(value)
 				kind = value["kind"]
 				if kind == "begin"
 					:report = [
@@ -98,10 +98,10 @@ jsonrpc = @(in, out, notified)
 					report[2] = value.has("message") ? value["message"] : null
 					report[3] = null
 				progress(id, *report
-			partial !== null && (progresses[params["partialResultToken"] = "p" + id] = partial)
+			partial && (progresses[params["partialResultToken"] = "p" + id] = partial)
 			dones[id] = @(result, error)
-				progress !== null && progresses.remove(id
-				partial !== null && progresses.remove("p" + id
+				progress && progresses.remove(id
+				partial && progresses.remove("p" + id
 				done(result, error
 			send({
 				"jsonrpc": "2.0"
@@ -122,7 +122,7 @@ $startup = @(loop, invalidate, file, arguments, environments, log, progress, don
 	error = io.Reader(child.pipe(2), "utf-8"
 	read_error = @ while true
 		x = error.read_line(
-		(x === null || x == "") && break
+		x && x != "" || break
 		log(x
 	loop.poll(child.pipe(2).fd(), true, false, @(readable, writable) if readable
 		read_error(
@@ -131,7 +131,7 @@ $startup = @(loop, invalidate, file, arguments, environments, log, progress, don
 		rpc.dispatch(
 		invalidate(
 	exit = @(done)
-		loop.poll(child.pipe(0).fd(), false, false, @(readable, writable) if child.exited() !== null
+		loop.poll(child.pipe(0).fd(), false, false, @(readable, writable) if child.exited()
 			loop.unpoll(child.pipe(0).fd(
 			loop.unpoll(child.pipe(1).fd(
 			loop.unpoll(child.pipe(2).fd(
@@ -148,7 +148,7 @@ $startup = @(loop, invalidate, file, arguments, environments, log, progress, don
 			"offsetEncoding": ["utf-8"
 	}, @(result, error)
 		log("initialize: " + json.stringify(result, 2) + "\n"
-		error === null || return exit(@ done(null
+		error && return exit(@ done(null
 		rpc.notify("initialized", {
 		done(Object + @
 			$capabilities = result["capabilities"]

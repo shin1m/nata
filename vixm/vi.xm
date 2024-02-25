@@ -110,14 +110,14 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 		$quit = loop.exit
 		$buffer = @(path, maps)
 			text = Text(
-			path !== null && read(text, path
+			path && read(text, path
 			view = View(text, 0, 0, size[0], size[1] - 1
 			syntax = :syntax.new(text, path, view
 			buffer = Buffer(path, maps, text, view, syntax
-			if syntax !== null
+			if syntax
 				tasks.push(step = @
 					current = syntax.step(
-					current === null && return
+					current || return
 					vi.progress("running: " + current * 100 / text.size() + "%"
 					invalidate(
 				buffer.disposing.unshift(@
@@ -147,10 +147,7 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 			strip.into_view(strip.position().text
 			mh = size[1] - sh
 			main = vi.buffer().view
-			if popup === null
-				main.move(0, 0, size[0], mh
-				main.into_view(main.position().text
-			else
+			if popup
 				limit = size[1] - sh - 1
 				ph = popup.size().y
 				ph > limit && (ph = limit)
@@ -167,9 +164,12 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 					y = row - main.top() + 1
 				popup.move(0, y, size[0], ph
 				popup.into_view(popup.position().text
+			else
+				main.move(0, 0, size[0], mh
+				main.into_view(main.position().text
 			main.render(
 			strip.render(
-			popup !== null && popup.render(
+			popup && popup.render(
 			vi.current().focus(
 			nata_curses.flush(
 	assist = :assist.new(Object + @
@@ -182,7 +182,7 @@ suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
 		$invalidate = invalidate
 		$popup = Popup
 		$chooser = Chooser
-	assist("clangd", "clangd", '("--log=verbose"), '(), @(buffer) buffer.syntax !== null && buffer.syntax.type == "cpp"
+	assist("clangd", "clangd", '("--log=verbose"), '(), @(buffer) buffer.syntax && buffer.syntax.type == "cpp"
 	loop.poll(0, true, false, @(readable, writable) if readable
 		mode(vi.current().get(
 		invalidate(

@@ -45,17 +45,17 @@ KeyMap = Object + @
 	$__initialize = @(action, base = null, map = null)
 		$action = action
 		$base = base
-		$map = map === null ? {} : map
+		$map = map || {}
 	$__get_at = @(c) try
 		$map[c]
 	catch Throwable t
 		$base[c]
-	$get = @ $action !== null ? $action : $base !== null ? $base.get() : null
-	$more = @ $map.size() > 0 || $base !== null && $base.more()
+	$get = @ $action || $base && $base.get(
+	$more = @ $map.size() > 0 || $base && $base.more(
 	$each = @(do)
 		f = @(map, lhs) map.map.each(@(k, v)
 			s = lhs + String.from_code(k)
-			v.action === null || do(s, v.action
+			v.action && do(s, v.action
 			f(v, s
 		f($, ""
 	$put = @(s, action)
@@ -80,7 +80,7 @@ KeyMap = Object + @
 			parent = path.pop(
 			map = parent[0]
 			map.map.remove(parent[1]
-			map.action === null || break
+			map.action && break
 	$merge = @(s)
 		map = $
 		base = $base
@@ -210,7 +210,7 @@ $new = @(host, status, strip, path)
 	begin = @(p)
 		buffer.begin(
 		log_position(p
-	commit = @ if buffer.logs !== null
+	commit = @ if buffer.logs
 		p = view.position().text
 		buffer.log(@ log_position(p
 		buffer.commit("edit"
@@ -267,7 +267,7 @@ $new = @(host, status, strip, path)
 			(match[0].from > p ? "/" : "continuing at TOP: ")
 		) + last_pattern
 	search_next = @(reverse)
-		last_pattern === null && throw Throwable("no last pattern"
+		last_pattern || throw Throwable("no last pattern"
 		reverse = last_reverse ^ reverse
 		p = view.position().text
 		match = reverse ? search_backward(last_pattern, p) : search_forward(last_pattern, p)
@@ -349,7 +349,7 @@ $new = @(host, status, strip, path)
 					(position.x - view.row().x + 1) + " " +
 					(n > 0 ? view.top() * 100 / n : 100) + "% <" +
 					buffer.undos.size() +
-					(buffer.logs === null ? "" : "?" + buffer.logs.size()) +
+					(buffer.logs ? "?" + buffer.logs.size() : "") +
 					(buffer.redos.size() > 0 ? "|" + buffer.redos.size() : "") + "> " + join($echo
 		rewind_builtin = @
 			:map = mode.map
@@ -358,7 +358,7 @@ $new = @(host, status, strip, path)
 				rewind(
 			:partial = @
 				action = map.get(
-				action === null && return
+				action || return
 				::pending = '(@
 					:::pending = null
 					action[mode](
@@ -371,22 +371,22 @@ $new = @(host, status, strip, path)
 				::pending = null
 				cs = [
 				for ; n > 0; (:n = n - 1): cs.unshift(input.pop(
-				if action === null
-					rewind_builtin(
-				else
+				if action
 					action[mode](
 					rewind(
+				else
+					rewind_builtin(
 				cs.each(push
 			:fallback = @(c)
 				rewind_builtin(
 				mode(c
 			:partial = @
 				action = map.get(
-				if action === null
-					:n = n + 1
-				else
+				if action
 					:n = 0
 					:action = action
+				else
+					:n = n + 1
 				::pending = '(commit, host.timeout(1000, commit
 		rewind = rewind_mapping
 		$rewind = @ rewind(
@@ -413,12 +413,12 @@ $new = @(host, status, strip, path)
 			try
 				map = :map[c]
 			catch Throwable t
-				pending === null && return fallback(c
+				pending || return fallback(c
 				pending[1](
 				input.pop(
 				pending[0](
 				return push(c
-			if pending !== null
+			if pending
 				pending[1](
 				:pending = null
 			if map.more()
@@ -426,7 +426,7 @@ $new = @(host, status, strip, path)
 				partial(
 			else
 				action = map.get(
-				action !== null && action[$](
+				action && action[$](
 				rewind(
 		catch Throwable t
 			::message = t.__string(
@@ -436,6 +436,7 @@ $new = @(host, status, strip, path)
 		search.reset(i, -1
 		search.next(
 	map = @(for_, lhs, rhs, noremap = false)
+		# TODO: detect recursing.
 		action = @
 			each_code(lhs, @(c) input.pop(
 			each_code(rhs, push
@@ -505,7 +506,7 @@ $new = @(host, status, strip, path)
 				n = buffers.size(
 				for i = 0; i < n; i = i + 1
 					x = buffers[i]
-					f("\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path === null ? " no name" : " \"" + x.path + "\"")
+					f("\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path ? " \"" + x.path + "\"" : " no name")
 		"edit": @(i)
 			match = match_status("^\\s*(?:(#\\d*)|(\\S*))", i
 			if match[1].count > 0
@@ -581,7 +582,7 @@ $new = @(host, status, strip, path)
 				catch Throwable t
 					:::code = c
 					map_commit
-				$get = @ null
+				$get = @
 				$more = @ true
 	mode = mode_normal = do(Mode + @
 		$map = KeyMap(null, map_motion, {
@@ -643,7 +644,7 @@ $new = @(host, status, strip, path)
 		clear = @
 			xs = [
 			with(host.overlay_iterator(selection), @(i)
-				while (x = i.next()) !== null
+				while x = i.next()
 					x.value && xs.push('(x.from, x.count
 			xs.each(@(x) selection.paint(x[0], x[1], false
 			xs
@@ -723,7 +724,7 @@ $new = @(host, status, strip, path)
 			p = view.position().text
 			if p > 0
 				view.folded(p - 1, false
-				buffer.logs === null && begin(p
+				buffer.logs || begin(p
 				buffer.merge(p - 1, 1, ""
 			$from = input.size(
 		$map = KeyMap(null, {
@@ -745,7 +746,7 @@ $new = @(host, status, strip, path)
 		$unknown = @(c)
 			(c == host.KEY_ENTER || c == 0xd) && (c = 0xa)
 			p = view.position().text
-			buffer.logs === null && begin(p
+			buffer.logs || begin(p
 			buffer.merge(p, 0, String.from_code(c
 			$from = input.size(
 	mode_prompt = do(Mode + @

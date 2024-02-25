@@ -46,7 +46,7 @@ try_syntax = @(text, path, type)
 				text
 		read_pairs(parent / "colors"
 	detect = read_pairs(parent / "detect"
-	if path !== null && detect.has("path")
+	if path && detect.has("path")
 		t = nata.Text(
 		t.replace(0, 0, path
 		try
@@ -58,9 +58,9 @@ try_syntax = @(text, path, type)
 load_syntax = @(text, path)
 	root = os.Directory("" + syntax_root
 	try
-		while (type = root.read()) !== null
+		while type = root.read()
 			x = try_syntax(text, path, type.name
-			x !== null && return x
+			x && return x
 	finally
 		root.close(
 
@@ -80,7 +80,7 @@ $initialize = @(from)
 
 $new = @(text, path, view)
 	x = load_syntax(text, path
-	x === null && return
+	x || return
 	type = x[0]
 	query = x[1]
 	capture2color = x[2]
@@ -116,7 +116,7 @@ $new = @(text, path, view)
 		$step = @
 			parser.parsed() || (::tokens = ['(null, text.size() + 1)])
 			for i = 0; i < UNIT; i = i + 1
-				if (match = parser.next()) === null
+				if !(match = parser.next())
 					paint(text.size(
 					painter.flush(
 					creaser.end(
