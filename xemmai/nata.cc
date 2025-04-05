@@ -20,17 +20,6 @@ t_session* t_session::f_instance()
 }
 #endif
 
-namespace
-{
-
-void f_main(t_library* a_library, const t_pvalue& a_callable)
-{
-	t_session session(a_library);
-	a_callable();
-}
-
-}
-
 void t_library::f_scan(t_scan a_scan)
 {
 	a_scan(v_type_proxy);
@@ -60,7 +49,11 @@ std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
 		(L"Text"sv, static_cast<t_object*>(v_type_text))
 		(L"Span"sv, static_cast<t_object*>(v_type_span))
 		(L"Search"sv, static_cast<t_object*>(v_type_search))
-		(L"main"sv, t_static<void(*)(t_library*, const t_pvalue&), f_main>())
+		(L"main"sv, t_static<void(*)(const t_pvalue&), [](auto a_callable)
+		{
+			t_session session;
+			a_callable();
+		}>())
 	;
 }
 

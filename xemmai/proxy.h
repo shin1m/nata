@@ -8,13 +8,14 @@ namespace xemmaix::nata
 
 class t_proxy : public t_entry
 {
-	t_session* v_session;
-	t_root v_object;
-	t_root v_owner;
+	friend struct t_type_of<t_proxy>;
+
+	t_entry* v_session = v_previous;
+	t_root v_object = t_object::f_of(this);
 	size_t v_n = 1;
 
 protected:
-	t_proxy() : t_entry(t_session::f_instance()), v_session(t_session::f_instance()), v_object(t_object::f_of(this)), v_owner(v_object)
+	t_proxy() : t_entry(t_session::f_instance())
 	{
 	}
 	virtual void f_destroy() = 0;
@@ -30,15 +31,11 @@ public:
 	{
 		if (--v_n > 0) return;
 		f_destroy();
-		v_owner = nullptr;
+		v_object = nullptr;
 	}
 	bool f_valid() const
 	{
 		return v_session == t_session::f_instance();
-	}
-	bool f_disposed() const
-	{
-		return !v_object;
 	}
 };
 
@@ -54,8 +51,7 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_bears<xemmaix::nata::t_proxy>
 	static T& f_cast(auto&& a_object)
 	{
 		auto& p = static_cast<t_object*>(a_object)->f_as<T>();
-		if (!p.f_valid()) f_throw(L"accessing from other thread."sv);
-		if (p.f_disposed()) f_throw(L"already disposed."sv);
+		if (!p.f_valid()) f_throw(L"not valid."sv);
 		return p;
 	}
 	template<typename T>
@@ -63,7 +59,7 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_bears<xemmaix::nata::t_proxy>
 	{
 		static T f_as(auto&& a_object)
 		{
-			return f_cast<typename t_fundamental<T>::t_type>(std::forward<decltype(a_object)>(a_object));
+			return std::forward<T>(f_cast<typename t_fundamental<T>::t_type>(std::forward<decltype(a_object)>(a_object)));
 		}
 		static bool f_is(t_object* a_object)
 		{
@@ -75,18 +71,13 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_bears<xemmaix::nata::t_proxy>
 	{
 		static T* f_as(auto&& a_object)
 		{
-			return static_cast<t_object*>(a_object) ? &f_cast<T>(std::forward<decltype(a_object)>(a_object)) : nullptr;
+			return static_cast<t_object*>(a_object) ? &f_cast<typename t_fundamental<T>::t_type>(std::forward<decltype(a_object)>(a_object)) : nullptr;
 		}
 		static bool f_is(t_object* a_object)
 		{
 			return reinterpret_cast<uintptr_t>(a_object) == c_tag__NULL || reinterpret_cast<uintptr_t>(a_object) >= c_tag__OBJECT && a_object->f_type()->f_derives<typename t_fundamental<T>::t_type>();
 		}
 	};
-
-	static t_pvalue f_transfer(auto* a_library, auto&& a_value)
-	{
-		return t_object::f_of(a_value);
-	}
 
 	using t_library = xemmaix::nata::t_library;
 

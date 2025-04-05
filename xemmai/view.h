@@ -218,7 +218,7 @@ struct t_overlay_iterator : t_proxy
 	}
 	virtual void f_dispose()
 	{
-		if (!v_overlay.f_disposed()) {
+		if (v_overlay.f_valid()) {
 			delete v_connection0;
 			delete v_connection1;
 		}
@@ -226,7 +226,7 @@ struct t_overlay_iterator : t_proxy
 	}
 	t_pvalue f_next(typename T_target::t_library* a_library)
 	{
-		if (v_overlay.f_disposed() || v_i == v_overlay.v_overlay->f_end()) return nullptr;
+		if (!v_overlay.f_valid() || v_i == v_overlay.v_overlay->f_end()) return nullptr;
 		auto p = f_new_value(a_library->f_type_overlay_value(), v_i->v_x, v_i.f_index().v_i1, v_i.f_delta().v_i1);
 		++v_i;
 		return p;

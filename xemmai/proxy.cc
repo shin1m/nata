@@ -5,9 +5,9 @@ namespace xemmaix::nata
 
 void t_proxy::f_dispose()
 {
-	v_object = nullptr;
-	f_release();
 	t_entry::f_dispose();
+	v_session = nullptr;
+	f_release();
 }
 
 }
@@ -26,7 +26,7 @@ void t_type_of<xemmaix::nata::t_proxy>::f_define(t_library* a_library)
 void t_type_of<xemmaix::nata::t_proxy>::f_do_finalize(t_object* a_this)
 {
 	auto& p = a_this->f_as<xemmaix::nata::t_proxy>();
-	assert(p.f_disposed());
+	assert(!p.v_session);
 	p.~t_proxy();
 }
 

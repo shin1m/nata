@@ -48,11 +48,7 @@ public:
 
 class t_session : public t_entry
 {
-	friend class t_proxy;
-
 	static XEMMAI__PORTABLE__THREAD t_session* v_instance;
-
-	t_library* v_library;
 
 public:
 #ifdef _WIN32
@@ -65,7 +61,7 @@ public:
 	}
 #endif
 
-	t_session(t_library* a_library) : v_library(a_library)
+	t_session()
 	{
 		if (v_instance) f_throw(L"already inside main."sv);
 		v_instance = this;
@@ -74,10 +70,6 @@ public:
 	{
 		while (v_next != this) v_next->f_dispose();
 		v_instance = nullptr;
-	}
-	t_library* f_library() const
-	{
-		return v_library;
 	}
 };
 
