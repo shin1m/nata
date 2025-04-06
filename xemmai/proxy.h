@@ -35,7 +35,7 @@ public:
 	}
 	bool f_valid() const
 	{
-		return v_session == t_session::f_instance();
+		return v_session == t_session::f_instance() && v_object;
 	}
 };
 
