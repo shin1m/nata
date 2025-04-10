@@ -10,38 +10,28 @@ namespace xemmaix::nata
 struct t_search : t_proxy
 {
 	t_text& v_text;
-	decltype(*v_text.v_text) v_p;
 	std::wregex v_pattern;
-	std::regex_iterator<decltype(v_p.f_begin())> v_eos;
-	std::regex_iterator<decltype(v_p.f_begin())> v_i;
+	std::regex_iterator<decltype(v_text.f_begin())> v_eos;
+	std::regex_iterator<decltype(v_text.f_begin())> v_i;
 
 	::nata::t_text_replaced v_replaced = [this](auto, auto, auto)
 	{
-		f_reset(0, -1);
+		v_i = {v_text.f_begin(), v_text.f_end(), v_pattern};
 	};
 	::nata::t_connection<decltype(v_replaced)>* v_connection;
 
-	static t_pvalue f_construct(t_type* a_class, t_text& a_text)
-	{
-		return a_class->f_new<t_search>(a_text);
-	}
-
-	t_search(t_text& a_text) : v_text(a_text), v_p(*v_text.v_text), v_connection(v_p.v_replaced >> v_replaced)
+	t_search(t_text& a_text) : v_text(a_text), v_connection(v_text.v_replaced >> v_replaced)
 	{
 		v_text.f_acquire();
 	}
 	virtual void f_destroy();
-	void f_pattern(std::wstring_view a_pattern, intptr_t a_flags)
-	{
-		v_pattern.assign(a_pattern.begin(), a_pattern.end(), static_cast<std::wregex::flag_type>(a_flags));
-	}
 	void f_reset(size_t a_p, size_t a_n)
 	{
-		size_t n = v_p.f_size();
+		size_t n = v_text.f_size();
 		if (a_p > n) f_throw(L"out of range."sv);
-		v_i = {v_p.f_at(a_p), v_p.f_at(a_p + std::min(a_n, n - a_p)), v_pattern};
+		v_i = {v_text.f_at(a_p), v_text.f_at(a_p + std::min(a_n, n - a_p)), v_pattern};
 	}
-	t_pvalue f_next(t_library* a_library);
+	t_object* f_next(t_library* a_library);
 };
 
 }

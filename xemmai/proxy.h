@@ -21,7 +21,6 @@ protected:
 	virtual void f_destroy() = 0;
 
 public:
-	virtual ~t_proxy() = default;
 	virtual void f_dispose();
 	void f_acquire()
 	{
@@ -84,7 +83,6 @@ struct t_type_of<xemmaix::nata::t_proxy> : t_bears<xemmaix::nata::t_proxy>
 	static void f_define(t_library* a_library);
 
 	using t_base::t_base;
-	static void f_do_finalize(t_object* a_this);
 	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n);
 };
 

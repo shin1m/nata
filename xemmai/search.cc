@@ -9,7 +9,7 @@ void t_search::f_destroy()
 	v_text.f_release();
 }
 
-t_pvalue t_search::f_next(t_library* a_library)
+t_object* t_search::f_next(t_library* a_library)
 {
 	return t_tuple::f_instantiate(v_i->size(), [&](auto& tuple)
 	{
@@ -42,15 +42,21 @@ void t_type_of<xemmaix::nata::t_search>::f_define(t_library* a_library)
 		(L"GREP"sv, static_cast<intptr_t>(std::wregex::grep))
 		(L"EGREP"sv, static_cast<intptr_t>(std::wregex::egrep))
 		(L"MULTILINE"sv, static_cast<intptr_t>(std::wregex::multiline))
-		(L"pattern"sv, t_member<void(t_search::*)(std::wstring_view, intptr_t), &t_search::f_pattern>())
+		(L"pattern"sv, t_member<void(*)(t_search&, std::wstring_view, intptr_t), [](auto a_this, auto a_pattern, auto a_flags)
+		{
+			a_this.v_pattern.assign(a_pattern.begin(), a_pattern.end(), static_cast<std::wregex::flag_type>(a_flags));
+		}>())
 		(L"reset"sv, t_member<void(t_search::*)(size_t, size_t), &t_search::f_reset>())
-		(L"next"sv, t_member<t_pvalue(t_search::*)(t_library*), &t_search::f_next>())
+		(L"next"sv, t_member<t_object*(t_search::*)(t_library*), &t_search::f_next>())
 	.f_derive<t_search, xemmaix::nata::t_proxy>();
 }
 
 t_pvalue t_type_of<xemmaix::nata::t_search>::f_do_construct(t_pvalue* a_stack, size_t a_n)
 {
-	return t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_text&), xemmaix::nata::t_search::f_construct>::t_bind<xemmaix::nata::t_search>::f_do(this, a_stack, a_n);
+	return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_text&), [](auto a_class, auto a_text)
+	{
+		return a_class->template f_new<xemmaix::nata::t_search>(a_text);
+	}>::t_bind<xemmaix::nata::t_search>::f_do(this, a_stack, a_n);
 }
 
 }

@@ -7,62 +7,18 @@
 namespace xemmaix::nata
 {
 
-struct t_text : t_proxy
+struct t_text : t_proxy, ::nata::t_text<>
 {
-	::nata::t_text<>* v_text = new ::nata::t_text<>();
-
-	static t_pvalue f_construct(t_type* a_class)
-	{
-		return a_class->f_new<t_text>();
-	}
-
-	virtual void f_destroy();
-	size_t f_size() const
-	{
-		return v_text->f_size();
-	}
-	size_t f_in_bytes(size_t a_p) const
-	{
-		return v_text->f_at(a_p).f_base().f_index().v_byte;
-	}
-	size_t f_in_text(size_t a_p) const
-	{
-		return v_text->f_base().f_at(a_p).f_index().v_character;
-	}
-	t_pvalue f_slice(size_t a_p, size_t a_n) const
-	{
-		size_t n = f_size();
-		if (a_p > n) f_throw(L"out of range."sv);
-		a_n = std::min(a_n, n - a_p);
-		return a_n > 0 ? t_string::f_instantiate(a_n, [&](auto p)
-		{
-			return v_text->f_slice(a_p, a_n, p);
-		}) : f_global()->f_string_empty();
-	}
-	void f_replace(size_t a_p, size_t a_n, std::wstring_view a_text)
-	{
-		size_t n = f_size();
-		if (a_p > n) f_throw(L"out of range."sv);
-		v_text->f_replace(a_p, std::min(a_n, n - a_p), a_text.begin(), a_text.end());
-	}
-	size_t f_lines() const
-	{
-		return v_text->f_lines().f_size().v_i0;
-	}
-	static t_pvalue f_line(t_library* a_library, const auto& a_line)
+	static t_object* f_line(t_library* a_library, const auto& a_line)
 	{
 		auto i = a_line.f_index();
 		return f_new_value(a_library->f_type_line(), i.v_i0, i.v_i1, a_line.f_delta().v_i1);
 	}
-	t_pvalue f_line_at(t_library* a_library, size_t a_p) const
+
+	virtual void f_destroy();
+	size_t f_lines() const
 	{
-		if (a_p >= f_lines()) f_throw(L"out of range."sv);
-		return f_line(a_library, v_text->f_lines().f_at(a_p));
-	}
-	t_pvalue f_line_at_in_text(t_library* a_library, size_t a_p) const
-	{
-		if (a_p > f_size()) f_throw(L"out of range."sv);
-		return f_line(a_library, v_text->f_lines().f_at_in_text(a_p));
+		return ::nata::t_text<>::f_lines().f_size().v_i0;
 	}
 };
 

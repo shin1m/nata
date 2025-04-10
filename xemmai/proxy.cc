@@ -23,13 +23,6 @@ void t_type_of<xemmaix::nata::t_proxy>::f_define(t_library* a_library)
 	.f_derive<t_proxy, t_object>();
 }
 
-void t_type_of<xemmaix::nata::t_proxy>::f_do_finalize(t_object* a_this)
-{
-	auto& p = a_this->f_as<xemmaix::nata::t_proxy>();
-	assert(!p.v_session);
-	p.~t_proxy();
-}
-
 t_pvalue t_type_of<xemmaix::nata::t_proxy>::f_do_construct(t_pvalue* a_stack, size_t a_n)
 {
 	f_throw(L"uninstantiatable."sv);

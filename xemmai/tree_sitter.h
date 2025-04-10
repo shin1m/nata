@@ -23,19 +23,15 @@ struct t_query : t_proxy
 	TSLanguage* v_language;
 	TSQuery* v_query;
 
-	static t_pvalue f_construct(t_type* a_class, const t_language& a_language, std::wstring_view a_source);
-
 	t_query(const t_language& a_language, TSQuery* a_query) : v_module(a_language.v_module), v_language(a_language.v_language), v_query(a_query)
 	{
 	}
 	virtual void f_destroy();
-	t_pvalue f_captures() const;
 };
 
 struct t_parser : t_proxy
 {
 	t_text& v_text;
-	decltype(*v_text.v_text) v_p;
 	t_query& v_query;
 	TSParser* v_parser = ts_parser_new();
 	char v_buffer[6];
@@ -53,23 +49,14 @@ struct t_parser : t_proxy
 	};
 	::nata::t_connection<decltype(v_replaced)>* v_connection;
 
-	static t_pvalue f_construct(t_type* a_class, t_text& a_text, t_query& a_query)
-	{
-		return a_class->f_new<t_parser>(a_text, a_query);
-	}
-
-	t_parser(t_text& a_text, t_query& a_query) : v_text(a_text), v_p(*v_text.v_text), v_query(a_query), v_connection(v_p.v_replaced >> v_replaced)
+	t_parser(t_text& a_text, t_query& a_query) : v_text(a_text), v_query(a_query), v_connection(v_text.v_replaced >> v_replaced)
 	{
 		v_text.f_acquire();
 		v_query.f_acquire();
 		ts_parser_set_language(v_parser, v_query.v_language);
 	}
 	virtual void f_destroy();
-	bool f_parsed() const
-	{
-		return v_parsed;
-	}
-	t_pvalue f_next();
+	t_object* f_next();
 };
 
 class t_library : public xemmai::t_library

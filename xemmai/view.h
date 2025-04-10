@@ -8,142 +8,38 @@
 namespace xemmaix::nata
 {
 
-template<typename T_target> struct t_overlay;
+template<typename> struct t_overlay;
 
 template<typename T_target>
-struct t_view : t_proxy
+struct t_view : t_proxy, T_target
 {
 	t_text& v_text;
-	::nata::t_tokens<::nata::t_text<>, t_rvalue>* v_tokens;
-	T_target* v_target;
-	::nata::t_rows<std::decay_t<decltype(*v_tokens)>, std::decay_t<decltype(*v_target)>>* v_rows;
-	::nata::t_widget<std::decay_t<decltype(*v_rows)>>* v_widget;
+	::nata::t_tokens<::nata::t_text<>, t_rvalue> v_tokens;
+	::nata::t_rows<decltype(v_tokens), T_target> v_rows;
+	::nata::t_widget<decltype(v_rows)> v_widget;
 	std::vector<t_overlay<T_target>*> v_overlays;
 
-	static t_pvalue f_construct(t_type* a_class, t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height)
-	{
-		return a_class->f_new<t_view>(a_text, a_x, a_y, a_width, a_height);
-	}
-	static t_pvalue f_row(typename T_target::t_library* a_library, const auto& a_row)
+	static t_object* f_row(typename T_target::t_library* a_library, const auto& a_row)
 	{
 		return f_new_value(a_library->f_type_row(), a_row.v_i, a_row.v_line, a_row.v_text, a_row.v_x, a_row.v_y);
 	}
 
-	t_view(t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : v_text(a_text), v_tokens(new std::decay_t<decltype(*v_tokens)>(*v_text.v_text)), v_target(new T_target(a_x, a_y, a_width, a_height)), v_rows(new std::decay_t<decltype(*v_rows)>(*v_tokens, *v_target)), v_widget(new std::decay_t<decltype(*v_widget)>(*v_rows))
+	t_view(t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : T_target(a_x, a_y, a_width, a_height), v_text(a_text), v_tokens(v_text), v_rows(v_tokens, *this), v_widget(v_rows)
 	{
 		v_text.f_acquire();
 	}
 	virtual void f_destroy()
 	{
-		delete v_widget;
-		delete v_rows;
-		delete v_target;
-		delete v_tokens;
+		v_widget.~t_widget();
+		v_rows.~t_rows();
+		v_tokens.~t_tokens();
 		v_text.f_release();
+		this->~T_target();
 	}
 	virtual void f_dispose()
 	{
 		while (!v_overlays.empty()) v_overlays.back()->f_dispose();
 		t_proxy::f_dispose();
-	}
-	void f_move(size_t a_x, size_t a_y, size_t a_width, size_t a_height)
-	{
-		v_target->f_move(a_x, a_y, a_width, a_height);
-	}
-	void f_attributes(const typename T_target::t_attribute& a_control, const typename T_target::t_attribute& a_folded)
-	{
-		v_target->f_attributes(a_control, a_folded);
-	}
-	void f_paint(size_t a_p, size_t a_n, const t_pvalue& a_token)
-	{
-		size_t n = v_text.f_size();
-		if (a_p > n) f_throw(L"out of range."sv);
-		v_tokens->f_paint(a_p, {{std::move(a_token), std::min(a_n, n - a_p)}});
-	}
-	void f_crease(size_t a_p, size_t a_n, bool a_on)
-	{
-		size_t n = v_text.f_size();
-		if (a_p > n) f_throw(L"out of range."sv);
-		if (a_on)
-			v_rows->f_crease(a_p, {{{{std::min(a_n, n - a_p)}}}});
-		else
-			v_rows->f_crease(a_p, {{std::min(a_n, n - a_p)}});
-	}
-	size_t f_folded(size_t a_p, bool a_on)
-	{
-		if (a_p > v_text.f_size()) f_throw(L"out of range."sv);
-		return v_rows->f_folded(a_p, a_on);
-	}
-	void f_render()
-	{
-		typename T_target::t_graphics g(*v_target);
-		v_widget->f_render(g);
-	}
-	void f_focus()
-	{
-		v_target->f_cursor(std::get<1>(v_widget->v_position) - v_widget->v_row.f_index().v_x, v_widget->v_row.f_index().v_y - v_widget->v_top);
-	}
-	t_pvalue f_size(typename T_target::t_library* a_library) const
-	{
-		return f_row(a_library, v_rows->f_size());
-	}
-	size_t f_height() const
-	{
-		return v_widget->f_height();
-	}
-	size_t f_range() const
-	{
-		return v_widget->f_range();
-	}
-	size_t f_top() const
-	{
-		return v_widget->v_top;
-	}
-	t_pvalue f_position(typename T_target::t_library* a_library) const
-	{
-		return f_new_value(a_library->f_type_position(), std::get<0>(v_widget->v_position), std::get<1>(v_widget->v_position), std::get<2>(v_widget->v_position));
-	}
-	void f_position__(size_t a_value, bool a_forward)
-	{
-		if (a_value > v_text.f_size()) f_throw(L"out of range."sv);
-		v_widget->f_position__(a_value, a_forward);
-	}
-	t_pvalue f_row(typename T_target::t_library* a_library) const
-	{
-		return f_row(a_library, v_widget->v_line);
-	}
-	void f_line__(size_t a_value)
-	{
-		if (a_value >= v_rows->f_size().v_line) f_throw(L"out of range."sv);
-		v_widget->v_line.v_line = a_value;
-		v_widget->f_from_line();
-	}
-	size_t f_target() const
-	{
-		return v_widget->v_target;
-	}
-	void f_target__(size_t a_value)
-	{
-		v_widget->v_target = a_value;
-		v_widget->f_from_line();
-	}
-	void f_into_view(size_t a_y, size_t a_height)
-	{
-		v_widget->f_into_view(a_y, a_height);
-	}
-	void f_into_view(size_t a_p)
-	{
-		v_widget->f_into_view(v_rows->f_at_in_text(a_p));
-	}
-	void f_timeout(int a_delay)
-	{
-		v_target->f_timeout(a_delay);
-	}
-	intptr_t f_get()
-	{
-		wint_t c;
-		if (v_target->f_get(c) == ERR) f_throw(L"get_wch"sv);
-		return c;
 	}
 };
 
@@ -151,18 +47,13 @@ template<typename T_target>
 struct t_overlay : t_proxy
 {
 	t_view<T_target>& v_view;
-	std::decay_t<decltype(*v_view.v_widget->f_overlays()[0].second)>* v_overlay;
-
-	static t_pvalue f_construct(t_type* a_class, t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute)
-	{
-		return a_class->f_new<t_overlay>(a_view, a_attribute);
-	}
+	std::decay_t<decltype(*v_view.v_widget.f_overlays()[0].second)>* v_overlay;
 
 	t_overlay(t_view<T_target>& a_view, const typename T_target::t_attribute& a_attribute) : v_view(a_view)
 	{
 		v_view.f_acquire();
-		v_view.v_widget->f_add_overlay(a_attribute);
-		v_overlay = v_view.v_widget->f_overlays().back().second.get();
+		v_view.v_widget.f_add_overlay(a_attribute);
+		v_overlay = v_view.v_widget.f_overlays().back().second.get();
 		v_view.v_overlays.push_back(this);
 	}
 	virtual void f_destroy()
@@ -173,15 +64,9 @@ struct t_overlay : t_proxy
 	{
 		auto& overlays = v_view.v_overlays;
 		auto i = std::find(overlays.begin(), overlays.end(), this);
-		v_view.v_widget->f_remove_overlay(i - overlays.begin());
+		v_view.v_widget.f_remove_overlay(i - overlays.begin());
 		overlays.erase(i);
 		t_proxy::f_dispose();
-	}
-	void f_paint(size_t a_p, size_t a_n, bool a_on)
-	{
-		size_t n = v_view.v_text.f_size();
-		if (a_p > n) f_throw(L"out of range."sv);
-		v_overlay->f_paint(a_p, {{a_on, std::min(a_n, n - a_p)}});
 	}
 };
 
@@ -202,11 +87,6 @@ struct t_overlay_iterator : t_proxy
 	};
 	::nata::t_connection<decltype(v_painted)>* v_connection1;
 
-	static t_pvalue f_construct(t_type* a_class, t_overlay<T_target>& a_overlay)
-	{
-		return a_class->f_new<t_overlay_iterator>(a_overlay);
-	}
-
 	t_overlay_iterator(t_overlay<T_target>& a_overlay) : v_overlay(a_overlay), v_connection0(v_overlay.v_overlay->v_replaced >> v_replaced), v_connection1(v_overlay.v_overlay->v_painted >> v_painted)
 	{
 		v_overlay.f_acquire();
@@ -224,13 +104,6 @@ struct t_overlay_iterator : t_proxy
 		}
 		t_proxy::f_dispose();
 	}
-	t_pvalue f_next(typename T_target::t_library* a_library)
-	{
-		if (!v_overlay.f_valid() || v_i == v_overlay.v_overlay->f_end()) return nullptr;
-		auto p = f_new_value(a_library->f_type_overlay_value(), v_i->v_x, v_i.f_index().v_i1, v_i.f_delta().v_i1);
-		++v_i;
-		return p;
-	}
 };
 
 }
@@ -247,36 +120,120 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 	static void f_define(t_library* a_library)
 	{
 		t_define{a_library}
-			(L"move"sv, t_member<void(t_view::*)(size_t, size_t, size_t, size_t), &t_view::f_move>())
-			(L"attributes"sv, t_member<void(t_view::*)(const typename T_target::t_attribute&, const typename T_target::t_attribute&), &t_view::f_attributes>())
-			(L"paint"sv, t_member<void(t_view::*)(size_t, size_t, const t_pvalue&), &t_view::f_paint>())
-			(L"crease"sv, t_member<void(t_view::*)(size_t, size_t, bool), &t_view::f_crease>())
-			(L"folded"sv, t_member<size_t(t_view::*)(size_t, bool), &t_view::f_folded>())
-			(L"render"sv, t_member<void(t_view::*)(), &t_view::f_render>())
-			(L"focus"sv, t_member<void(t_view::*)(), &t_view::f_focus>())
-			(L"size"sv, t_member<t_pvalue(t_view::*)(t_library*) const, &t_view::f_size>())
-			(L"height"sv, t_member<size_t(t_view::*)() const, &t_view::f_height>())
-			(L"range"sv, t_member<size_t(t_view::*)() const, &t_view::f_range>())
-			(L"top"sv, t_member<size_t(t_view::*)() const, &t_view::f_top>())
-			(L"position"sv, t_member<t_pvalue(t_view::*)(t_library*) const, &t_view::f_position>())
-			(L"position__"sv, t_member<void(t_view::*)(size_t, bool), &t_view::f_position__>())
-			(L"row"sv, t_member<t_pvalue(t_view::*)(t_library*) const, &t_view::f_row>())
-			(L"line__"sv, t_member<void(t_view::*)(size_t), &t_view::f_line__>())
-			(L"target"sv, t_member<size_t(t_view::*)() const, &t_view::f_target>())
-			(L"target__"sv, t_member<void(t_view::*)(size_t), &t_view::f_target__>())
+			(L"move"sv, t_member<void(*)(t_view&, size_t, size_t, size_t, size_t), [](auto a_this, auto a_x, auto a_y, auto a_width, auto a_height)
+			{
+				a_this.f_move(a_x, a_y, a_width, a_height);
+			}>())
+			(L"attributes"sv, t_member<void(*)(t_view&, const typename T_target::t_attribute&, const typename T_target::t_attribute&), [](auto a_this, auto a_control, auto a_folded)
+			{
+				a_this.f_attributes(a_control, a_folded);
+			}>())
+			(L"paint"sv, t_member<void(*)(t_view&, size_t, size_t, const t_pvalue&), [](auto a_this, auto a_p, auto a_n, auto a_token)
+			{
+				size_t n = a_this.v_text.f_size();
+				if ((a_p > n)) f_throw(L"out of range."sv);
+				a_this.v_tokens.f_paint(a_p, {{std::move(a_token), std::min(a_n, n - a_p)}});
+			}>())
+			(L"crease"sv, t_member<void(*)(t_view&, size_t, size_t, bool), [](auto a_this, auto a_p, auto a_n, auto a_on)
+			{
+				size_t n = a_this.v_text.f_size();
+				if ((a_p > n)) f_throw(L"out of range."sv);
+				if (a_on)
+					a_this.v_rows.f_crease(a_p, {{{{std::min(a_n, n - a_p)}}}});
+				else
+					a_this.v_rows.f_crease(a_p, {{std::min(a_n, n - a_p)}});
+			}>())
+			(L"folded"sv, t_member<size_t(*)(t_view&, size_t, bool), [](auto a_this, auto a_p, auto a_on)
+			{
+				if ((a_p > a_this.v_text.f_size())) f_throw(L"out of range."sv);
+				return a_this.v_rows.f_folded(a_p, a_on);
+			}>())
+			(L"render"sv, t_member<void(*)(t_view&), [](auto a_this)
+			{
+				typename T_target::t_graphics g(a_this);
+				a_this.v_widget.f_render(g);
+			}>())
+			(L"focus"sv, t_member<void(*)(t_view&), [](auto a_this)
+			{
+				auto& widget = a_this.v_widget;
+				auto& row = widget.v_row.f_index();
+				a_this.f_cursor(std::get<1>(widget.v_position) - row.v_x, row.v_y - widget.v_top);
+			}>())
+			(L"size"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
+			{
+				return t_view::f_row(a_library, a_this.v_rows.f_size());
+			}>())
+			(L"height"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
+			{
+				return a_this.v_widget.f_height();
+			}>())
+			(L"range"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
+			{
+				return a_this.v_widget.f_range();
+			}>())
+			(L"top"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
+			{
+				return a_this.v_widget.v_top;
+			}>())
+			(L"position"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
+			{
+				auto [text, x, width] = a_this.v_widget.v_position;
+				return f_new_value(a_library->f_type_position(), text, x, width);
+			}>())
+			(L"position__"sv, t_member<void(*)(t_view&, size_t, bool), [](auto a_this, auto a_value, auto a_forward)
+			{
+				if ((a_value > a_this.v_text.f_size())) f_throw(L"out of range."sv);
+				a_this.v_widget.f_position__(a_value, a_forward);
+			}>())
+			(L"row"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
+			{
+				return t_view::f_row(a_library, a_this.v_widget.v_line);
+			}>())
+			(L"line__"sv, t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_value)
+			{
+				if (a_value >= a_this.v_rows.f_size().v_line) f_throw(L"out of range."sv);
+				a_this.v_widget.v_line.v_line = a_value;
+				a_this.v_widget.f_from_line();
+			}>())
+			(L"target"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
+			{
+				return a_this.v_widget.v_target;
+			}>())
+			(L"target__"sv, t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_value)
+			{
+				a_this.v_widget.v_target = a_value;
+				a_this.v_widget.f_from_line();
+			}>())
 			(L"into_view"sv,
-				t_member<void(t_view::*)(size_t, size_t), &t_view::f_into_view>(),
-				t_member<void(t_view::*)(size_t), &t_view::f_into_view>()
+				t_member<void(*)(t_view&, size_t, size_t), [](auto a_this, auto a_y, auto a_height)
+				{
+					a_this.v_widget.f_into_view(a_y, a_height);
+				}>(),
+				t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_p)
+				{
+					a_this.v_widget.f_into_view(a_this.v_rows.f_at_in_text(a_p));
+				}>()
 			)
-			(L"timeout"sv, t_member<void(t_view::*)(int), &t_view::f_timeout>())
-			(L"get"sv, t_member<intptr_t(t_view::*)(), &t_view::f_get>())
+			(L"timeout"sv, t_member<void(*)(t_view&, int), [](auto a_this, auto a_delay)
+			{
+				a_this.f_timeout(a_delay);
+			}>())
+			(L"get"sv, t_member<intptr_t(*)(t_view&), [](auto a_this)
+			{
+				wint_t c;
+				if (a_this.f_get(c) == ERR) f_throw(L"get_wch"sv);
+				return static_cast<intptr_t>(c);
+			}>())
 		.template f_derive<t_view, xemmaix::nata::t_proxy>();
 	}
 
 	using t_type_of::t_base::t_base;
 	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), t_view::f_construct>::template t_bind<t_view>::f_do(this, a_stack, a_n);
+		return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), [](auto a_class, auto a_text, auto a_x, auto a_y, auto a_width, auto a_height)
+		{
+			return a_class->template f_new<t_view>(a_text, a_x, a_y, a_width, a_height);
+		}>::template t_bind<t_view>::f_do(this, a_stack, a_n);
 	}
 };
 
@@ -289,14 +246,22 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemma
 	static void f_define(t_library* a_library)
 	{
 		t_define{a_library}
-			(L"paint"sv, t_member<void(t_overlay::*)(size_t, size_t, bool), &t_overlay::f_paint>())
+			(L"paint"sv, t_member<void(*)(t_overlay&, size_t, size_t, bool), [](auto a_this, auto a_p, auto a_n, auto a_on)
+			{
+				size_t n = a_this.v_view.v_text.f_size();
+				if ((a_p > n)) f_throw(L"out of range."sv);
+				a_this.v_overlay->f_paint(a_p, {{a_on, std::min(a_n, n - a_p)}});
+			}>())
 		.template f_derive<t_overlay, xemmaix::nata::t_proxy>();
 	}
 
 	using t_type_of::t_base::t_base;
 	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), t_overlay::f_construct>::template t_bind<t_overlay>::f_do(this, a_stack, a_n);
+		return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), [](auto a_class, auto a_view, auto a_attribute)
+		{
+			return a_class->template f_new<t_overlay>(a_view, a_attribute);
+		}>::template t_bind<t_overlay>::f_do(this, a_stack, a_n);
 	}
 };
 
@@ -309,14 +274,24 @@ struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_derivable<t_be
 	static void f_define(t_library* a_library)
 	{
 		t_define{a_library}
-			(L"next"sv, t_member<t_pvalue(t_overlay_iterator::*)(t_library*), &t_overlay_iterator::f_next>())
+			(L"next"sv, t_member<t_object*(*)(t_library*, t_overlay_iterator&), [](auto a_library, auto a_this)
+			{
+				auto& i = a_this.v_i;
+				if (!a_this.v_overlay.f_valid() || i == a_this.v_overlay.v_overlay->f_end()) return static_cast<t_object*>(nullptr);
+				auto p = f_new_value(a_library->f_type_overlay_value(), i->v_x, i.f_index().v_i1, i.f_delta().v_i1);
+				++i;
+				return p;
+			}>())
 		.template f_derive<t_overlay_iterator, xemmaix::nata::t_proxy>();
 	}
 
 	using t_type_of::t_base::t_base;
 	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_pvalue(*)(t_type*, xemmaix::nata::t_overlay<T_target>&), t_overlay_iterator::f_construct>::template t_bind<t_overlay_iterator>::f_do(this, a_stack, a_n);
+		return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_overlay<T_target>&), [](auto a_class, auto a_overlay)
+		{
+			return a_class->template f_new<t_overlay_iterator>(a_overlay);
+		}>::template t_bind<t_overlay_iterator>::f_do(this, a_stack, a_n);
 	}
 };
 
