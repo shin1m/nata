@@ -48,25 +48,25 @@ struct t_type_of<xemmaix::nata::t_painter<T_target>> : t_derivable<t_bears<xemma
 	static void f_define(t_library* a_library)
 	{
 		t_define{a_library}
-			(L"reset"sv, t_member<void(*)(t_painter&), [](auto a_this)
+		(L"reset"sv, t_member<void(*)(t_painter&), [](auto a_this)
+		{
+			a_this.f_reset();
+		}>())
+		(L"current"sv, t_member<size_t(*)(const t_painter&), [](auto a_this)
+		{
+			return a_this.f_current();
+		}>())
+		(L"push"sv,
+			t_member<void(*)(t_painter&, const t_pvalue&, size_t), [](auto a_this, auto a_x, auto a_n)
 			{
-				a_this.f_reset();
-			}>())
-			(L"current"sv, t_member<size_t(*)(const t_painter&), [](auto a_this)
-			{
-				return a_this.f_current();
-			}>())
-			(L"push"sv,
-				t_member<void(*)(t_painter&, const t_pvalue&, size_t), [](auto a_this, auto a_x, auto a_n)
-				{
-					a_this.f_push(a_x, a_n, 0);
-				}>(),
-				t_member<void(t_painter::*)(const t_pvalue&, size_t, size_t), &t_painter::f_push>()
-			)
-			(L"flush"sv, t_member<void(*)(t_painter&), [](auto a_this)
-			{
-				a_this.f_flush();
-			}>())
+				a_this.f_push(a_x, a_n, 0);
+			}>(),
+			t_member<void(t_painter::*)(const t_pvalue&, size_t, size_t), &t_painter::f_push>()
+		)
+		(L"flush"sv, t_member<void(*)(t_painter&), [](auto a_this)
+		{
+			a_this.f_flush();
+		}>())
 		.template f_derive<t_painter, xemmaix::nata::t_proxy>();
 	}
 

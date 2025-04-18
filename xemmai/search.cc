@@ -31,23 +31,23 @@ void t_type_of<xemmaix::nata::t_search>::f_define(t_library* a_library)
 {
 	using xemmaix::nata::t_search;
 	t_define{a_library}
-		(L"ICASE"sv, static_cast<intptr_t>(std::wregex::icase))
-		(L"NOSUBS"sv, static_cast<intptr_t>(std::wregex::nosubs))
-		(L"OPTIMIZE"sv, static_cast<intptr_t>(std::wregex::optimize))
-		(L"COLLATE"sv, static_cast<intptr_t>(std::wregex::collate))
-		(L"ECMASCRIPT"sv, static_cast<intptr_t>(std::wregex::ECMAScript))
-		(L"BASIC"sv, static_cast<intptr_t>(std::wregex::basic))
-		(L"EXTENDED"sv, static_cast<intptr_t>(std::wregex::extended))
-		(L"AWK"sv, static_cast<intptr_t>(std::wregex::awk))
-		(L"GREP"sv, static_cast<intptr_t>(std::wregex::grep))
-		(L"EGREP"sv, static_cast<intptr_t>(std::wregex::egrep))
-		(L"MULTILINE"sv, static_cast<intptr_t>(std::wregex::multiline))
-		(L"pattern"sv, t_member<void(*)(t_search&, std::wstring_view, intptr_t), [](auto a_this, auto a_pattern, auto a_flags)
-		{
-			a_this.v_pattern.assign(a_pattern.begin(), a_pattern.end(), static_cast<std::wregex::flag_type>(a_flags));
-		}>())
-		(L"reset"sv, t_member<void(t_search::*)(size_t, size_t), &t_search::f_reset>())
-		(L"next"sv, t_member<t_object*(t_search::*)(t_library*), &t_search::f_next>())
+	(L"ICASE"sv, static_cast<intptr_t>(std::wregex::icase))
+	(L"NOSUBS"sv, static_cast<intptr_t>(std::wregex::nosubs))
+	(L"OPTIMIZE"sv, static_cast<intptr_t>(std::wregex::optimize))
+	(L"COLLATE"sv, static_cast<intptr_t>(std::wregex::collate))
+	(L"ECMASCRIPT"sv, static_cast<intptr_t>(std::wregex::ECMAScript))
+	(L"BASIC"sv, static_cast<intptr_t>(std::wregex::basic))
+	(L"EXTENDED"sv, static_cast<intptr_t>(std::wregex::extended))
+	(L"AWK"sv, static_cast<intptr_t>(std::wregex::awk))
+	(L"GREP"sv, static_cast<intptr_t>(std::wregex::grep))
+	(L"EGREP"sv, static_cast<intptr_t>(std::wregex::egrep))
+	(L"MULTILINE"sv, static_cast<intptr_t>(std::wregex::multiline))
+	(L"pattern"sv, t_member<void(*)(t_search&, std::wstring_view, intptr_t), [](auto a_this, auto a_pattern, auto a_flags)
+	{
+		a_this.v_pattern.assign(a_pattern.begin(), a_pattern.end(), static_cast<std::wregex::flag_type>(a_flags));
+	}>())
+	(L"reset"sv, t_member<void(t_search::*)(size_t, size_t), &t_search::f_reset>())
+	(L"next"sv, t_member<t_object*(t_search::*)(t_library*), &t_search::f_next>())
 	.f_derive<t_search, xemmaix::nata::t_proxy>();
 }
 

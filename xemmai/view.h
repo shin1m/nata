@@ -120,110 +120,110 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 	static void f_define(t_library* a_library)
 	{
 		t_define{a_library}
-			(L"move"sv, t_member<void(*)(t_view&, size_t, size_t, size_t, size_t), [](auto a_this, auto a_x, auto a_y, auto a_width, auto a_height)
+		(L"move"sv, t_member<void(*)(t_view&, size_t, size_t, size_t, size_t), [](auto a_this, auto a_x, auto a_y, auto a_width, auto a_height)
+		{
+			a_this.f_move(a_x, a_y, a_width, a_height);
+		}>())
+		(L"attributes"sv, t_member<void(*)(t_view&, const typename T_target::t_attribute&, const typename T_target::t_attribute&), [](auto a_this, auto a_control, auto a_folded)
+		{
+			a_this.f_attributes(a_control, a_folded);
+		}>())
+		(L"paint"sv, t_member<void(*)(t_view&, size_t, size_t, const t_pvalue&), [](auto a_this, auto a_p, auto a_n, auto a_token)
+		{
+			size_t n = a_this.v_text.f_size();
+			if ((a_p > n)) f_throw(L"out of range."sv);
+			a_this.v_tokens.f_paint(a_p, {{std::move(a_token), std::min(a_n, n - a_p)}});
+		}>())
+		(L"crease"sv, t_member<void(*)(t_view&, size_t, size_t, bool), [](auto a_this, auto a_p, auto a_n, auto a_on)
+		{
+			size_t n = a_this.v_text.f_size();
+			if ((a_p > n)) f_throw(L"out of range."sv);
+			if (a_on)
+				a_this.v_rows.f_crease(a_p, {{{{std::min(a_n, n - a_p)}}}});
+			else
+				a_this.v_rows.f_crease(a_p, {{std::min(a_n, n - a_p)}});
+		}>())
+		(L"folded"sv, t_member<size_t(*)(t_view&, size_t, bool), [](auto a_this, auto a_p, auto a_on)
+		{
+			if ((a_p > a_this.v_text.f_size())) f_throw(L"out of range."sv);
+			return a_this.v_rows.f_folded(a_p, a_on);
+		}>())
+		(L"render"sv, t_member<void(*)(t_view&), [](auto a_this)
+		{
+			typename T_target::t_graphics g(a_this);
+			a_this.v_widget.f_render(g);
+		}>())
+		(L"focus"sv, t_member<void(*)(t_view&), [](auto a_this)
+		{
+			auto& widget = a_this.v_widget;
+			auto& row = widget.v_row.f_index();
+			a_this.f_cursor(std::get<1>(widget.v_position) - row.v_x, row.v_y - widget.v_top);
+		}>())
+		(L"size"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
+		{
+			return t_view::f_row(a_library, a_this.v_rows.f_size());
+		}>())
+		(L"height"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
+		{
+			return a_this.v_widget.f_height();
+		}>())
+		(L"range"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
+		{
+			return a_this.v_widget.f_range();
+		}>())
+		(L"top"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
+		{
+			return a_this.v_widget.v_top;
+		}>())
+		(L"position"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
+		{
+			auto [text, x, width] = a_this.v_widget.v_position;
+			return f_new_value(a_library->f_type_position(), text, x, width);
+		}>())
+		(L"position__"sv, t_member<void(*)(t_view&, size_t, bool), [](auto a_this, auto a_value, auto a_forward)
+		{
+			if ((a_value > a_this.v_text.f_size())) f_throw(L"out of range."sv);
+			a_this.v_widget.f_position__(a_value, a_forward);
+		}>())
+		(L"row"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
+		{
+			return t_view::f_row(a_library, a_this.v_widget.v_line);
+		}>())
+		(L"line__"sv, t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_value)
+		{
+			if (a_value >= a_this.v_rows.f_size().v_line) f_throw(L"out of range."sv);
+			a_this.v_widget.v_line.v_line = a_value;
+			a_this.v_widget.f_from_line();
+		}>())
+		(L"target"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
+		{
+			return a_this.v_widget.v_target;
+		}>())
+		(L"target__"sv, t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_value)
+		{
+			a_this.v_widget.v_target = a_value;
+			a_this.v_widget.f_from_line();
+		}>())
+		(L"into_view"sv,
+			t_member<void(*)(t_view&, size_t, size_t), [](auto a_this, auto a_y, auto a_height)
 			{
-				a_this.f_move(a_x, a_y, a_width, a_height);
-			}>())
-			(L"attributes"sv, t_member<void(*)(t_view&, const typename T_target::t_attribute&, const typename T_target::t_attribute&), [](auto a_this, auto a_control, auto a_folded)
+				a_this.v_widget.f_into_view(a_y, a_height);
+			}>(),
+			t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_p)
 			{
-				a_this.f_attributes(a_control, a_folded);
-			}>())
-			(L"paint"sv, t_member<void(*)(t_view&, size_t, size_t, const t_pvalue&), [](auto a_this, auto a_p, auto a_n, auto a_token)
-			{
-				size_t n = a_this.v_text.f_size();
-				if ((a_p > n)) f_throw(L"out of range."sv);
-				a_this.v_tokens.f_paint(a_p, {{std::move(a_token), std::min(a_n, n - a_p)}});
-			}>())
-			(L"crease"sv, t_member<void(*)(t_view&, size_t, size_t, bool), [](auto a_this, auto a_p, auto a_n, auto a_on)
-			{
-				size_t n = a_this.v_text.f_size();
-				if ((a_p > n)) f_throw(L"out of range."sv);
-				if (a_on)
-					a_this.v_rows.f_crease(a_p, {{{{std::min(a_n, n - a_p)}}}});
-				else
-					a_this.v_rows.f_crease(a_p, {{std::min(a_n, n - a_p)}});
-			}>())
-			(L"folded"sv, t_member<size_t(*)(t_view&, size_t, bool), [](auto a_this, auto a_p, auto a_on)
-			{
-				if ((a_p > a_this.v_text.f_size())) f_throw(L"out of range."sv);
-				return a_this.v_rows.f_folded(a_p, a_on);
-			}>())
-			(L"render"sv, t_member<void(*)(t_view&), [](auto a_this)
-			{
-				typename T_target::t_graphics g(a_this);
-				a_this.v_widget.f_render(g);
-			}>())
-			(L"focus"sv, t_member<void(*)(t_view&), [](auto a_this)
-			{
-				auto& widget = a_this.v_widget;
-				auto& row = widget.v_row.f_index();
-				a_this.f_cursor(std::get<1>(widget.v_position) - row.v_x, row.v_y - widget.v_top);
-			}>())
-			(L"size"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
-			{
-				return t_view::f_row(a_library, a_this.v_rows.f_size());
-			}>())
-			(L"height"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
-			{
-				return a_this.v_widget.f_height();
-			}>())
-			(L"range"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
-			{
-				return a_this.v_widget.f_range();
-			}>())
-			(L"top"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
-			{
-				return a_this.v_widget.v_top;
-			}>())
-			(L"position"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
-			{
-				auto [text, x, width] = a_this.v_widget.v_position;
-				return f_new_value(a_library->f_type_position(), text, x, width);
-			}>())
-			(L"position__"sv, t_member<void(*)(t_view&, size_t, bool), [](auto a_this, auto a_value, auto a_forward)
-			{
-				if ((a_value > a_this.v_text.f_size())) f_throw(L"out of range."sv);
-				a_this.v_widget.f_position__(a_value, a_forward);
-			}>())
-			(L"row"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
-			{
-				return t_view::f_row(a_library, a_this.v_widget.v_line);
-			}>())
-			(L"line__"sv, t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_value)
-			{
-				if (a_value >= a_this.v_rows.f_size().v_line) f_throw(L"out of range."sv);
-				a_this.v_widget.v_line.v_line = a_value;
-				a_this.v_widget.f_from_line();
-			}>())
-			(L"target"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
-			{
-				return a_this.v_widget.v_target;
-			}>())
-			(L"target__"sv, t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_value)
-			{
-				a_this.v_widget.v_target = a_value;
-				a_this.v_widget.f_from_line();
-			}>())
-			(L"into_view"sv,
-				t_member<void(*)(t_view&, size_t, size_t), [](auto a_this, auto a_y, auto a_height)
-				{
-					a_this.v_widget.f_into_view(a_y, a_height);
-				}>(),
-				t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_p)
-				{
-					a_this.v_widget.f_into_view(a_this.v_rows.f_at_in_text(a_p));
-				}>()
-			)
-			(L"timeout"sv, t_member<void(*)(t_view&, int), [](auto a_this, auto a_delay)
-			{
-				a_this.f_timeout(a_delay);
-			}>())
-			(L"get"sv, t_member<intptr_t(*)(t_view&), [](auto a_this)
-			{
-				wint_t c;
-				if (a_this.f_get(c) == ERR) f_throw(L"get_wch"sv);
-				return static_cast<intptr_t>(c);
-			}>())
+				a_this.v_widget.f_into_view(a_this.v_rows.f_at_in_text(a_p));
+			}>()
+		)
+		(L"timeout"sv, t_member<void(*)(t_view&, int), [](auto a_this, auto a_delay)
+		{
+			a_this.f_timeout(a_delay);
+		}>())
+		(L"get"sv, t_member<intptr_t(*)(t_view&), [](auto a_this)
+		{
+			wint_t c;
+			if (a_this.f_get(c) == ERR) f_throw(L"get_wch"sv);
+			return static_cast<intptr_t>(c);
+		}>())
 		.template f_derive<t_view, xemmaix::nata::t_proxy>();
 	}
 
@@ -246,12 +246,12 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemma
 	static void f_define(t_library* a_library)
 	{
 		t_define{a_library}
-			(L"paint"sv, t_member<void(*)(t_overlay&, size_t, size_t, bool), [](auto a_this, auto a_p, auto a_n, auto a_on)
-			{
-				size_t n = a_this.v_view.v_text.f_size();
-				if ((a_p > n)) f_throw(L"out of range."sv);
-				a_this.v_overlay->f_paint(a_p, {{a_on, std::min(a_n, n - a_p)}});
-			}>())
+		(L"paint"sv, t_member<void(*)(t_overlay&, size_t, size_t, bool), [](auto a_this, auto a_p, auto a_n, auto a_on)
+		{
+			size_t n = a_this.v_view.v_text.f_size();
+			if ((a_p > n)) f_throw(L"out of range."sv);
+			a_this.v_overlay->f_paint(a_p, {{a_on, std::min(a_n, n - a_p)}});
+		}>())
 		.template f_derive<t_overlay, xemmaix::nata::t_proxy>();
 	}
 
@@ -274,14 +274,14 @@ struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_derivable<t_be
 	static void f_define(t_library* a_library)
 	{
 		t_define{a_library}
-			(L"next"sv, t_member<t_object*(*)(t_library*, t_overlay_iterator&), [](auto a_library, auto a_this)
-			{
-				auto& i = a_this.v_i;
-				if (!a_this.v_overlay.f_valid() || i == a_this.v_overlay.v_overlay->f_end()) return static_cast<t_object*>(nullptr);
-				auto p = f_new_value(a_library->f_type_overlay_value(), i->v_x, i.f_index().v_i1, i.f_delta().v_i1);
-				++i;
-				return p;
-			}>())
+		(L"next"sv, t_member<t_object*(*)(t_library*, t_overlay_iterator&), [](auto a_library, auto a_this)
+		{
+			auto& i = a_this.v_i;
+			if (!a_this.v_overlay.f_valid() || i == a_this.v_overlay.v_overlay->f_end()) return static_cast<t_object*>(nullptr);
+			auto p = f_new_value(a_library->f_type_overlay_value(), i->v_x, i.f_index().v_i1, i.f_delta().v_i1);
+			++i;
+			return p;
+		}>())
 		.template f_derive<t_overlay_iterator, xemmaix::nata::t_proxy>();
 	}
 

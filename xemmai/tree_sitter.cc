@@ -15,18 +15,18 @@ void t_type_of<xemmaix::nata::tree_sitter::t_query>::f_define(t_library* a_libra
 {
 	using xemmaix::nata::tree_sitter::t_query;
 	t_define{a_library}
-		(L"captures"sv, t_member<t_object*(*)(const t_query&), [](auto a_this)
+	(L"captures"sv, t_member<t_object*(*)(const t_query&), [](auto a_this)
+	{
+		return t_tuple::f_instantiate(ts_query_capture_count(a_this.v_query), [&](auto& tuple)
 		{
-			return t_tuple::f_instantiate(ts_query_capture_count(a_this.v_query), [&](auto& tuple)
-			{
-				std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
-				for (size_t i = 0; i < tuple.f_size(); ++i) {
-					uint32_t n;
-					auto p = ts_query_capture_name_for_id(a_this.v_query, i, &n);
-					new(&tuple[i]) t_svalue(t_string::f_instantiate(convert.from_bytes(p, p + n)));
-				}
-			});
-		}>())
+			std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
+			for (size_t i = 0; i < tuple.f_size(); ++i) {
+				uint32_t n;
+				auto p = ts_query_capture_name_for_id(a_this.v_query, i, &n);
+				new(&tuple[i]) t_svalue(t_string::f_instantiate(convert.from_bytes(p, p + n)));
+			}
+		});
+	}>())
 	.f_derive<t_query, xemmaix::nata::t_proxy>();
 }
 
@@ -62,11 +62,11 @@ void t_type_of<xemmaix::nata::tree_sitter::t_parser>::f_define(t_library* a_libr
 {
 	using xemmaix::nata::tree_sitter::t_parser;
 	t_define{a_library}
-		(L"parsed"sv, t_member<bool(*)(const t_parser&), [](auto a_this)
-		{
-			return a_this.v_parsed;
-		}>())
-		(L"next"sv, t_member<t_object*(t_parser::*)(), &t_parser::f_next>())
+	(L"parsed"sv, t_member<bool(*)(const t_parser&), [](auto a_this)
+	{
+		return a_this.v_parsed;
+	}>())
+	(L"next"sv, t_member<t_object*(t_parser::*)(), &t_parser::f_next>())
 	.f_derive<t_parser, xemmaix::nata::t_proxy>();
 }
 
@@ -153,9 +153,9 @@ std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
 	t_type_of<t_query>::f_define(this);
 	t_type_of<t_parser>::f_define(this);
 	return t_define(this)
-		(L"Language"sv, static_cast<t_object*>(v_type_language))
-		(L"Query"sv, static_cast<t_object*>(v_type_query))
-		(L"Parser"sv, static_cast<t_object*>(v_type_parser))
+	(L"Language"sv, static_cast<t_object*>(v_type_language))
+	(L"Query"sv, static_cast<t_object*>(v_type_query))
+	(L"Parser"sv, static_cast<t_object*>(v_type_parser))
 	;
 }
 
@@ -167,7 +167,7 @@ void t_language_library::f_scan(t_scan a_scan)
 std::vector<std::pair<t_root, t_rvalue>> t_language_library::f_define()
 {
 	return t_define(this)
-		(L"language"sv, f_new<t_language>(this, t_object::f_of(this), v_language))
+	(L"language"sv, f_new<t_language>(this, t_object::f_of(this), v_language))
 	;
 }
 
