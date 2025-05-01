@@ -152,7 +152,7 @@ std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
 	t_type_of<t_language>::f_define(this);
 	t_type_of<t_query>::f_define(this);
 	t_type_of<t_parser>::f_define(this);
-	return t_define(this)
+	return t_define{this}
 	(L"Language"sv, static_cast<t_object*>(v_type_language))
 	(L"Query"sv, static_cast<t_object*>(v_type_query))
 	(L"Parser"sv, static_cast<t_object*>(v_type_parser))
@@ -166,7 +166,7 @@ void t_language_library::f_scan(t_scan a_scan)
 
 std::vector<std::pair<t_root, t_rvalue>> t_language_library::f_define()
 {
-	return t_define(this)
+	return t_define{this}
 	(L"language"sv, f_new<t_language>(this, t_object::f_of(this), v_language))
 	;
 }
