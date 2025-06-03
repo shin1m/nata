@@ -17,7 +17,7 @@ from_utf8 = @(bytes)
 	reader = io.Reader(
 		Stream(@(buffer, offset, size)
 			n = remain < size ? remain : size
-			for j = 0; j < n; j = j + 1: buffer[offset + j] = bytes[i + j]
+			for j = 0; j < n; j = j + 1; buffer[offset + j] = bytes[i + j]
 			:i = i + n
 			:remain = remain - n
 			n

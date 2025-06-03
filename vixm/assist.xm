@@ -158,7 +158,7 @@ $new = @(host)
 						#	reload(
 						reload(@(items) items.size() > 0 || ::t.count > 0 || chooser(control("["
 				@(x)
-					times = @(n, f) for ; n > 0; n = n - 1: f(
+					times = @(n, f) for ; n > 0; n = n - 1; f(
 					p = buffer.view.position().text
 					t = target(p
 					vi.nomap(@
@@ -242,11 +242,11 @@ $new = @(host)
 					client.did_close(buffer.path
 	instances = {
 	@(name, file, arguments, environments, match) vi.commands[name] = verbify({
-		"start": @(i) if !instances.has(name): instances[name] = startup(file, arguments, environments, @(hook)
+		"start": @(i) if !instances.has(name); instances[name] = startup(file, arguments, environments, @(hook)
 			if !hook
 				instances.remove(name
 				return vi.message(name + ": failed."
-			register = @(x) if match(x): x.hooks[hook] = hook.register(x
+			register = @(x) if match(x); x.hooks[hook] = hook.register(x
 			host.hooks.push(register
 			instances[name] = @
 				instances.remove(name

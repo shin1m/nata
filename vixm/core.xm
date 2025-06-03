@@ -215,7 +215,7 @@ $new = @(host, status, strip, path)
 		buffer.log(@ log_position(p
 		buffer.commit("edit"
 	count = 0
-	times = @(f) for n = count > 0 ? count : 1; n > 0; n = n - 1: f(
+	times = @(f) for n = count > 0 ? count : 1; n > 0; n = n - 1; f(
 	forward_n = @(x, limit, n, f)
 		y = x + n
 		y > limit && (y = limit)
@@ -370,7 +370,7 @@ $new = @(host, status, strip, path)
 			commit = @
 				::pending = null
 				cs = [
-				for ; n > 0; (:n = n - 1): cs.unshift(input.pop(
+				for ; n > 0; (:n = n - 1); cs.unshift(input.pop(
 				if action
 					action[mode](
 					rewind(
@@ -520,7 +520,7 @@ $new = @(host, status, strip, path)
 		"quit": @(i)
 			n = buffers.size(
 			n > 1 || return host.quit(
-			for i = 0; i < n; i = i + 1: buffers[i] === buffer && break
+			for i = 0; i < n; i = i + 1; buffers[i] === buffer && break
 			switch_buffer(buffers[i > 0 ? i - 1 : i + 1]
 			remove_buffer(i
 		"unmap": command_unmap(for_nvo
@@ -543,7 +543,7 @@ $new = @(host, status, strip, path)
 		mode(c
 	repeat = @(n, start) Mode.nomap(@ for ; n > 1; (:n = n - 1)
 		cs = [
-		while input.size() > start: cs.unshift(input.pop(
+		while input.size() > start; cs.unshift(input.pop(
 		cs.each(push
 	literal = do(@
 		add = @(base, i) @ ::code = code * base + i
@@ -556,7 +556,7 @@ $new = @(host, status, strip, path)
 				$map
 				$__initialize = @(f)
 					$map = {
-					f(@(base, c, i, n) for ; i < n; i = i + 1: :$map[c + i] = add(base, i
+					f(@(base, c, i, n) for ; i < n; i = i + 1; :$map[c + i] = add(base, i
 				$__get_at = @(c)
 					$map[c](
 					:::depth = depth - 1
@@ -574,7 +574,7 @@ $new = @(host, status, strip, path)
 				letter("X"): digit(hexadecimal, 2, 0
 				letter("o"): digit(octal, 3, 0
 				letter("x"): digit(hexadecimal, 2, 0
-			for i = 0; i < 10; i = i + 1: map[0x30 + i] = digit(decimal, 2, i
+			for i = 0; i < 10; i = i + 1; map[0x30 + i] = digit(decimal, 2, i
 			map_commit = KeyMap(@ commit[$](code
 			do(Object + @
 				$__get_at = @(c) try
@@ -591,7 +591,7 @@ $new = @(host, status, strip, path)
 				input.pop(
 				last = last_input
 				c = last.shift(
-				if count > 0: while c >= 0x30 && c <= 0x39: c = last.shift(
+				if count > 0; while c >= 0x30 && c <= 0x39; c = last.shift(
 				for ;; c = last.shift()
 					push(c
 					last.size() > 0 || break
@@ -742,7 +742,7 @@ $new = @(host, status, strip, path)
 		$from
 		$echo = @(f)
 			n = input.size(
-			for i = $from; i < n; i = i + 1: f(escape(input[i]
+			for i = $from; i < n; i = i + 1; f(escape(input[i]
 		$unknown = @(c)
 			(c == host.KEY_ENTER || c == 0xd) && (c = 0xa)
 			p = view.position().text

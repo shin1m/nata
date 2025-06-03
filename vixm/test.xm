@@ -88,8 +88,8 @@ Overlay = Object + @
 		$replace(0, 0, $text.size(), false
 	$dispose = @ remove($text.replaced, $
 	$replace = @(p, n0, n1, on)
-		for ; n0 > 0; n0 = n0 - 1: $values.remove(p
-		for ; n1 > 0; n1 = n1 - 1: $values.insert(p, on
+		for ; n0 > 0; n0 = n0 - 1; $values.remove(p
+		for ; n1 > 0; n1 = n1 - 1; $values.insert(p, on
 	$__call = @(p, n0, n1) $replace(p, n0, n1, false
 	$paint = @(p, n, on) $replace(p, n, n, on
 

@@ -17,7 +17,7 @@ jsonrpc = @(in, out, notified)
 				::head = 0
 			j = tail
 			size < j - head && (j = head + size)
-			for i = head; i < j; i = i + 1: if ::buffer[i] == 0xa
+			for i = head; i < j; i = i + 1; if ::buffer[i] == 0xa
 				i = i + 1
 				break
 			n = i - head
@@ -81,7 +81,7 @@ jsonrpc = @(in, out, notified)
 		$request = @(method, params, done, progress = null, partial = null)
 			for id = last_id + 1; dones.has(id); id = id + 1
 			::last_id = id
-			if progress: progresses[params["workDoneToken"] = id] = @(value)
+			if progress; progresses[params["workDoneToken"] = id] = @(value)
 				kind = value["kind"]
 				if kind == "begin"
 					:report = [
