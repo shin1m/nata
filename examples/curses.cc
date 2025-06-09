@@ -9,6 +9,53 @@
 #include <fstream>
 #include <regex>
 #include <dlfcn.h>
+#include <iconv.h>
+
+template<typename C0, typename C1>
+class t_converter
+{
+	iconv_t v_cd;
+
+public:
+	t_converter(const char* a_to, const char* a_from) : v_cd(iconv_open(a_to, a_from))
+	{
+		if (v_cd == iconv_t(-1)) throw std::system_error(errno, std::generic_category());
+	}
+	~t_converter()
+	{
+		iconv_close(v_cd);
+	}
+	int f_to(char** a_p, size_t* a_n, auto a_out) const
+	{
+		char cs[16];
+		char* p = cs;
+		size_t n = sizeof(cs);
+		while (iconv(v_cd, a_p, a_n, &p, &n) == size_t(-1)) {
+			auto e = errno;
+			if (e == EINTR) continue;
+			a_out(reinterpret_cast<const C1*>(cs), (p - cs) / sizeof(C1));
+			if (e != E2BIG) return e;
+			p = cs;
+			n = sizeof(cs);
+		}
+		a_out(reinterpret_cast<const C1*>(cs), (p - cs) / sizeof(C1));
+		return 0;
+	}
+	std::basic_string<C1> operator()(std::basic_string_view<C0> a_x) const
+	{
+		std::basic_string<C1> s;
+		auto p = reinterpret_cast<char*>(const_cast<C0*>(a_x.data()));
+		size_t n = a_x.size() * sizeof(C0);
+		auto append = [&](auto a_p, auto a_n)
+		{
+			s.append(a_p, a_p + a_n);
+		};
+		auto e = f_to(&p, &n, append);
+		if (e == 0) e = f_to(nullptr, nullptr, append);
+		if (e == 0) return s;
+		throw std::system_error(e, std::generic_category());
+	}
+};
 
 using namespace std::literals;
 
@@ -88,8 +135,8 @@ std::pair<std::unique_ptr<nata::tree_sitter::t_query>, std::map<std::string, std
 	if (!match) {
 		auto i = detect.find("content");
 		if (i != detect.end()) {
-			std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
-			if (std::regex_search(a_text.f_begin(), a_text.f_end(), std::wregex(convert.from_bytes(i->second)))) match = true;
+			t_converter<char, wchar_t> convert("wchar_t", "utf-8");
+			if (std::regex_search(a_text.f_begin(), a_text.f_end(), std::wregex(convert(i->second)))) match = true;
 		}
 	}
 	if (!match) return {};
@@ -321,6 +368,7 @@ int main(int argc, char* argv[])
 		view.f_render();
 		strip.f_render();
 		view.v_target.f_cursor(std::get<1>(widget.v_position) - widget.v_row.f_index().v_x, widget.v_row.f_index().v_y - widget.v_top);
+		if (doupdate() == ERR) throw std::runtime_error("doupdate");
 		auto timeout = -1;
 		for (auto& x : timers) {
 			auto t = (x.first - now) / 1ms;

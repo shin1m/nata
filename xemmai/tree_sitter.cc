@@ -1,6 +1,4 @@
 #include "tree_sitter.h"
-#include <codecvt>
-#include <locale>
 
 namespace xemmai
 {
@@ -15,15 +13,14 @@ void t_type_of<xemmaix::nata::tree_sitter::t_query>::f_define(t_library* a_libra
 {
 	using xemmaix::nata::tree_sitter::t_query;
 	t_define{a_library}
-	(L"captures"sv, t_member<t_object*(*)(const t_query&), [](auto a_this)
+	(L"captures"sv, t_member<t_object*(*)(t_library*, const t_query&), [](auto a_library, auto a_this)
 	{
 		return t_tuple::f_instantiate(ts_query_capture_count(a_this.v_query), [&](auto& tuple)
 		{
-			std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
 			for (size_t i = 0; i < tuple.f_size(); ++i) {
 				uint32_t n;
 				auto p = ts_query_capture_name_for_id(a_this.v_query, i, &n);
-				new(&tuple[i]) t_svalue(t_string::f_instantiate(convert.from_bytes(p, p + n)));
+				new(&tuple[i]) t_svalue(t_string::f_instantiate(a_library->v_from_utf8({p, n})));
 			}
 		});
 	}>())
@@ -49,8 +46,7 @@ t_pvalue t_type_of<xemmaix::nata::tree_sitter::t_query>::f_do_construct(t_pvalue
 {
 	return t_construct_with<t_object*(*)(t_type*, const xemmaix::nata::tree_sitter::t_language&, std::wstring_view), [](auto a_class, auto a_language, auto a_source)
 	{
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
-		auto source = convert.to_bytes(a_source.data(), a_source.data() + a_source.size());
+		auto source = a_class->v_module->template f_as<t_library>().v_to_utf8(a_source);
 		uint32_t error_offset;
 		TSQueryError error_type;
 		if (auto query = ts_query_new(a_language.v_language, source.data(), source.size(), &error_offset, &error_type)) return a_class->template f_new<xemmaix::nata::tree_sitter::t_query>(a_language, query);
