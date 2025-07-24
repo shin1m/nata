@@ -96,7 +96,8 @@ Chooser = Popup + @
 		map[c][$](
 	catch Throwable t
 
-suisha.main(@(loop) nata.main(@ nata_curses.main_with_resized(@(resized)
+suisha.main(@ nata.main(@ nata_curses.main_with_resized(@(resized)
+	loop = suisha.loop(
 	nata_curses.define_pair(1, nata_curses.COLOR_WHITE, -1
 	nata_curses.define_pair(2, nata_curses.COLOR_BLACK, nata_curses.COLOR_WHITE
 	nata_curses.define_pair(3, -1, nata_curses.COLOR_YELLOW
