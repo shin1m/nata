@@ -22,11 +22,7 @@ t_session* t_session::f_instance()
 
 void t_library::f_scan(t_scan a_scan)
 {
-	a_scan(v_type_proxy);
-	a_scan(v_type_line);
-	a_scan(v_type_text);
-	a_scan(v_type_span);
-	a_scan(v_type_search);
+	XEMMAIX__NATA__TYPES(XEMMAI__TYPE__SCAN)
 }
 
 std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()

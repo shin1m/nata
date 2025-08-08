@@ -25,15 +25,17 @@ class t_library : public xemmai::t_library
 {
 	t_slot v_module_nata;
 	xemmaix::nata::t_library* v_nata;
-	t_slot_of<t_type> v_type_token;
-	t_slot_of<t_type> v_type_position;
-	t_slot_of<t_type> v_type_row;
-	t_slot_of<t_type> v_type_view;
-	t_slot_of<t_type> v_type_overlay;
-	t_slot_of<t_type> v_type_overlay_value;
-	t_slot_of<t_type> v_type_overlay_iterator;
-	t_slot_of<t_type> v_type_painter;
-	t_slot_of<t_type> v_type_creaser;
+#define XEMMAIX__NATA__CURSES__TYPES(_)\
+	_(token)\
+	_##_JUST(position)\
+	_##_JUST(row)\
+	_##_AS(t_view<t_target>, view)\
+	_##_AS(t_overlay<t_target>, overlay)\
+	_##_JUST(overlay_value)\
+	_##_AS(t_overlay_iterator<t_target>, overlay_iterator)\
+	_##_AS(t_painter<t_target>, painter)\
+	_##_AS(t_creaser<t_target>, creaser)
+	XEMMAIX__NATA__CURSES__TYPES(XEMMAI__TYPE__DECLARE)
 
 public:
 	t_library(xemmai::t_library::t_handle* a_handle, const t_pvalue& a_nata) : xemmai::t_library(a_handle), v_module_nata(a_nata), v_nata(&v_module_nata->f_as<t_module>().v_body->f_as<xemmaix::nata::t_library>())
@@ -81,12 +83,9 @@ struct t_target : ::nata::curses::t_target
 
 XEMMAI__LIBRARY__BASE(t_library, t_global, f_global())
 XEMMAI__LIBRARY__BASE(t_library, xemmaix::nata::t_library, v_nata)
-XEMMAI__LIBRARY__TYPE(t_library, token)
-XEMMAI__LIBRARY__TYPE_AS(t_library, t_view<t_target>, view)
-XEMMAI__LIBRARY__TYPE_AS(t_library, t_overlay<t_target>, overlay)
-XEMMAI__LIBRARY__TYPE_AS(t_library, t_overlay_iterator<t_target>, overlay_iterator)
-XEMMAI__LIBRARY__TYPE_AS(t_library, t_painter<t_target>, painter)
-XEMMAI__LIBRARY__TYPE_AS(t_library, t_creaser<t_target>, creaser)
+#define XEMMAI__TYPE__LIBRARY t_library
+XEMMAIX__NATA__CURSES__TYPES(XEMMAI__TYPE__DEFINE)
+#undef XEMMAI__TYPE__LIBRARY
 
 }
 

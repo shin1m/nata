@@ -138,9 +138,7 @@ t_object* t_parser::f_next()
 void t_library::f_scan(t_scan a_scan)
 {
 	a_scan(v_module_nata);
-	a_scan(v_type_language);
-	a_scan(v_type_query);
-	a_scan(v_type_parser);
+	XEMMAIX__NATA__TREE_SITTER__TYPES(XEMMAI__TYPE__SCAN)
 }
 
 std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()

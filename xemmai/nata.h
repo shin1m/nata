@@ -75,11 +75,13 @@ public:
 
 class t_library : public xemmai::t_library
 {
-	t_slot_of<t_type> v_type_proxy;
-	t_slot_of<t_type> v_type_line;
-	t_slot_of<t_type> v_type_text;
-	t_slot_of<t_type> v_type_span;
-	t_slot_of<t_type> v_type_search;
+#define XEMMAIX__NATA__TYPES(_)\
+	_(proxy)\
+	_##_JUST(line)\
+	_(text)\
+	_##_JUST(span)\
+	_(search)
+	XEMMAIX__NATA__TYPES(XEMMAI__TYPE__DECLARE)
 
 public:
 	using xemmai::t_library::t_library;
@@ -95,9 +97,9 @@ public:
 };
 
 XEMMAI__LIBRARY__BASE(t_library, t_global, f_global())
-XEMMAI__LIBRARY__TYPE(t_library, proxy)
-XEMMAI__LIBRARY__TYPE(t_library, text)
-XEMMAI__LIBRARY__TYPE(t_library, search)
+#define XEMMAI__TYPE__LIBRARY t_library
+XEMMAIX__NATA__TYPES(XEMMAI__TYPE__DEFINE)
+#undef XEMMAI__TYPE__LIBRARY
 
 }
 

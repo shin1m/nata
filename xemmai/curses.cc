@@ -95,15 +95,7 @@ void f_read_resized()
 void t_library::f_scan(t_scan a_scan)
 {
 	a_scan(v_module_nata);
-	a_scan(v_type_token);
-	a_scan(v_type_position);
-	a_scan(v_type_row);
-	a_scan(v_type_view);
-	a_scan(v_type_overlay);
-	a_scan(v_type_overlay_value);
-	a_scan(v_type_overlay_iterator);
-	a_scan(v_type_painter);
-	a_scan(v_type_creaser);
+	XEMMAIX__NATA__CURSES__TYPES(XEMMAI__TYPE__SCAN)
 }
 
 std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()

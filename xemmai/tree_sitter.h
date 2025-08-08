@@ -99,9 +99,11 @@ class t_library : public xemmai::t_library
 {
 	t_slot v_module_nata;
 	xemmaix::nata::t_library* v_nata;
-	t_slot_of<t_type> v_type_language;
-	t_slot_of<t_type> v_type_query;
-	t_slot_of<t_type> v_type_parser;
+#define XEMMAIX__NATA__TREE_SITTER__TYPES(_)\
+	_(language)\
+	_(query)\
+	_(parser)
+	XEMMAIX__NATA__TREE_SITTER__TYPES(XEMMAI__TYPE__DECLARE)
 
 public:
 	t_converter<wchar_t, char> v_to_utf8;
@@ -115,9 +117,9 @@ public:
 
 XEMMAI__LIBRARY__BASE(t_library, t_global, f_global())
 XEMMAI__LIBRARY__BASE(t_library, xemmaix::nata::t_library, v_nata)
-XEMMAI__LIBRARY__TYPE(t_library, language)
-XEMMAI__LIBRARY__TYPE(t_library, query)
-XEMMAI__LIBRARY__TYPE(t_library, parser)
+#define XEMMAI__TYPE__LIBRARY t_library
+XEMMAIX__NATA__TREE_SITTER__TYPES(XEMMAI__TYPE__DEFINE)
+#undef XEMMAI__TYPE__LIBRARY
 
 struct t_language_library : xemmai::t_library
 {
