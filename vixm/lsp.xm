@@ -1,6 +1,7 @@
 io = Module("io"
 os = Module("os"
 json = Module("json"
+suisha = Module("suisha"
 utilities = Module("utilities"
 find_index = utilities.find_index
 
@@ -124,14 +125,14 @@ $startup = @(loop, invalidate, file, arguments, environments, log, progress, don
 		x = error.read_line(
 		x && x != "" || break
 		log(x
-	loop.poll(child.pipe(2).fd(), true, false, @(readable, writable) if readable
+	loop.poll(child.pipe(2).fd(), suisha.POLLIN, @(events) if (events & suisha.POLLIN) != 0
 		read_error(
 		invalidate(
-	loop.poll(child.pipe(1).fd(), true, false, @(readable, writable) if readable
+	loop.poll(child.pipe(1).fd(), suisha.POLLIN, @(events) if (events & suisha.POLLIN) != 0
 		rpc.dispatch(
 		invalidate(
 	exit = @(done)
-		loop.poll(child.pipe(0).fd(), false, false, @(readable, writable) if child.exited()
+		loop.poll(child.pipe(0).fd(), 0, @(events) if child.exited()
 			loop.unpoll(child.pipe(0).fd(
 			loop.unpoll(child.pipe(1).fd(
 			loop.unpoll(child.pipe(2).fd(

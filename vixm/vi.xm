@@ -184,10 +184,10 @@ suisha.main(@ nata.main(@ nata_curses.main_with_resized(@(resized)
 		$popup = Popup
 		$chooser = Chooser
 	assist("clangd", "clangd", '("--log=verbose"), '(), @(buffer) buffer.syntax && buffer.syntax.type == "cpp"
-	loop.poll(0, true, false, @(readable, writable) if readable
+	loop.poll(0, suisha.POLLIN, @(events) if (events & suisha.POLLIN) != 0
 		mode(vi.current().get(
 		invalidate(
-	loop.poll(resized, true, false, @(readable, writable) if readable
+	loop.poll(resized, suisha.POLLIN, @(events) if (events & suisha.POLLIN) != 0
 		nata_curses.read_resized(
 		:size = nata_curses.size(
 		invalidate(
