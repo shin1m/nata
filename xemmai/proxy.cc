@@ -5,9 +5,9 @@ namespace xemmaix::nata
 
 void t_proxy::f_dispose()
 {
-	t_entry::f_dispose();
 	v_session = nullptr;
 	f_release();
+	this->~t_entry();
 }
 
 }

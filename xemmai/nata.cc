@@ -3,13 +3,6 @@
 namespace xemmaix::nata
 {
 
-void t_entry::f_dispose()
-{
-//	std::fprintf(stderr, "dispose %s(%p)\n", typeid(*this).name(), this);
-	v_previous->v_next = v_next;
-	v_next->v_previous = v_previous;
-}
-
 XEMMAI__PORTABLE__THREAD t_session* t_session::v_instance;
 
 #ifdef _WIN32
@@ -19,6 +12,12 @@ t_session* t_session::f_instance()
 	return v_instance;
 }
 #endif
+
+t_session::~t_session()
+{
+	while (v_next != this) static_cast<t_proxy*>(v_next)->f_dispose();
+	v_instance = nullptr;
+}
 
 void t_library::f_scan(t_scan a_scan)
 {

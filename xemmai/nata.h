@@ -41,9 +41,11 @@ protected:
 	{
 		v_previous->v_next = v_next->v_previous = this;
 	}
-
-public:
-	XEMMAIX__NATA__EXPORT virtual void f_dispose();
+	~t_entry()
+	{
+		v_previous->v_next = v_next;
+		v_next->v_previous = v_previous;
+	}
 };
 
 class t_session : public t_entry
@@ -66,11 +68,7 @@ public:
 		if (v_instance) f_throw(L"already inside main."sv);
 		v_instance = this;
 	}
-	~t_session()
-	{
-		while (v_next != this) v_next->f_dispose();
-		v_instance = nullptr;
-	}
+	~t_session();
 };
 
 class t_library : public xemmai::t_library
