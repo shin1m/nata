@@ -6,26 +6,16 @@ nata = Module("nata"
 nata_tree_sitter = Module("nata-tree-sitter"
 nata_tree_sitter_json = Module("nata-tree-sitter-json").language
 
-Stream = Object + @
-	$read
-	$__initialize = @(read) $read = read
-	$close = @
-
 from_utf8 = @(bytes)
 	remain = bytes.size(
 	i = 0
-	reader = io.Reader(
-		Stream(@(buffer, offset, size)
-			n = remain < size ? remain : size
-			for j = 0; j < n; j = j + 1; buffer[offset + j] = bytes[i + j]
-			:i = i + n
-			:remain = remain - n
-			n
-	, "utf-8"
-	try
-		reader.read(bytes.size(
-	finally
-		reader.close(
+	io.Reader(@(buffer, offset, size)
+		n = remain < size ? remain : size
+		for j = 0; j < n; j = j + 1; buffer[offset + j] = bytes[i + j]
+		:i = i + n
+		:remain = remain - n
+		n
+	, "utf-8").read(remain
 
 nata.main(@
 	text = nata.Text(

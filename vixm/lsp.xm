@@ -6,26 +6,24 @@ utilities = Module("utilities"
 find_index = utilities.find_index
 
 jsonrpc = @(in, out, notified)
-	writer = io.Writer(in, "utf-8"
+	writer = io.Writer(in.write, "utf-8"
 	last_id = 0
 	buffer = Bytes(1024
 	head = tail = 0
-	reader = io.Reader((Object + @
-		$close = out.close
-		$read = @(buffer, offset, size)
-			if head >= tail
-				::tail = out.read(::buffer, 0, ::buffer.size(
-				::head = 0
-			j = tail
-			size < j - head && (j = head + size)
-			for i = head; i < j; i = i + 1; if ::buffer[i] == 0xa
-				i = i + 1
-				break
-			n = i - head
-			::buffer.copy(head, n, buffer, offset
-			::head = i
-			n
-	)(), "utf-8"
+	reader = io.Reader(@(buffer, offset, size)
+		if head >= tail
+			:tail = out.read(:buffer, 0, :buffer.size(
+			:head = 0
+		j = tail
+		size < j - head && (j = head + size)
+		for i = head; i < j; i = i + 1; if :buffer[i] == 0xa
+			i = i + 1
+			break
+		n = i - head
+		:buffer.copy(head, n, buffer, offset
+		:head = i
+		n
+	, "utf-8"
 	read_limited = @(buffer, offset, size)
 		n = out.read(buffer, offset, size
 		:length = length - n
@@ -120,8 +118,8 @@ $startup = @(loop, invalidate, file, arguments, environments, log, progress, don
 	child = os.Child(file, arguments, environments, '(0, 1, 1
 	rpc = jsonrpc(child.pipe(0), child.pipe(1), @(method, params) log("notified: " + method + ": " + json.stringify(params, 2) + "\n"
 	child.pipe(2).blocking__(false
-	error = io.Reader(child.pipe(2), "utf-8"
-	read_error = @ while true
+	error = io.Reader(child.pipe(2).read, "utf-8"
+	read_error = @ while
 		x = error.read_line(
 		x && x != "" || break
 		log(x

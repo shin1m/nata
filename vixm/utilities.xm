@@ -14,8 +14,8 @@ $find_index = @(s, i, predicate)
 	for ; i < n; i = i + 1; predicate(s.code_at(i)) && break
 	i
 $open = @(path, action)
-	reader = io.Reader(io.File("" + path, "r"), "utf-8"
+	file = io.File("" + path, "r"
 	try
-		action(reader
+		action(io.Reader(file.read, "utf-8"
 	finally
-		reader.close(
+		file.close(

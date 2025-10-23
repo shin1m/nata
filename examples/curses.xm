@@ -3,7 +3,7 @@ io = Module("io"
 time = Module("time"
 nata = Module("nata"
 nata_curses = Module("nata-curses"
-nata_syntax = Module("../ntvi/syntax"
+nata_syntax = Module("syntax"
 
 Session = Object + @
 	$logs
@@ -30,11 +30,11 @@ Session = Object + @
 	$redo = @ $undos.push($replay(*$redos.pop(
 
 open = @(path, action)
-	reader = io.Reader(io.File("" + path, "r"), "utf-8"
+	file = io.File("" + path, "r"
 	try
-		action(reader
+		action(io.Reader(file.read, "utf-8"
 	finally
-		reader.close(
+		file.close(
 
 read = @(text, path) open(path, @(reader) while true
 	s = reader.read(256
