@@ -124,8 +124,7 @@ public:
 	}
 	size_t f_range() const
 	{
-		size_t height = f_height();
-		return std::max(v_rows.f_size().v_y, height) - height;
+		return (--v_rows.f_end()).f_index().v_y;
 	}
 	const decltype(v_overlays)& f_overlays() const
 	{
@@ -274,8 +273,7 @@ public:
 	}
 	void f_top__(size_t a_value)
 	{
-		size_t n = f_range();
-		if (a_value > n) a_value = n;
+		if (auto n = f_range(); a_value > n) a_value = n;
 		if (a_value == v_top) return;
 		f_scroll(0, int(a_value) - int(v_top));
 		v_top = a_value;
