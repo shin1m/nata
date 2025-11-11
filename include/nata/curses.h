@@ -97,13 +97,17 @@ struct t_target : t_window
 
 	attr_t v_attribute_control = A_NORMAL;
 	attr_t v_attribute_folded = A_NORMAL;
+#ifdef NATA__CURSES__COUNTER
 	wchar_t v_prefix = L'\0';
+#endif
 
 	using t_window::t_window;
+#ifdef NATA__CURSES__COUNTER
 	size_t f_width() const
 	{
 		return t_window::f_width() - 1;
 	}
+#endif
 	std::tuple<size_t, size_t, size_t> f_size(wchar_t a_c, attr_t a_a) const
 	{
 		return {wcwidth(a_c), 1, 0};
@@ -124,10 +128,12 @@ struct t_target : t_window
 	{
 		return {3, 1, 0};
 	}
+#ifdef NATA__CURSES__COUNTER
 	void f_cursor(size_t a_x, size_t a_y)
 	{
 		t_window::f_cursor(a_x + 1, a_y);
 	}
+#endif
 	void f_attributes(attr_t a_control, attr_t a_folded)
 	{
 		v_attribute_control = a_control;
@@ -138,14 +144,21 @@ struct t_target : t_window
 struct t_graphics
 {
 	t_target& v_target;
+#ifdef NATA__CURSES__COUNTER
 	const wchar_t v_prefix;
+#endif
 	size_t v_x;
 	cchar_t v_c{A_NORMAL, L" "};
 	attr_t v_overlay;
 
+#ifdef NATA__CURSES__COUNTER
 	t_graphics(t_target& a_target) : v_target(a_target), v_prefix(L'0' + v_target.v_prefix)
 	{
 		v_target.v_prefix = (v_target.v_prefix + 1) % 10;
+#else
+	t_graphics(t_target& a_target) : v_target(a_target)
+	{
+#endif
 	}
 	~t_graphics()
 	{
@@ -155,8 +168,10 @@ struct t_graphics
 	{
 		v_x = 0;
 		wmove(v_target.v_window, a_y, 0);
+#ifdef NATA__CURSES__COUNTER
 		cchar_t cc{v_target.v_attribute_control, v_prefix};
 		wadd_wch(v_target.v_window, &cc);
+#endif
 	}
 	void f_attribute(attr_t a_value)
 	{
@@ -211,8 +226,10 @@ struct t_graphics
 	void f_empty(size_t a_y)
 	{
 		wmove(v_target.v_window, a_y, 0);
+#ifdef NATA__CURSES__COUNTER
 		cchar_t cc{v_target.v_attribute_control, v_prefix};
 		wadd_wch(v_target.v_window, &cc);
+#endif
 		wclrtoeol(v_target.v_window);
 	}
 };
