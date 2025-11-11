@@ -69,12 +69,10 @@ class t_widget
 	{
 		size_t h0 = f_height();
 		size_t h1 = v_rows.v_target.f_height();
-		if (h1 < h0) {
+		if (h1 < h0)
 			v_region.f_replace(h1, h0 - h1, {});
-		} else if (h1 > h0) {
+		else if (h1 > h0)
 			v_region.f_replace(h0, 0, {{true, h1 - h0}});
-			f_top__(v_top);
-		}
 	};
 	t_slot<size_t, size_t, size_t, size_t, size_t, size_t> v_replaced = [this](auto a_p, auto a_n0, auto a_n1, auto a_y, auto a_h0, auto a_h1)
 	{
@@ -124,8 +122,7 @@ public:
 	}
 	size_t f_range() const
 	{
-		size_t height = f_height();
-		return std::max(v_rows.f_size().v_y, height) - height;
+		return (--v_rows.f_end()).f_index().v_y;
 	}
 	const decltype(v_overlays)& f_overlays() const
 	{
@@ -274,8 +271,7 @@ public:
 	}
 	void f_top__(size_t a_value)
 	{
-		size_t n = f_range();
-		if (a_value > n) a_value = n;
+		if (auto n = f_range(); a_value > n) a_value = n;
 		if (a_value == v_top) return;
 		f_scroll(0, int(a_value) - int(v_top));
 		v_top = a_value;
