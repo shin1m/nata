@@ -218,7 +218,7 @@ $new = @(host, status, strip, path)
 	times = @(f) for n = count > 0 ? count : 1; n > 0; n = n - 1; f(
 	forward_n = @(x, limit, n, f)
 		y = x + n
-		y > limit && (y = limit)
+		y > limit && (y = limit
 		y > x && f(y
 	forward = @(x, limit, f) forward_n(x, limit, count > 0 ? count : 1, f
 	backward = @(x, limit, f)
@@ -258,19 +258,19 @@ $new = @(host, status, strip, path)
 				last = m
 		match = p > 0 ? f(p - 1) : '()
 		match.size() > 0 ? match : f(text.size())
-	last_pattern = null
-	last_reverse = false
+	search_pattern = null
+	search_reverse = false
 	search_message = @(reverse, p, match)
-		match.size() > 0 || throw Throwable("not found: " + last_pattern
+		match.size() > 0 || throw Throwable("not found: " + search_pattern
 		:message = (reverse ?
 			(match[0].from < p ? "?" : "continuing at BOTTOM: ") :
 			(match[0].from > p ? "/" : "continuing at TOP: ")
-		) + last_pattern
-	search_next = @(reverse)
-		last_pattern || throw Throwable("no last pattern"
-		reverse = last_reverse ^ reverse
+		) + search_pattern
+	search_next = @(reverse) $finish(@
+		search_pattern || throw Throwable("no last pattern"
+		reverse = search_reverse ^ :reverse
 		p = view.position().text
-		match = reverse ? search_backward(last_pattern, p) : search_forward(last_pattern, p)
+		match = reverse ? search_backward(search_pattern, p) : search_forward(search_pattern, p)
 		search_message(reverse, p, match
 		move_to(match[0].from
 	search = @(reverse)
@@ -290,18 +290,44 @@ $new = @(host, status, strip, path)
 					move_to(match[0].from
 				else
 					view.position__(p, false
-			@(ok) !ok ? :$reset() : :$finish(@
-				:::last_reverse = reverse
-				pattern.size() > 0 || return search_next[::$](false
+			@(ok) !ok ? :$reset() : (
+				::search_reverse = reverse
+				pattern.size() > 0 || return search_next[:$](false
 				paint(false
-				:::last_pattern = pattern
-				search_message(reverse, p, match
+				::search_pattern = pattern
+				:$finish(@ search_message(reverse, p, match
+	find_letter = null
+	find_reverse = false
+	find_next = @(reverse)
+		find_letter || return $reset(
+		reverse = find_reverse ^ reverse
+		n = count > 0 ? count : 1
+		p = view.position().text
+		l = text.line_at_in_text(p
+		limit = reverse ? l.from : l.from + l.count - 1
+		d = reverse ? -1 : 1
+		while p != limit
+			p = p + d
+			text.slice(p, 1) == find_letter || continue
+			n = n - 1
+			n > 0 || return $finish(@ view.position__(p, !reverse
+		$reset(
+	find = @(reverse)
+		map_commit = KeyMap(@ find_next[$](false
+		do(Object + @
+			$__get_at = @(c)
+				:::find_letter = String.from_code(c
+				:::find_reverse = reverse
+				map_commit
+			$get = @
+			$more = @ true
 	map_motion = {
 		control("H"): KeyMap(@ $finish(@ backward(view.position().text, 0, @(p) view.position__(p, false
 		letter(" "): KeyMap(@ $finish(@ forward(view.position().text, text.size(), @(p) view.position__(p, true
+		letter(","): KeyMap(@ find_next[$](true
 		letter("$"): KeyMap(@ $finish(@
 			view.target__(-1
-			count > 1 && forward_n(view.row().line, view.size().line, count - 1, view.line__
+			count > 1 && forward_n(view.row().line, view.size().line - 1, count - 1, view.line__
 		letter("/"): KeyMap(@ search[$](false
 		letter("0"): KeyMap(@
 			if count > 0
@@ -317,8 +343,17 @@ $new = @(host, status, strip, path)
 		letter("7"): KeyMap(@ :count = count * 10 + 7
 		letter("8"): KeyMap(@ :count = count * 10 + 8
 		letter("9"): KeyMap(@ :count = count * 10 + 9
+		letter(";"): KeyMap(@ find_next[$](false
 		letter("?"): KeyMap(@ search[$](true
-		letter("N"): KeyMap(@ $finish(@ search_next[:$](true
+		letter("F"): find(true
+		letter("N"): KeyMap(@ search_next[$](true
+		letter("^"): KeyMap(@ $finish(@
+			l = text.line_at_in_text(view.position().text
+			match = with_search(text, "\\S", @(search)
+				search.reset(l.from, l.count - 1
+				search.next(
+			view.position__(match.size() > 0 ? match[0].from : l.from + l.count - 1, false
+		letter("f"): find(false
 		letter("h"): KeyMap(@ $finish(@
 			p = view.position().text
 			backward(p, text.line_at_in_text(p).from, @(p) view.position__(p, false
@@ -328,7 +363,8 @@ $new = @(host, status, strip, path)
 			p = view.position().text
 			l = text.line_at_in_text(p
 			forward(p, l.from + l.count - 1, @(p) view.position__(p, true
-		letter("n"): KeyMap(@ $finish(@ search_next[:$](false
+		letter("n"): KeyMap(@ search_next[$](false
+		letter("|"): KeyMap(@ $finish(@ view.target__(count > 0 ? count - 1 : 0
 	escape = @(x) x < 0x20 ? "^" + String.from_code(x + 0x40) : String.from_code(x)
 	escape_string = @(s) join(@(f) each_code(s, @(c) f(escape(c
 	Mode = Object + @
@@ -370,7 +406,7 @@ $new = @(host, status, strip, path)
 			commit = @
 				::pending = null
 				cs = [
-				for ; n > 0; (:n = n - 1); cs.unshift(input.pop(
+				for ; n > 0; :n = n - 1; cs.unshift(input.pop(
 				if action
 					action[mode](
 					rewind(
@@ -536,8 +572,11 @@ $new = @(host, status, strip, path)
 		delete_and_edit(p, q, line
 		insert(
 	delete = @(p, q, line = false) mode.commit(@
-		delete_and_edit(p, q, line
-		commit(
+		if p < q
+			delete_and_edit(p, q, line
+			commit(
+		else
+			buffer.cancel(
 	push = @(c)
 		input.push(c
 		mode(c
