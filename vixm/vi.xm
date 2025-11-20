@@ -140,18 +140,15 @@ suisha.main(@ nata.main(@ nata_curses.main_with_resized(@(resized)
 		loop.post(@
 			::invalid = false
 			tasks.each(@(x) x(
-			vi.render(
 			sh = strip.size().y
 			limit = size[1] - 2
-			sh > limit && (sh = limit)
-			strip.move(0, size[1] - sh, size[0], sh
-			strip.into_view(strip.position().text
+			sh > limit && (sh = limit
 			mh = size[1] - sh
 			main = vi.buffer().view
 			if popup
 				limit = size[1] - sh - 1
 				ph = popup.size().y
-				ph > limit && (ph = limit)
+				ph > limit && (ph = limit
 				row = main.row().y
 				bh = main.size().y
 				bh = (mh > bh ? mh : bh) - row
@@ -168,6 +165,9 @@ suisha.main(@ nata.main(@ nata_curses.main_with_resized(@(resized)
 			else
 				main.move(0, 0, size[0], mh
 				main.into_view(main.position().text
+			vi.render(
+			strip.move(0, size[1] - sh, size[0], sh
+			strip.into_view(strip.position().text
 			main.render(
 			strip.render(
 			popup && popup.render(
