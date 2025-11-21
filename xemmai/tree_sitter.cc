@@ -82,7 +82,7 @@ namespace xemmaix::nata::tree_sitter
 void t_query::f_destroy()
 {
 	ts_query_delete(v_query);
-	v_module = nullptr;
+	v_module.~t_root();
 }
 
 void t_parser::f_destroy()

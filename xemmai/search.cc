@@ -6,6 +6,9 @@ namespace xemmaix::nata
 void t_search::f_destroy()
 {
 	delete v_connection;
+	v_pattern.~basic_regex();
+	v_eos.~regex_iterator();
+	v_i.~regex_iterator();
 	v_text.f_release();
 }
 
