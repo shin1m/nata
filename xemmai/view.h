@@ -30,6 +30,7 @@ struct t_view : t_proxy, T_target
 	}
 	virtual void f_destroy()
 	{
+		v_overlays.~vector();
 		v_widget.~t_widget();
 		v_rows.~t_rows();
 		v_tokens.~t_tokens();
@@ -94,6 +95,7 @@ struct t_overlay_iterator : t_proxy
 	}
 	virtual void f_destroy()
 	{
+		v_i.~t_iterator();
 		v_overlay.f_release();
 	}
 	virtual void f_dispose()
