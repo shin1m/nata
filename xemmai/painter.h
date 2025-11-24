@@ -73,10 +73,7 @@ struct t_type_of<xemmaix::nata::t_painter<T_target>> : t_derivable<t_bears<xemma
 	using t_type_of::t_base::t_base;
 	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_view<T_target>&), [](auto a_class, auto a_view)
-		{
-			return a_class->template f_new<t_painter>(a_view);
-		}>::template t_bind<t_painter>::f_do(this, a_stack, a_n);
+		return t_construct<xemmaix::nata::t_view<T_target>&>::template t_bind<t_painter>::f_do(this, a_stack, a_n);
 	}
 };
 

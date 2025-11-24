@@ -2,6 +2,7 @@ nata = Module("nata"
 utilities = Module("utilities"
 remove = utilities.remove
 do = utilities.do
+with = utilities.with
 letter = utilities.letter
 control = utilities.control
 each_code = utilities.each_code
@@ -11,8 +12,9 @@ $new = @(host)
 	cancellable = @(message, cancel)
 		vi.message(message + " (ESC to cancel)"
 		host.mode__(@(c) c == control("[") && cancel(
+	verbify_pattern = nata.Pattern("^\\s*(\\S+)", nata.Pattern.ECMASCRIPT | nata.Pattern.OPTIMIZE
 	verbify = @(verbs) @(i)
-		match = vi.match_status("^\\s*(\\S+)", i
+		match = verbify_pattern.search(host.status, i, -1
 		match.size() > 0 || return
 		group = match[1]
 		verb = host.status.slice(group.from, group.count
@@ -118,19 +120,15 @@ $new = @(host)
 			text = buffer.text
 			buffer.view.position__(text.from_location(x["range"]["start"]), false
 		@
-	completion = @(client, buffer, search)
-		search.pattern("\\b[_A-Za-z]\\w*\\b", nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
-		target = @(p)
-			line = buffer.text.line_at_in_text(p
-			search.reset(line.from, line.count
-			while true
-				m = search.next(
-				if m.size() <= 0 || m[0].from > p
-					empty = nata.Span(
-					empty.from = p
-					empty.count = 0
-					return empty
+	completion = @(client, buffer, pattern)
+		target = @(p) with(nata.Search(buffer.text, pattern), @(search)
+			l = buffer.text.line_at_in_text(p
+			for m = search.first(l.from, l.count); m.size() > 0 && m[0].from <= p; m = search.next()
 				m[0].from + m[0].count < p || return m[0]
+			empty = nata.Span(
+			empty.from = p
+			empty.count = 0
+			empty
 		call = start = @(popup)
 			cancel = choose(
 				@(partial, done)
@@ -187,8 +185,8 @@ $new = @(host)
 				text = buffer.text
 				replaced = @(l0, c0, l1, c1, s) client.did_change(buffer.path, text.version, l0, c0, l1, c1, s
 				text.replaced.push(replaced
-				search = nata.Search(text
-				completion = :completion(client, buffer, search
+				pattern = nata.Pattern("\\b[_A-Za-z]\\w*\\b", nata.Pattern.ECMASCRIPT | nata.Pattern.OPTIMIZE
+				completion = :completion(client, buffer, pattern
 				buffer.commands["lsp"] = verbify({
 					"definition": @(i) goto("definition...", @(partial, done)
 						l = text.to_location(buffer.view.position().text
@@ -238,7 +236,7 @@ $new = @(host)
 						x.remove("\fc"
 						completion_triggers.each(x.remove
 					remove(text.replaced, replaced
-					search.dispose(
+					pattern.dispose(
 					client.did_close(buffer.path
 	instances = {
 	@(name, file, arguments, environments, match) vi.commands[name] = verbify({

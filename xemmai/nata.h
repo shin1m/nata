@@ -26,6 +26,7 @@ using xemmai::t_slot;
 class t_proxy;
 class t_library;
 class t_text;
+class t_pattern;
 class t_search;
 
 class t_entry
@@ -78,6 +79,7 @@ class t_library : public xemmai::t_library
 	_##_JUST(line)\
 	_(text)\
 	_##_JUST(span)\
+	_(pattern)\
 	_(search)
 	XEMMAIX__NATA__TYPES(XEMMAI__TYPE__DECLARE)
 

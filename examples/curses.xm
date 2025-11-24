@@ -3,6 +3,8 @@ io = Module("io"
 time = Module("time"
 nata = Module("nata"
 nata_curses = Module("nata-curses"
+utilities = Module("utilities"
+with = utilities.with
 nata_syntax = Module("syntax"
 
 Session = Object + @
@@ -40,12 +42,6 @@ read = @(text, path) open(path, @(reader) while true
 	s = reader.read(256
 	s == "" && break
 	text.replace(text.size(), 0, s
-
-with = @(x, f)
-	try
-		f(x
-	finally
-		x.dispose(
 
 each = @(overlay, f)
 	with(nata_curses.OverlayIterator(overlay), @(i)
@@ -185,11 +181,9 @@ nata.main(@ nata_curses.main(@
 			each(selection, @(p, n) :pattern = pattern + text.slice(p, n
 			selection.paint(0, -1, false
 			pattern == "" && return
-			with(nata.Search(text), @(search)
-				search.pattern(pattern, nata.Search.ECMASCRIPT
-				search.reset(0, -1
-				while (match = search.next()).size() > 0
-					highlight.paint(match[0].from, match[0].count, true
+			with(nata.Pattern(pattern, nata.Pattern.ECMASCRIPT), @(pattern) with(nata.Search(text, pattern), @(search)
+				for m = search.first(0, -1); m.size() > 0; m = search.next()
+					highlight.paint(m[0].from, m[0].count, true
 		nata_curses.KEY_F4: @
 			highlight.paint(0, -1, false
 		nata_curses.KEY_F5: @

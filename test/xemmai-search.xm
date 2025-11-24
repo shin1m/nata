@@ -11,10 +11,25 @@ dump = @(xs)
 nata.main(@
 	text = nata.Text(
 	text.replace(0, -1, "Hello, World!"
-	search = nata.Search(text
-	search.pattern("(or)?l+", nata.Search.ECMASCRIPT
-	search.reset(0, -1
-	match = search.next(
+	pattern = nata.Pattern("(or)?l+", nata.Pattern.ECMASCRIPT
+	match = pattern.search(text, 0, -1
+	print(match
+	assert(dump(match) == '('(2, 2), '(13, 0
+	print(text.slice(match[0].from, match[0].count
+	match = pattern.search(text, match[0].from + match[0].count, -1
+	print(match
+	assert(dump(match) == '('(8, 3), '(8, 2
+	print(text.slice(match[0].from, match[0].count
+	match = pattern.search(text, match[0].from + match[0].count, -1
+	print(match
+	assert(match == '(
+
+nata.main(@
+	text = nata.Text(
+	text.replace(0, -1, "Hello, World!"
+	pattern = nata.Pattern("(or)?l+", nata.Pattern.ECMASCRIPT
+	search = nata.Search(text, pattern
+	match = search.first(0, -1
 	print(match
 	assert(dump(match) == '('(2, 2), '(13, 0
 	print(text.slice(match[0].from, match[0].count

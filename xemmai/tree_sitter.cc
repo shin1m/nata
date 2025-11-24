@@ -68,10 +68,7 @@ void t_type_of<xemmaix::nata::tree_sitter::t_parser>::f_define(t_library* a_libr
 
 t_pvalue t_type_of<xemmaix::nata::tree_sitter::t_parser>::f_do_construct(t_pvalue* a_stack, size_t a_n)
 {
-	return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_text&, xemmaix::nata::tree_sitter::t_query&), [](auto a_class, auto a_text, auto a_query)
-	{
-		return a_class->template f_new<xemmaix::nata::tree_sitter::t_parser>(a_text, a_query);
-	}>::t_bind<xemmaix::nata::tree_sitter::t_parser>::f_do(this, a_stack, a_n);
+	return t_construct<xemmaix::nata::t_text&, xemmaix::nata::tree_sitter::t_query&>::t_bind<xemmaix::nata::tree_sitter::t_parser>::f_do(this, a_stack, a_n);
 }
 
 }

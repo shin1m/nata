@@ -1,6 +1,7 @@
 nata = Module("nata"
 utilities = Module("utilities"
 do = utilities.do
+with = utilities.with
 letter = utilities.letter
 control = utilities.control
 each_code = utilities.each_code
@@ -29,10 +30,6 @@ Session = Object + @
 	$undo = @ $redos.push($replay(*$undos.pop(
 	$redo = @ $undos.push($replay(*$redos.pop(
 
-with = @(x, f) try
-	f(x
-finally
-	x.dispose(
 join = @(each)
 	s = ""
 	each(@(x) :s = s + x
@@ -169,9 +166,7 @@ $Buffer = Buffer = Session + @
 		e.xs = p < p0 ? '(p, x, $text.slice(p, p0 - p) + y) : '(p0, p - p0 + x, y)
 		$text.replace(p, n, s
 
-with_search = @(text, pattern, f) with(nata.Search(text), @(search)
-	search.pattern(pattern, nata.Search.ECMASCRIPT | nata.Search.OPTIMIZE
-	f(search
+new_pattern = @(pattern) nata.Pattern(pattern, nata.Pattern.ECMASCRIPT | nata.Pattern.OPTIMIZE
 
 $new = @(host, status, strip, path)
 	maps = Maps(
@@ -251,19 +246,14 @@ $new = @(host, status, strip, path)
 			n = n - 1
 			n > 0 || return '(match[0], wrapped
 			p = match[0].from
-	search_forward = @(pattern, p) with_search(text, pattern, @(search)
-		f = @(p)
-			search.reset(p, -1
-			search.next(
+	search_forward = @(pattern, p) with(new_pattern(pattern), @(pattern)
+		f = @(p) pattern.search(text, p, -1
 		search_loop(p, @(p) p < text.size() ? f(p + 1) : '(), @ f(0
-	search_backward = @(pattern, p) with_search(text, pattern, @(search)
+	search_backward = @(pattern, p) with(new_pattern(pattern), @(pattern) with(nata.Search(text, pattern), @(search)
 		f = @(p)
-			search.reset(0, -1
 			last = '(
-			while true
-				m = search.next(
-				(m.size() <= 0 || m[0].from > p) && return last
-				last = m
+			for m = search.first(0, -1); m.size() > 0 && m[0].from <= p; m = search.next(); last = m
+			last
 		search_loop(p, @(p) p > 0 ? f(p - 1) : '(), @ f(text.size(
 	search_pattern = null
 	search_reverse = false
@@ -332,36 +322,38 @@ $new = @(host, status, strip, path)
 				map_commit
 			$get = @
 			$more = @ true
+	hat_pattern = new_pattern("\\S"
 	hat = @(line)
 		l = text.line_at(line
-		match = with_search(text, "\\S", @(search)
-			search.reset(l.from, l.count - 1
-			search.next(
-		view.position__(match.size() > 0 ? match[0].from : l.from + l.count - 1, false
-	skip_loop = @(pattern, f) with_search(text, pattern, @(search)
+		m = hat_pattern.search(text, l.from, l.count - 1
+		view.position__(m.size() > 0 ? m[0].from : l.from + l.count - 1, false
+	skip_loop = @(f)
 		p = q = view.position().text
-		for n = count > 0 ? count : 1; q = f(search, q)
+		for n = count > 0 ? count : 1; q = f(q)
 			n = n - 1
 			n > 0 || break
 		q != p && view.position__(q, q > p
-	skip_forward = @(pattern) skip_loop(pattern, @(search, p)
-		search.reset(p, -1
-		match = search.next(
-		match.size() > 0 && match[0].from + match[0].count
-	skip_backward = @(pattern) skip_loop(pattern, @(search, p)
+	skip_forward = @(pattern) skip_loop(@(p)
+		m = pattern.search(text, p, -1
+		m.size() > 0 && m[0].from + m[0].count
+	skip_backward = @(pattern) skip_loop(@(p)
 		l = text.line_at_in_text(p).index
 		for q = l > 0 ? text.line_at(l - 1).from : 0
-			search.reset(q, p - q
-			match = search.next(
-			match.size() > 0 || return
-			q = match[0].from
-			r = q + match[0].count
+			m = pattern.search(text, q, p - q
+			m.size() > 0 || return
+			q = m[0].from
+			r = q + m[0].count
 			r < p || break q
 			q = r
-	skip_start = @(pattern) "(?:" + pattern + ")(?:(?!\\n)\\s)*(?:\\n(?:(?!\\n)\\s)*)?"
-	skip_end = @(pattern) "\\s*(?:" + pattern + ")"
-	skip_word = "\\w+|[^\\s\\w]*"
-	skip_WORD = "\\S*"
+	do(@
+		start = @(word) "(?:" + word + ")(?:(?!\\n)\\s)*(?:\\n(?:(?!\\n)\\s)*)?"
+		end = @(word) "\\s*(?:" + word + ")"
+		word = "\\w+|[^\\s\\w]*"
+		WORD = "\\S*"
+		:skip_word_start = new_pattern(start(word
+		:skip_word_end = new_pattern(end(word
+		:skip_WORD_start = new_pattern(start(WORD
+		:skip_WORD_end = new_pattern(end(WORD
 	map_motion = {
 		control("H"): KeyMap(@ $finish(@ backward(view.position().text, 0, @(p) view.position__(p, false
 		letter(" "): KeyMap(@ $finish(@ forward(view.position().text, text.size(), @(p) view.position__(p, true
@@ -391,17 +383,17 @@ $new = @(host, status, strip, path)
 		letter("9"): KeyMap(@ :count = count * 10 + 9
 		letter(";"): KeyMap(@ find_next[$](false
 		letter("?"): KeyMap(@ search[$](true
-		letter("B"): KeyMap(@ $finish(@ skip_backward(skip_start(skip_WORD
-		letter("E"): KeyMap(@ $finish(@ skip_forward(skip_end(skip_WORD
+		letter("B"): KeyMap(@ $finish(@ skip_backward(skip_WORD_start
+		letter("E"): KeyMap(@ $finish(@ skip_forward(skip_WORD_end
 		letter("F"): find(true
 		letter("G"): KeyMap(@ $finish(@
 			n = view.size().line
 			forward_n(-1, n - 1, count > 0 ? count : n, hat
 		letter("N"): KeyMap(@ search_next[$](true
-		letter("W"): KeyMap(@ $finish(@ skip_forward(skip_start(skip_WORD
+		letter("W"): KeyMap(@ $finish(@ skip_forward(skip_WORD_start
 		letter("^"): KeyMap(@ $finish(@ hat(view.row().line
-		letter("b"): KeyMap(@ $finish(@ skip_backward(skip_start(skip_word
-		letter("e"): KeyMap(@ $finish(@ skip_forward(skip_end(skip_word
+		letter("b"): KeyMap(@ $finish(@ skip_backward(skip_word_start
+		letter("e"): KeyMap(@ $finish(@ skip_forward(skip_word_end
 		letter("f"): find(false
 		letter("g"): KeyMap(null, null, {
 			letter("g"): KeyMap(@ $finish(@ forward_n(-1, view.size().line - 1, count > 0 ? count : 1, hat
@@ -415,7 +407,7 @@ $new = @(host, status, strip, path)
 			l = text.line_at_in_text(p
 			forward(p, l.from + l.count - 1, @(p) view.position__(p, true
 		letter("n"): KeyMap(@ search_next[$](false
-		letter("w"): KeyMap(@ $finish(@ skip_forward(skip_start(skip_word
+		letter("w"): KeyMap(@ $finish(@ skip_forward(skip_word_start
 		letter("|"): KeyMap(@ $finish(@ view.target__(count > 0 ? count - 1 : 0
 	map_motion[control("J")] = map_motion[letter("j"
 	map_motion[control("M")] = map_motion[letter("+"
@@ -524,9 +516,6 @@ $new = @(host, status, strip, path)
 			::message = t.__string(
 			mode.reset(
 			rewind(
-	match_status = @(pattern, i) with_search(status, pattern, @(search)
-		search.reset(i, -1
-		search.next(
 	map = @(for_, lhs, rhs, noremap = false)
 		# TODO: detect recursing.
 		action = @
@@ -543,8 +532,9 @@ $new = @(host, status, strip, path)
 	for_ip = @(maps) @(f)
 		f(maps.INSERT
 		f(maps.prompt
+	command_map_pattern = new_pattern("^\\s*(<buffer>)?\\s*(\\S+)\\s+(.+)"
 	command_map = @(for_, noremap) @(i)
-		match = match_status("^\\s*(<buffer>)?\\s*(\\S+)\\s+(.+)", i
+		match = command_map_pattern.search(status, i, -1
 		if match.size() > 0
 			lhs = status.slice(match[2].from, match[2].count
 			rhs = status.slice(match[3].from, match[3].count
@@ -583,8 +573,9 @@ $new = @(host, status, strip, path)
 						f((x[2] & m[0]) == 0 ? " " : m[1]
 					push("\n " + ms + "\t" + escape_string(x[0]) + "\t" + x[1]
 			::message = "maps <buffer>" + list(buffer.maps) + "\nmaps" + list(maps
+	command_unmap_pattern = new_pattern("^\\s*(<buffer>)?\\s*(\\S+)"
 	command_unmap = @(for_) @(i)
-		match = match_status("^\\s*(<buffer>)?\\s*(\\S+)", i
+		match = command_unmap_pattern.search(status, i, -1
 		match.size() > 0 || throw Throwable("invalid arguments"
 		lhs = status.slice(match[2].from, match[2].count
 		if match[1].count > 0
@@ -592,15 +583,16 @@ $new = @(host, status, strip, path)
 		else
 			for_(maps)(@(x) x.remove(lhs
 			buffers.each(@(x) for_(x.maps)(@(x) x.merge(lhs
+	command_edit_pattern = new_pattern("^\\s*(?:(#\\d*)|(\\S*))"
 	builtin_commands = {
 		"buffers": @(i)
 			:message = "buffers" + join(@(f)
 				n = buffers.size(
 				for i = 0; i < n; i = i + 1
-					x = buffers[i]
-					f("\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path ? " \"" + x.path + "\"" : " no name")
+					x = buffers[i
+					f("\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path ? " \"" + x.path + "\"" : " no name"
 		"edit": @(i)
-			match = match_status("^\\s*(?:(#\\d*)|(\\S*))", i
+			match = command_edit_pattern.search(status, i, -1
 			if match[1].count > 0
 				switch_buffer(buffers[Integer(status.slice(match[1].from + 1, match[1].count - 1)) - 1]
 			else if match[2].count > 0
@@ -680,6 +672,7 @@ $new = @(host, status, strip, path)
 				$get = @
 				$more = @ true
 	mode = mode_normal = do(Mode + @
+		command_pattern = new_pattern("^(\\w|!)+"
 		$map = KeyMap(null, map_motion, {
 			control("R"): KeyMap(@ $finish(@ times(@ buffer.redo(
 			letter("."): KeyMap(@ Mode.nomap(@
@@ -693,7 +686,7 @@ $new = @(host, status, strip, path)
 			letter(":"): KeyMap(@ show_prompt(":"
 				@
 				@(ok) !ok ? :$reset() : :$finish(@
-					match = match_status("^(\\w|!)+", 1
+					match = command_pattern.search(status, 1, -1
 					match.size() > 0 || throw Throwable("invalid command"
 					m = match[0]
 					name = status.slice(m.from, m.count
@@ -807,7 +800,7 @@ $new = @(host, status, strip, path)
 				else
 					f(p0, p1
 			$map = KeyMap(null, map_motion, map
-		$render = @ mode_normal.render(
+		$render = mode_normal.render
 		$reset = @
 			::mode = mode_normal
 			mode.reset(
@@ -891,7 +884,6 @@ $new = @(host, status, strip, path)
 		$add_buffer = add_buffer
 		$switch_buffer = switch_buffer
 		$open_buffer = open_buffer
-		$match_status = match_status
 		$map = map
 		$nomap = Mode.nomap
 		$map_action = @(for_, lhs, name, action)

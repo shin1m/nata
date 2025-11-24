@@ -4,6 +4,7 @@ nata = Module("nata"
 nata_curses = Module("nata-curses"
 nata_tree_sitter = Module("nata-tree-sitter"
 utilities = Module("utilities"
+with = utilities.with
 find_index = utilities.find_index
 open = utilities.open
 
@@ -26,13 +27,8 @@ syntax_root = os.Path(system.script) / ".." / ".." / "syntax"
 
 try_syntax = @(text, path, type)
 	match = @(text, pattern)
-		search = nata.Search(text
-		try
-			search.pattern(pattern, nata.Search.ECMASCRIPT
-			search.reset(0, -1
-			search.next().size() > 0
-		finally
-			search.dispose(
+		with(nata.Pattern(pattern, nata.Pattern.ECMASCRIPT), @(pattern)
+			pattern.search(text, 0, -1).size() > 0
 	parent = syntax_root / type
 	load = @ '(type
 		nata_tree_sitter.Query(

@@ -232,10 +232,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 	using t_type_of::t_base::t_base;
 	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_text&, size_t, size_t, size_t, size_t), [](auto a_class, auto a_text, auto a_x, auto a_y, auto a_width, auto a_height)
-		{
-			return a_class->template f_new<t_view>(a_text, a_x, a_y, a_width, a_height);
-		}>::template t_bind<t_view>::f_do(this, a_stack, a_n);
+		return t_construct<xemmaix::nata::t_text&, size_t, size_t, size_t, size_t>::template t_bind<t_view>::f_do(this, a_stack, a_n);
 	}
 };
 
@@ -260,10 +257,7 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemma
 	using t_type_of::t_base::t_base;
 	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&), [](auto a_class, auto a_view, auto a_attribute)
-		{
-			return a_class->template f_new<t_overlay>(a_view, a_attribute);
-		}>::template t_bind<t_overlay>::f_do(this, a_stack, a_n);
+		return t_construct<xemmaix::nata::t_view<T_target>&, const typename T_target::t_attribute&>::template t_bind<t_overlay>::f_do(this, a_stack, a_n);
 	}
 };
 
@@ -290,10 +284,7 @@ struct t_type_of<xemmaix::nata::t_overlay_iterator<T_target>> : t_derivable<t_be
 	using t_type_of::t_base::t_base;
 	t_pvalue f_do_construct(t_pvalue* a_stack, size_t a_n)
 	{
-		return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_overlay<T_target>&), [](auto a_class, auto a_overlay)
-		{
-			return a_class->template f_new<t_overlay_iterator>(a_overlay);
-		}>::template t_bind<t_overlay_iterator>::f_do(this, a_stack, a_n);
+		return t_construct<xemmaix::nata::t_overlay<T_target>&>::template t_bind<t_overlay_iterator>::f_do(this, a_stack, a_n);
 	}
 };
 

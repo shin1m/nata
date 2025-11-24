@@ -4,6 +4,11 @@ $remove = @(xs, x)
 	n = xs.size(
 	for i = 0; i < n; i = i + 1; xs[i] === x && break xs.remove(i
 $do = @(f) f(
+$with = @(x, f)
+	try
+		f(x
+	finally
+		x.dispose(
 $letter = letter = @(x) x.code_at(0
 $control = @(x) letter(x) - letter("@")
 $each_code = @(s, f)
