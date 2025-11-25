@@ -152,7 +152,7 @@ $test = @(name, text, f)
 					c == 0x5e || (c = c - 0x40)
 				vi(c
 		@ if !done
-			vi.render(
+			vi.prepare(
 			status = :status.slice(0, -1
 			timers.each(@(x) :status = status + " t" + x[0]
 			print("\t" + status

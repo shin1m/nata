@@ -417,7 +417,7 @@ $new = @(host, status, strip, path)
 	escape_string = @(s) join(@(f) each_code(s, @(c) f(escape(c
 	Mode = Object + @
 		$echo = @(f) input.each(@(x) f(escape(x
-		$render = @
+		$prepare = @
 			if progress != ""
 				status.replace(0, -1, progress
 				::progress = ""
@@ -800,7 +800,7 @@ $new = @(host, status, strip, path)
 				else
 					f(p0, p1
 			$map = KeyMap(null, map_motion, map
-		$render = mode_normal.render
+		$prepare = mode_normal.prepare
 		$reset = @
 			::mode = mode_normal
 			mode.reset(
@@ -858,7 +858,7 @@ $new = @(host, status, strip, path)
 		$prompt
 		$doing
 		$done
-		$render = @
+		$prepare = @
 		$unknown = @(c)
 			status.replace(status.size(), 0, String.from_code(c
 			$doing(
@@ -872,7 +872,7 @@ $new = @(host, status, strip, path)
 	)(@(f) f(mode_normal.map
 	switch_buffer(add_buffer(path
 	do(Object + @
-		$render = @ mode.render(
+		$prepare = @ mode.prepare(
 		$current = @ current
 		$__call = @(c)
 			::message = ""

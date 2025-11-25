@@ -58,9 +58,9 @@ read = @(text, path) open(path, @(reader) while true
 Popup = Object + @
 	$text
 	$view
-	$__initialize = @
+	$__initialize = @(x, y, width, height)
 		$text = nata.Text(
-		$view = View($text, 0, 0, 0, 0
+		$view = View($text, x, y, width, height
 	$dispose = @
 		$view.dispose(
 		$text.dispose(
@@ -68,8 +68,8 @@ Popup = Object + @
 Chooser = Popup + @
 	$selection
 	$done
-	$__initialize = @(done)
-		Popup.__initialize[$](
+	$__initialize = @(x, y, width, height, done)
+		Popup.__initialize[$](x, y, width, height
 		$selection = nata_curses.Overlay($view, nata_curses.A_REVERSE
 		$done = done
 	$dispose = @
@@ -140,18 +140,21 @@ suisha.main(@ nata.main(@ nata_curses.main_with_resized(@(resized)
 		loop.post(@
 			::invalid = false
 			tasks.each(@(x) x(
-			vi.render(
+			main = vi.buffer().view
+			main.move(0, 0, size[0], size[1] - 1
+			main.into_view(main.position().text
+			vi.prepare(
 			sh = strip.size().y
 			limit = size[1] - 2
-			sh > limit && (sh = limit)
+			sh > limit && (sh = limit
 			strip.move(0, size[1] - sh, size[0], sh
 			strip.into_view(strip.position().text
 			mh = size[1] - sh
-			main = vi.buffer().view
 			if popup
+				popup.move(0, 0, size[0], 0
 				limit = size[1] - sh - 1
 				ph = popup.size().y
-				ph > limit && (ph = limit)
+				ph > limit && (ph = limit
 				row = main.row().y
 				bh = main.size().y
 				bh = (mh > bh ? mh : bh) - row
@@ -167,7 +170,6 @@ suisha.main(@ nata.main(@ nata_curses.main_with_resized(@(resized)
 				popup.into_view(popup.position().text
 			else
 				main.move(0, 0, size[0], mh
-				main.into_view(main.position().text
 			main.render(
 			strip.render(
 			popup && popup.render(
@@ -181,8 +183,8 @@ suisha.main(@ nata.main(@ nata_curses.main_with_resized(@(resized)
 		$mode__ = @(x) ::mode = x
 		$popup__ = @(x) ::popup = x
 		$invalidate = invalidate
-		$popup = Popup
-		$chooser = Chooser
+		$popup = @ Popup(0, 0, size[0], 0
+		$chooser = @(done) Chooser(0, 0, size[0], 0, done
 	assist("clangd", "clangd", '("--log=verbose"), '(), @(buffer) buffer.syntax && buffer.syntax.type == "cpp"
 	loop.poll(0, suisha.POLLIN, @(events) if (events & suisha.POLLIN) != 0
 		mode(vi.current().get(
