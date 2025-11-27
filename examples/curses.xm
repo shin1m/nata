@@ -38,7 +38,7 @@ open = @(path, action)
 	finally
 		file.close(
 
-read = @(text, path) open(path, @(reader) while true
+read = @(text, path) open(path, @(reader) while
 	s = reader.read(256
 	s == "" && break
 	text.replace(text.size(), 0, s

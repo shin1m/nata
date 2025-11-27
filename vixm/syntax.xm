@@ -10,7 +10,7 @@ open = utilities.open
 
 read_pairs = @(path) open(path, @(reader)
 	pairs = {
-	while true
+	while
 		line = reader.read_line(
 		line == "" && break
 		i = find_index(line, 0, @(x) x != 0x20
@@ -35,7 +35,7 @@ try_syntax = @(text, path, type)
 			Module("nata-tree-sitter-" + type).language
 			open(parent / "query.scm", @(reader)
 				text = ""
-				while true
+				while
 					s = reader.read(256
 					s == "" && break
 					text = text + s
@@ -83,7 +83,7 @@ $new = @(text, path, view)
 	parser = nata_tree_sitter.Parser(text, query
 	painter = nata_curses.Painter(view
 	creaser = nata_curses.Creaser(view
-	paint = @(p) while true
+	paint = @(p) while
 		token = tokens[0]
 		to = p < token[1] ? p : token[1]
 		q = painter.current(

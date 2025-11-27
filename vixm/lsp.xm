@@ -53,9 +53,9 @@ jsonrpc = @(in, out, notified)
 	dones = {
 	progresses = {
 	(Object + @
-		$dispatch = @ while true
+		$dispatch = @ while
 			::length = 0
-			while true
+			while
 				line = reader.read_line(
 				i = find_index(line, 0, @(x) x == 0x3a
 				i < line.size() || break

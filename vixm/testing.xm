@@ -109,7 +109,7 @@ OverlayIterator = Object + @
 		i = $from
 		i < n || return
 		x = $values[i]
-		while true
+		while
 			i = i + 1
 			i < n && $values[i] == x || break
 		span = Span($from, i - $from, x
