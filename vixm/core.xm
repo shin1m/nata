@@ -6,6 +6,8 @@ letter = utilities.letter
 control = utilities.control
 each_code = utilities.each_code
 
+min = @(x, y) x < y ? x : y
+
 Session = Object + @
 	$logs
 	$undos
@@ -214,10 +216,10 @@ $new = @(host, status, strip, path)
 		y > limit && (y = limit
 		y > x && f(y
 	forward = @(x, limit, f) forward_n(x, limit, count > 0 ? count : 1, f
-	backward = @(x, limit, f)
-		n = count > 0 ? count : 1
+	backward_n = @(x, limit, n, f)
 		y = x > limit + n ? x - n : limit
 		y < x && f(y
+	backward = @(x, limit, f) backward_n(x, limit, count > 0 ? count : 1, f
 	current = view
 	input = [
 	last_input = [
@@ -359,11 +361,11 @@ $new = @(host, status, strip, path)
 		letter(" "): KeyMap(@ $finish(@ forward(view.position().text, text.size(), @(p) view.position__(p, true
 		letter("$"): KeyMap(@ $finish(@
 			view.target__(-1
-			count > 1 && forward_n(view.row().line, view.size().line - 1, count - 1, view.line__
+			count > 1 && forward_n(view.row().line, text.lines() - 1, count - 1, view.line__
 		letter("%"): KeyMap(@ $finish(@ if count > 0 && count <= 100
-			n = view.size().line
+			n = text.lines(
 			forward_n(-1, n - 1, (count * n + 99) / 100, hat
-		letter("+"): KeyMap(@ $finish(@ forward(view.row().line, view.size().line - 1, hat
+		letter("+"): KeyMap(@ $finish(@ forward(view.row().line, text.lines() - 1, hat
 		letter(","): KeyMap(@ find_next[$](true
 		letter("-"): KeyMap(@ $finish(@ backward(view.row().line, 0, hat
 		letter("/"): KeyMap(@ search[$](false
@@ -387,7 +389,7 @@ $new = @(host, status, strip, path)
 		letter("E"): KeyMap(@ $finish(@ skip_forward(skip_WORD_end
 		letter("F"): find(true
 		letter("G"): KeyMap(@ $finish(@
-			n = view.size().line
+			n = text.lines(
 			forward_n(-1, n - 1, count > 0 ? count : n, hat
 		letter("N"): KeyMap(@ search_next[$](true
 		letter("W"): KeyMap(@ $finish(@ skip_forward(skip_WORD_start
@@ -396,11 +398,11 @@ $new = @(host, status, strip, path)
 		letter("e"): KeyMap(@ $finish(@ skip_forward(skip_word_end
 		letter("f"): find(false
 		letter("g"): KeyMap(null, null, {
-			letter("g"): KeyMap(@ $finish(@ forward_n(-1, view.size().line - 1, count > 0 ? count : 1, hat
+			letter("g"): KeyMap(@ $finish(@ forward_n(-1, text.lines() - 1, count > 0 ? count : 1, hat
 		letter("h"): KeyMap(@ $finish(@
 			p = view.position().text
 			backward(p, text.line_at_in_text(p).from, @(p) view.position__(p, false
-		letter("j"): KeyMap(@ $finish(@ forward(view.row().line, view.size().line - 1, view.line__
+		letter("j"): KeyMap(@ $finish(@ forward(view.row().line, text.lines() - 1, view.line__
 		letter("k"): KeyMap(@ $finish(@ backward(view.row().line, 0, view.line__
 		letter("l"): KeyMap(@ $finish(@
 			p = view.position().text
@@ -425,12 +427,12 @@ $new = @(host, status, strip, path)
 				status.replace(0, -1, message
 			else
 				position = view.position(
-				line = text.line_at_in_text(position.text
+				row = view.row(
 				n = view.range(
 				status.replace(0, -1, "" + $name + " " +
-					(line.index + 1) + "," +
-					(position.text - line.from + 1) + "-" +
-					(position.x - view.row().x + 1) + " " +
+					(row.line + 1) + "," +
+					(position.text - row.text + 1) + "-" +
+					(position.x - row.x + 1) + " " +
 					(n > 0 ? view.top() * 100 / n : 100) + "% <" +
 					buffer.undos.size() +
 					(buffer.logs ? "?" + buffer.logs.size() : "") +
@@ -671,9 +673,47 @@ $new = @(host, status, strip, path)
 					map_commit
 				$get = @
 				$more = @ true
+	line_at_in_y = @(y) view.row_at_in_y(y).line
+	head_at_in_y = @(y) view.row_at_in_line(line_at_in_y(y
+	top__ = @(row) view.into_view(row.y, view.height(
+	scroll = @ count > 0 ? count : (view.height() + 1) / 2
+	pages = @() (count > 0 ? count : 1) * (view.height() - 2
+	map_motion_scroll = KeyMap(null, map_motion, {
+		control("B"): KeyMap(@ $finish(@ backward_n(view.top(), 0, pages(), @(x)
+			top = head_at_in_y(x
+			hat(min(line_at_in_y(top.y + view.height() - 1), text.lines() - 1
+			top__(top
+		control("D"): KeyMap(@ $finish(@
+			n = scroll(
+			forward_n(view.row().y, view.range(), n, @(x)
+				hat(line_at_in_y(x
+				forward_n(view.top(), view.size().y - view.height(), n, @(x) top__(head_at_in_y(x
+		control("E"): KeyMap(@ $finish(@ forward(line_at_in_y(view.top()), text.lines() - 1, @(x)
+			top = view.row_at_in_line(x
+			view.row().y < top.y && view.line__(top.line
+			top__(top
+		control("F"): KeyMap(@ $finish(@ forward_n(view.top(), view.range(), pages(), @(x)
+			top = head_at_in_y(x
+			hat(top.line
+			top__(top
+		control("U"): KeyMap(@ $finish(@
+			n = scroll(
+			backward_n(view.row().y, 0, n, @(x)
+				hat(line_at_in_y(x
+				backward_n(view.top(), 0, n, @(x) top__(head_at_in_y(x
+		control("Y"): KeyMap(@ $finish(@ backward(line_at_in_y(view.top()), 0, @(x)
+			top = view.row_at_in_line(x
+			bottom = top.y + view.height(
+			last = view.row_at_in_y(bottom - 1).line
+			row = view.row(
+			if row.line > last
+				view.line__(last
+				row = view.row(
+			row.line > top.line && view.row_at(row.index + 1).y > bottom && view.line__(row.line - 1
+			top__(top
 	mode = mode_normal = do(Mode + @
 		command_pattern = new_pattern("^(\\w|!)+"
-		$map = KeyMap(null, map_motion, {
+		$map = KeyMap(null, map_motion_scroll, {
 			control("R"): KeyMap(@ $finish(@ times(@ buffer.redo(
 			letter("."): KeyMap(@ Mode.nomap(@
 				input.pop(
@@ -743,7 +783,7 @@ $new = @(host, status, strip, path)
 			each_code("v" + x[1] + " " + c, input.push
 			::count = 0
 			f(x[0], x[0] + x[1]
-		$map = KeyMap(null, map_motion, {
+		$map = KeyMap(null, map_motion_scroll, {
 			control("["): KeyMap(@
 				clear(
 				::mode = mode_normal

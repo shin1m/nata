@@ -40,12 +40,14 @@ Row = Object + @
 
 View = Object + @
 	$text
+	$_height
 	$_position
 	$_target
 	$_top
 	$__initialize = @(text)
 		$text = text
 		$text.replaced.push($
+		$_height = 3
 		$_position = $_target = $_top = 0
 	$dispose = @ remove($text.replaced, $
 	$__call = @(p, n0, n1) $_position < p || $position__(($_position < p + n0 ? p : $_position - n0) + n1, false
@@ -53,15 +55,20 @@ View = Object + @
 		lines = $text.lines(
 		size = $text.size(
 		Row(lines, lines, size, size, lines
-	$range = @ 0#$text.lines() - 1
+	$height = @ $_height
+	$range = @ $text.lines() - 1
 	$top = @ $_top
 	$position = @ Position($_position, $_position, 1
 	$position__ = @(p, forward)
 		$_position = p
 		$_target = p - $text.line_at_in_text(p).from
-	$row = @
-		line = $text.line_at_in_text($_position
-		Row(line.index, line.index, line.from, line.from, line.index
+	to_row = @(line) Row(line.index, line.index, line.from, line.from, line.index
+	$row = @ to_row($text.line_at_in_text($_position
+	$row_at = @(x)
+		n = $text.lines(
+		to_row($text.line_at(x < n ? x : n - 1
+	$row_at_in_line = @(x) $row_at(x
+	$row_at_in_y = @(x) $row_at(x
 	$from_line = @(line)
 		n = line.count - 1
 		x = $_target
@@ -70,7 +77,7 @@ View = Object + @
 	$target__ = @(x)
 		$_target = x
 		$from_line($text.line_at_in_text($_position
-	$into_view = @(p)
+	$into_view = @(p, h = null) h && ($_top = p
 	$folded = @(p, on)
 
 Span = Object + @

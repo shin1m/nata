@@ -23,6 +23,13 @@ struct t_view : t_proxy, T_target
 	{
 		return f_new_value(a_library->f_type_row(), a_row.v_i, a_row.v_line, a_row.v_text, a_row.v_x, a_row.v_y);
 	}
+	static t_object* f_row(typename T_target::t_library* a_library, const decltype(v_rows.f_begin())& a_i)
+	{
+		auto index = a_i.f_index();
+		index.v_line += a_i.f_delta().v_line;
+		--index.v_line;
+		return f_row(a_library, index);
+	}
 
 	t_view(t_text& a_text, size_t a_x, size_t a_y, size_t a_width, size_t a_height) : T_target(a_x, a_y, a_width, a_height), v_text(a_text), v_tokens(v_text), v_rows(v_tokens, *this), v_widget(v_rows)
 	{
@@ -190,6 +197,18 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 		(L"row"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
 		{
 			return t_view::f_row(a_library, a_this.v_widget.v_line);
+		}>())
+		(L"row_at"sv, t_member<t_object*(*)(t_library*, const t_view&, size_t), [](auto a_library, auto a_this, auto a_p)
+		{
+			return t_view::f_row(a_library, a_this.v_rows.f_at(a_p));
+		}>())
+		(L"row_at_in_line"sv, t_member<t_object*(*)(t_library*, const t_view&, size_t), [](auto a_library, auto a_this, auto a_p)
+		{
+			return t_view::f_row(a_library, a_this.v_rows.f_at_in_line(a_p).f_index());
+		}>())
+		(L"row_at_in_y"sv, t_member<t_object*(*)(t_library*, const t_view&, size_t), [](auto a_library, auto a_this, auto a_p)
+		{
+			return t_view::f_row(a_library, a_this.v_rows.f_at_in_y(a_p));
 		}>())
 		(L"line__"sv, t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_value)
 		{
