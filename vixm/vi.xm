@@ -19,7 +19,7 @@ Text = nata.Text + @
 		$replaced = [
 		$version = 0
 	$to_location = @(x)
-		l = $line_at_in_text(x
+		l = $line_at_text(x
 		'(l.index, $in_bytes(x) - $in_bytes(l.from)
 	$from_location = @(x) $in_text($in_bytes($line_at(x["line"]).from) + x["character"]
 	$replace = @(p, n, s)

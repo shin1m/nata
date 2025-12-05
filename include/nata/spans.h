@@ -123,7 +123,7 @@ public:
 	{
 		return v_array.f_at(a_p);
 	}
-	t_iterator f_at_in_text(size_t a_p) const
+	t_iterator f_at_text(size_t a_p) const
 	{
 		return v_array.f_at(a_p, [](const auto& a_index)
 		{

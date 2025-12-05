@@ -195,12 +195,12 @@ nata.main(@ nata_curses.main(@
 			selection.paint(0, -1, false
 	update_status = @
 		position = view.position(
-		line = text.line_at_in_text(position.text
+		row = view.row(
 		n = view.range(
 		status.replace(0, -1, "" +
-			line.index + "," +
-			(position.text - line.from) + "-" +
-			(position.x - view.row().x) + " " +
+			row.line + "," +
+			(position.text - row.text) + "-" +
+			(position.x - row.x) + " " +
 			(n > 0 ? view.top() * 100 / n : 100) + "% <" +
 			session.undos.size() +
 			(session.logs ? "?" + session.logs.size() : "") +

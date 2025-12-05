@@ -48,9 +48,9 @@ int main(int argc, char* argv[])
 		});
 	}
 	{
-		auto row = rows.f_at_in_y(0);
+		auto row = rows.f_at_y(0);
 		auto text = rows.v_tokens.v_text.f_at(row.f_index().v_text);
-		auto token = rows.v_tokens.f_at_in_text(text.f_index());
+		auto token = rows.v_tokens.f_at_text(text.f_index());
 		size_t delta = token.f_index().v_i1 + token.f_delta().v_i1 - text.f_index();
 		while (true) {
 			auto rd = row.f_delta();

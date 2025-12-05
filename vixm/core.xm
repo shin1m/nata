@@ -306,7 +306,7 @@ $new = @(host, status, strip, path)
 		find_letter || return $reset(
 		reverse = find_reverse ^ reverse
 		p = view.position().text
-		l = text.line_at_in_text(p
+		l = text.line_at_text(p
 		limit = reverse ? l.from : l.from + l.count - 1
 		d = reverse ? -1 : 1
 		for n = count > 0 ? count : 1; p != limit
@@ -339,7 +339,7 @@ $new = @(host, status, strip, path)
 		m = pattern.search(text, p, -1
 		m.size() > 0 && m[0].from + m[0].count
 	skip_backward = @(pattern) skip_loop(@(p)
-		l = text.line_at_in_text(p).index
+		l = text.line_at_text(p).index
 		for q = l > 0 ? text.line_at(l - 1).from : 0
 			m = pattern.search(text, q, p - q
 			m.size() > 0 || return
@@ -401,12 +401,12 @@ $new = @(host, status, strip, path)
 			letter("g"): KeyMap(@ $finish(@ forward_n(-1, text.lines() - 1, count > 0 ? count : 1, hat
 		letter("h"): KeyMap(@ $finish(@
 			p = view.position().text
-			backward(p, text.line_at_in_text(p).from, @(p) view.position__(p, false
+			backward(p, text.line_at_text(p).from, @(p) view.position__(p, false
 		letter("j"): KeyMap(@ $finish(@ forward(view.row().line, text.lines() - 1, view.line__
 		letter("k"): KeyMap(@ $finish(@ backward(view.row().line, 0, view.line__
 		letter("l"): KeyMap(@ $finish(@
 			p = view.position().text
-			l = text.line_at_in_text(p
+			l = text.line_at_text(p
 			forward(p, l.from + l.count - 1, @(p) view.position__(p, true
 		letter("n"): KeyMap(@ search_next[$](false
 		letter("w"): KeyMap(@ $finish(@ skip_forward(skip_word_start
@@ -673,38 +673,38 @@ $new = @(host, status, strip, path)
 					map_commit
 				$get = @
 				$more = @ true
-	line_at_in_y = @(y) view.row_at_in_y(y).line
-	head_at_in_y = @(y) view.row_at_in_line(line_at_in_y(y
+	line_at_y = @(y) view.row_at_y(y).line
+	head_at_y = @(y) view.row_at_line(line_at_y(y
 	top__ = @(row) view.into_view(row.y, view.height(
 	scroll = @ count > 0 ? count : (view.height() + 1) / 2
 	pages = @() (count > 0 ? count : 1) * (view.height() - 2
 	map_motion_scroll = KeyMap(null, map_motion, {
 		control("B"): KeyMap(@ $finish(@ backward_n(view.top(), 0, pages(), @(x)
-			top = head_at_in_y(x
-			hat(min(line_at_in_y(top.y + view.height() - 1), text.lines() - 1
+			top = head_at_y(x
+			hat(min(line_at_y(top.y + view.height() - 1), text.lines() - 1
 			top__(top
 		control("D"): KeyMap(@ $finish(@
 			n = scroll(
 			forward_n(view.row().y, view.range(), n, @(x)
-				hat(line_at_in_y(x
-				forward_n(view.top(), view.size().y - view.height(), n, @(x) top__(head_at_in_y(x
-		control("E"): KeyMap(@ $finish(@ forward(line_at_in_y(view.top()), text.lines() - 1, @(x)
-			top = view.row_at_in_line(x
+				hat(line_at_y(x
+				forward_n(view.top(), view.size().y - view.height(), n, @(x) top__(head_at_y(x
+		control("E"): KeyMap(@ $finish(@ forward(line_at_y(view.top()), text.lines() - 1, @(x)
+			top = view.row_at_line(x
 			view.row().y < top.y && view.line__(top.line
 			top__(top
 		control("F"): KeyMap(@ $finish(@ forward_n(view.top(), view.range(), pages(), @(x)
-			top = head_at_in_y(x
+			top = head_at_y(x
 			hat(top.line
 			top__(top
 		control("U"): KeyMap(@ $finish(@
 			n = scroll(
 			backward_n(view.row().y, 0, n, @(x)
-				hat(line_at_in_y(x
-				backward_n(view.top(), 0, n, @(x) top__(head_at_in_y(x
-		control("Y"): KeyMap(@ $finish(@ backward(line_at_in_y(view.top()), 0, @(x)
-			top = view.row_at_in_line(x
+				hat(line_at_y(x
+				backward_n(view.top(), 0, n, @(x) top__(head_at_y(x
+		control("Y"): KeyMap(@ $finish(@ backward(line_at_y(view.top()), 0, @(x)
+			top = view.row_at_line(x
 			bottom = top.y + view.height(
-			last = view.row_at_in_y(bottom - 1).line
+			last = view.row_at_y(bottom - 1).line
 			row = view.row(
 			if row.line > last
 				view.line__(last
@@ -753,7 +753,7 @@ $new = @(host, status, strip, path)
 			letter("p"): KeyMap(@ $commit(@
 				p = view.position().text
 				begin(p
-				register[0] && (p = text.line_at_in_text(p).from)
+				register[0] && (p = text.line_at_text(p).from
 				times(@ buffer.merge(p, 0, register[1]
 				commit(
 			letter("u"): KeyMap(@ $finish(@ times(@ buffer.undo(

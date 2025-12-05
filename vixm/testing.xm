@@ -61,14 +61,14 @@ View = Object + @
 	$position = @ Position($_position, $_position, 1
 	$position__ = @(p, forward)
 		$_position = p
-		$_target = p - $text.line_at_in_text(p).from
+		$_target = p - $text.line_at_text(p).from
 	to_row = @(line) Row(line.index, line.index, line.from, line.from, line.index
-	$row = @ to_row($text.line_at_in_text($_position
+	$row = @ to_row($text.line_at_text($_position
 	$row_at = @(x)
 		n = $text.lines(
 		to_row($text.line_at(x < n ? x : n - 1
-	$row_at_in_line = @(x) $row_at(x
-	$row_at_in_y = @(x) $row_at(x
+	$row_at_line = @(x) $row_at(x
+	$row_at_y = @(x) $row_at(x
 	$from_line = @(line)
 		n = line.count - 1
 		x = $_target
@@ -76,7 +76,7 @@ View = Object + @
 	$line__ = @(x) $from_line($text.line_at(x
 	$target__ = @(x)
 		$_target = x
-		$from_line($text.line_at_in_text($_position
+		$from_line($text.line_at_text($_position
 	$into_view = @(p, h = null) h && ($_top = p
 	$folded = @(p, on)
 

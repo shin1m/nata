@@ -137,11 +137,11 @@ private:
 
 	std::tuple<size_t, size_t, size_t> f_replace(size_t a_p, size_t a_n0, size_t a_n1)
 	{
-		auto i = f_at_in_text(a_p);
+		auto i = f_at_text(a_p);
 		bool head = i.f_delta().v_line > 0;
 		if (i.f_index().v_text >= a_p && !head) head = (--i).f_delta().v_line > 0;
 		size_t p = a_p + a_n0;
-		auto j = f_at_in_text(p);
+		auto j = f_at_text(p);
 		do ++j; while (j != f_end() && j.f_delta().v_line <= 0);
 		a_n1 += j.f_index().v_text - p;
 		if (j == f_end()) --a_n1;
@@ -178,9 +178,9 @@ private:
 		};
 		p = i.f_index().v_text;
 		std::vector<typename t_creases::t_iterator> crease;
-		size_t q = f_leaf_at_in_text(p, crease, true);
+		size_t q = f_leaf_at_text(p, crease, true);
 		size_t cd = crease.back().f_delta().v_i1 - q;
-		auto token = v_tokens.f_at_in_text(p);
+		auto token = v_tokens.f_at_text(p);
 		size_t td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 		auto first = v_tokens.v_text.f_at(p);
 		auto last = v_tokens.v_text.f_at(a_p + a_n1);
@@ -194,7 +194,7 @@ private:
 					f_next_leaf(crease);
 				} while (crease.back()->v_x);
 				cd = crease.back().f_delta().v_i1;
-				token = v_tokens.f_at_in_text(p);
+				token = v_tokens.f_at_text(p);
 				td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 				first = v_tokens.v_text.f_at(p);
 				if (first == last) break;
@@ -288,28 +288,28 @@ public:
 	{
 		return v_array.f_at(a_p);
 	}
-	t_iterator f_at_in_line(size_t a_p) const
+	t_iterator f_at_line(size_t a_p) const
 	{
 		return v_array.f_at(a_p, [](const auto& a_index)
 		{
 			return a_index.v_line;
 		});
 	}
-	t_iterator f_at_in_text(size_t a_p) const
+	t_iterator f_at_text(size_t a_p) const
 	{
 		return v_array.f_at(a_p, [](const auto& a_index)
 		{
 			return a_index.v_text;
 		});
 	}
-	t_iterator f_at_in_x(size_t a_p) const
+	t_iterator f_at_x(size_t a_p) const
 	{
 		return v_array.f_at(a_p, [](const auto& a_index)
 		{
 			return a_index.v_x;
 		});
 	}
-	t_iterator f_at_in_y(size_t a_p) const
+	t_iterator f_at_y(size_t a_p) const
 	{
 		return v_array.f_at(a_p, [](const auto& a_index)
 		{
@@ -320,13 +320,13 @@ public:
 	{
 		return v_creases;
 	}
-	size_t f_crease_at_in_text(size_t a_p, std::vector<typename t_creases::t_iterator>& a_path, bool a_visible = false) const
+	size_t f_crease_at_text(size_t a_p, std::vector<typename t_creases::t_iterator>& a_path, bool a_visible = false) const
 	{
-		return v_creases.f_path_at_in_text(a_p, a_path, a_visible ? f_enter<true> : f_enter<false>);
+		return v_creases.f_path_at_text(a_p, a_path, a_visible ? f_enter<true> : f_enter<false>);
 	}
-	size_t f_leaf_at_in_text(size_t a_p, std::vector<typename t_creases::t_iterator>& a_path, bool a_visible = false) const
+	size_t f_leaf_at_text(size_t a_p, std::vector<typename t_creases::t_iterator>& a_path, bool a_visible = false) const
 	{
-		return v_creases.f_leaf_at_in_text(a_p, a_path, a_visible ? f_enter<true> : f_enter<false>);
+		return v_creases.f_leaf_at_text(a_p, a_path, a_visible ? f_enter<true> : f_enter<false>);
 	}
 	void f_next_leaf(std::vector<typename t_creases::t_iterator>& a_path) const
 	{
@@ -346,7 +346,7 @@ public:
 	size_t f_folded(size_t a_p, bool a_on)
 	{
 		std::vector<typename t_creases::t_iterator> path;
-		size_t p = a_p - f_crease_at_in_text(a_p, path);
+		size_t p = a_p - f_crease_at_text(a_p, path);
 		auto i = path.back();
 		if (!i->v_x) {
 			if (path.size() <= 1) return a_p;
@@ -364,9 +364,9 @@ public:
 		size_t p = a_i.f_index().v_text;
 		size_t x = a_i.f_index().v_x;
 		std::vector<typename t_creases::t_iterator> crease;
-		size_t q = f_leaf_at_in_text(p, crease, true);
+		size_t q = f_leaf_at_text(p, crease, true);
 		size_t cd = crease.back().f_delta().v_i1 - q;
-		auto token = v_tokens.f_at_in_text(p);
+		auto token = v_tokens.f_at_text(p);
 		size_t td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 		auto first = v_tokens.v_text.f_at(p);
 		p += a_i.f_delta().v_text;
@@ -382,7 +382,7 @@ public:
 					f_next_leaf(crease);
 				} while (crease.back()->v_x);
 				cd = crease.back().f_delta().v_i1;
-				token = v_tokens.f_at_in_text(p);
+				token = v_tokens.f_at_text(p);
 				td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 				first = v_tokens.v_text.f_at(p);
 				if (first == last) break;

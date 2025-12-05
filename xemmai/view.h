@@ -202,13 +202,13 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 		{
 			return t_view::f_row(a_library, a_this.v_rows.f_at(a_p));
 		}>())
-		(L"row_at_in_line"sv, t_member<t_object*(*)(t_library*, const t_view&, size_t), [](auto a_library, auto a_this, auto a_p)
+		(L"row_at_line"sv, t_member<t_object*(*)(t_library*, const t_view&, size_t), [](auto a_library, auto a_this, auto a_p)
 		{
-			return t_view::f_row(a_library, a_this.v_rows.f_at_in_line(a_p).f_index());
+			return t_view::f_row(a_library, a_this.v_rows.f_at_line(a_p).f_index());
 		}>())
-		(L"row_at_in_y"sv, t_member<t_object*(*)(t_library*, const t_view&, size_t), [](auto a_library, auto a_this, auto a_p)
+		(L"row_at_y"sv, t_member<t_object*(*)(t_library*, const t_view&, size_t), [](auto a_library, auto a_this, auto a_p)
 		{
-			return t_view::f_row(a_library, a_this.v_rows.f_at_in_y(a_p));
+			return t_view::f_row(a_library, a_this.v_rows.f_at_y(a_p));
 		}>())
 		(L"line__"sv, t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_value)
 		{
@@ -232,7 +232,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 			}>(),
 			t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_p)
 			{
-				a_this.v_widget.f_into_view(a_this.v_rows.f_at_in_text(a_p));
+				a_this.v_widget.f_into_view(a_this.v_rows.f_at_text(a_p));
 			}>()
 		)
 		(L"timeout"sv, t_member<void(*)(t_view&, int), [](auto a_this, auto a_delay)

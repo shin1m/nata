@@ -122,7 +122,7 @@ $new = @(host)
 		@
 	completion = @(client, buffer, pattern)
 		target = @(p) with(nata.Search(buffer.text, pattern), @(search)
-			l = buffer.text.line_at_in_text(p
+			l = buffer.text.line_at_text(p
 			for m = search.first(l.from, l.count); m.size() > 0 && m[0].from <= p; m = search.next()
 				m[0].from + m[0].count < p || return m[0]
 			empty = nata.Span(

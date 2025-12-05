@@ -63,7 +63,7 @@ private:
 	{
 		if (a_i->v_x) {
 			auto& x = a_i->v_x->v_nested;
-			auto i = x.f_at_in_text(a_n);
+			auto i = x.f_at_text(a_n);
 			size_t n = a_n - i.f_index().v_i1;
 			if (n > 0) x.f_merge(i, n, a_xs);
 			if (!a_xs.empty()) x.f_merge(i, a_xs);
@@ -84,7 +84,7 @@ private:
 	{
 		if (a_i->v_x) {
 			auto& x = a_i->v_x->v_nested;
-			auto i = x.f_at_in_text(a_n);
+			auto i = x.f_at_text(a_n);
 			size_t n = a_n - i.f_index().v_i1;
 			if (n > 0) {
 				x.f_merge(a_xs, i, n);
@@ -102,11 +102,11 @@ private:
 	}
 
 public:
-	size_t f_path_at_in_text(size_t a_p, std::vector<t_iterator>& a_path, auto a_enter) const
+	size_t f_path_at_text(size_t a_p, std::vector<t_iterator>& a_path, auto a_enter) const
 	{
 		auto x = this;
 		while (true) {
-			auto i = x->f_at_in_text(a_p);
+			auto i = x->f_at_text(a_p);
 			a_path.push_back(i);
 			a_p -= i.f_index().v_i1;
 			if (a_p <= 0 || !i->v_x || !a_enter(i->v_x)) break;
@@ -123,9 +123,9 @@ public:
 			a_path.push_back(i->v_x->v_nested.f_begin());
 		}
 	}
-	size_t f_leaf_at_in_text(size_t a_p, std::vector<t_iterator>& a_path, auto a_enter) const
+	size_t f_leaf_at_text(size_t a_p, std::vector<t_iterator>& a_path, auto a_enter) const
 	{
-		a_p = f_path_at_in_text(a_p, a_path, a_enter);
+		a_p = f_path_at_text(a_p, a_path, a_enter);
 		if (a_p <= 0) f_leaf(a_path, a_enter);
 		return a_p;
 	}
@@ -139,7 +139,7 @@ public:
 	}
 	t_iterator f_replace(size_t a_p, size_t a_n, std::deque<t_span>&& a_xs)
 	{
-		auto i = this->f_at_in_text(a_p);
+		auto i = this->f_at_text(a_p);
 		if (a_n <= 0 && a_xs.empty()) return i;
 		size_t n = a_p - i.f_index().v_i1;
 		size_t p = a_p + a_n;
@@ -151,7 +151,7 @@ public:
 			}
 			f_merge(i, n, a_xs);
 		}
-		auto j = this->f_at_in_text(p);
+		auto j = this->f_at_text(p);
 		n = p - j.f_index().v_i1;
 		if (n > 0) {
 			f_merge(a_xs, j, n);

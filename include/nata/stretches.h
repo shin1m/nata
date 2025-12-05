@@ -15,7 +15,7 @@ struct t_stretches : t_spans<t_span<T_value>, A_leaf, A_branch>
 
 	t_iterator f_replace(size_t a_p, size_t a_n, std::deque<t_span>&& a_xs)
 	{
-		auto i = this->f_at_in_text(a_p);
+		auto i = this->f_at_text(a_p);
 		if (a_n <= 0 && a_xs.empty()) return i;
 		size_t n = a_p - i.f_index().v_i1;
 		if (n > 0) {
@@ -31,7 +31,7 @@ struct t_stretches : t_spans<t_span<T_value>, A_leaf, A_branch>
 			}
 		}
 		size_t p = a_p + a_n;
-		auto j = this->f_at_in_text(p);
+		auto j = this->f_at_text(p);
 		if (j.f_index().v_i1 < p) {
 			auto x = j->v_x;
 			size_t n = (++j).f_index().v_i1 - p;

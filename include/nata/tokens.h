@@ -41,7 +41,7 @@ public:
 	using t_stretches::f_begin;
 	using t_stretches::f_end;
 	using t_stretches::f_at;
-	using t_stretches::f_at_in_text;
+	using t_stretches::f_at_text;
 	t_iterator f_paint(size_t a_p, std::deque<t_span>&& a_xs)
 	{
 		size_t n = std::accumulate(a_xs.begin(), a_xs.end(), 0, [](size_t n, const auto& x)

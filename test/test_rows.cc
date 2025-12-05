@@ -175,14 +175,14 @@ int main(int argc, char* argv[])
 			{0, true, 4, 8, 2, 4}
 		});
 		{
-			auto i = rows.f_at_in_y(5).f_index();
+			auto i = rows.f_at_y(5).f_index();
 			assert(i.v_i == 1);
 			assert(i.v_text == 8);
 			assert(i.v_x == 10);
 			assert(i.v_y == 3);
 		}
 		{
-			auto i = rows.f_at_in_y(10).f_index();
+			auto i = rows.f_at_y(10).f_index();
 			assert(i.v_i == 3);
 			assert(i.v_text == 20);
 			assert(i.v_x == 28);

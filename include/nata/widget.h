@@ -79,7 +79,7 @@ class t_widget
 		f_adjust(a_y, a_h0, a_h1);
 		size_t& p = std::get<0>(v_position);
 		if (p < a_p) {
-			v_row = v_rows.f_at_in_text(p);
+			v_row = v_rows.f_at_text(p);
 			return;
 		}
 		if (p > a_p || a_n0 <= 0) p = (p < a_p + a_n0 ? a_p : p - a_n0) + a_n1;
@@ -93,9 +93,9 @@ class t_widget
 	t_slot<size_t, size_t> v_overlay_painted = [this](auto a_p, auto a_n)
 	{
 		size_t bottom = v_top + f_height();
-		size_t y0 = v_rows.f_at_in_text(a_p).f_index().v_y;
+		size_t y0 = v_rows.f_at_text(a_p).f_index().v_y;
 		if (y0 >= bottom) return;
-		auto row = v_rows.f_at_in_text(a_p + a_n);
+		auto row = v_rows.f_at_text(a_p + a_n);
 		size_t y1 = row.f_index().v_y + row.f_delta().v_y;
 		if (y1 <= v_top) return;
 		if (y0 < v_top) y0 = v_top;
@@ -114,7 +114,7 @@ public:
 	{
 		size_t height = v_rows.v_target.f_height();
 		if (height > 0) v_region.f_replace(0, 0, {{true, height}});
-		v_row = v_rows.f_at_in_text(0);
+		v_row = v_rows.f_at_text(0);
 		v_rows.v_target.v_resized >> v_resized;
 		a_rows.v_replaced >> v_replaced;
 		a_rows.v_painted >> v_painted;
@@ -143,11 +143,11 @@ public:
 	}
 	void f_render(auto& a_target)
 	{
-		auto row = v_rows.f_at_in_y(v_top);
+		auto row = v_rows.f_at_y(v_top);
 		size_t p = row.f_index().v_text;
 		auto text = v_rows.v_tokens.v_text.f_at(p);
 		std::vector<typename T_rows::t_creases::t_iterator> crease;
-		size_t q = v_rows.f_leaf_at_in_text(p, crease, true);
+		size_t q = v_rows.f_leaf_at_text(p, crease, true);
 		size_t cd;
 		decltype(v_rows.v_tokens.f_begin()) token;
 		size_t td;
@@ -155,10 +155,10 @@ public:
 		auto skip = [&](size_t p)
 		{
 			cd = crease.back().f_delta().v_i1;
-			token = v_rows.v_tokens.f_at_in_text(p);
+			token = v_rows.v_tokens.f_at_text(p);
 			td = token.f_index().v_i1 + token.f_delta().v_i1 - p;
 			for (size_t i = 0; i < overlays.size(); ++i) {
-				auto o = v_overlays[i].second->f_at_in_text(p);
+				auto o = v_overlays[i].second->f_at_text(p);
 				size_t od = o.f_index().v_i1 + o.f_delta().v_i1 - p;
 				overlays[i] = {std::move(o), od};
 			}
@@ -294,12 +294,12 @@ public:
 	}
 	void f_from_line()
 	{
-		v_line = v_rows.f_at_in_line(v_line.v_line).f_index();
-		v_row = v_rows.f_at_in_line(v_line.v_line + 1);
+		v_line = v_rows.f_at_line(v_line.v_line).f_index();
+		v_row = v_rows.f_at_line(v_line.v_line + 1);
 		size_t ax = v_target;
 		if (ax < size_t(-1)) ax += v_line.v_x;
 		if (ax < v_row.f_index().v_x)
-			v_row = v_rows.f_at_in_x(ax);
+			v_row = v_rows.f_at_x(ax);
 		else
 			--v_row;
 		v_position = v_rows.f_each_x(v_row, [&](size_t p, size_t x, size_t width)
@@ -310,21 +310,21 @@ public:
 	void f_from_position(bool a_retarget = false)
 	{
 		auto& [p, x, width] = v_position;
-		v_row = v_rows.f_at_in_text(p);
-		v_line = v_rows.f_at_in_line(v_row.f_index().v_line + v_row.f_delta().v_line - 1).f_index();
+		v_row = v_rows.f_at_text(p);
+		v_line = v_rows.f_at_line(v_row.f_index().v_line + v_row.f_delta().v_line - 1).f_index();
 		v_position = v_rows.f_each_x(v_row, [&](size_t q, auto, auto)
 		{
 			return q < p;
 		});
 		size_t tx = x - v_line.v_x;
-		if (a_retarget || v_target < tx || p < v_rows.f_at_in_line(v_line.v_line + 1).f_index().v_text - 1 && v_target >= tx + width) v_target = tx;
+		if (a_retarget || v_target < tx || p < v_rows.f_at_line(v_line.v_line + 1).f_index().v_text - 1 && v_target >= tx + width) v_target = tx;
 	}
 	void f_position__(size_t a_value, bool a_forward)
 	{
 		size_t& p = std::get<0>(v_position);
 		p = a_value;
 		std::vector<typename T_rows::t_creases::t_iterator> crease;
-		size_t q = v_rows.f_leaf_at_in_text(p, crease, true);
+		size_t q = v_rows.f_leaf_at_text(p, crease, true);
 		if (auto& back = crease.back(); back->v_x && q > 0) {
 			p -= q;
 			if (a_forward) p += back.f_delta().v_i1;

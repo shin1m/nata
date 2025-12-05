@@ -34,10 +34,10 @@ struct t_lines : t_spans<t_line, A_leaf, A_branch>
 	}
 	void f_replace(size_t a_p, size_t a_n, auto a_first, auto a_last)
 	{
-		auto i = this->f_at_in_text(a_p);
+		auto i = this->f_at_text(a_p);
 		size_t n = a_p - i.f_index().v_i1;
 		size_t p = a_p + a_n;
-		auto j = this->f_at_in_text(p);
+		auto j = this->f_at_text(p);
 		size_t m = (++j).f_index().v_i1 - p;
 		i = this->v_array.f_erase(i, j);
 		while (a_first != a_last) {

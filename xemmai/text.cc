@@ -51,10 +51,10 @@ void t_type_of<xemmaix::nata::t_text>::f_define(t_library* a_library)
 		if (a_p >= a_this.f_lines()) f_throw(L"out of range."sv);
 		return t_text::f_line(a_library, a_this.::nata::t_text<>::f_lines().f_at(a_p));
 	}>())
-	(L"line_at_in_text"sv, t_member<t_object*(*)(t_library*, const t_text&, size_t), [](auto a_library, auto a_this, auto a_p)
+	(L"line_at_text"sv, t_member<t_object*(*)(t_library*, const t_text&, size_t), [](auto a_library, auto a_this, auto a_p)
 	{
 		if ((a_p > a_this.f_size())) f_throw(L"out of range."sv);
-		return t_text::f_line(a_library, a_this.::nata::t_text<>::f_lines().f_at_in_text(a_p));
+		return t_text::f_line(a_library, a_this.::nata::t_text<>::f_lines().f_at_text(a_p));
 	}>())
 	.f_derive<t_text, xemmaix::nata::t_proxy>();
 }

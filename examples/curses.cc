@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
 		for (auto& x : tasks) x();
 		size_t position = std::get<0>(widget.v_position);
 		if (message.empty()) {
-			auto line = text.f_lines().f_at_in_text(position).f_index();
+			auto line = text.f_lines().f_at_text(position).f_index();
 			size_t column = position - line.v_i1;
 			size_t x = std::get<1>(widget.v_position) - widget.v_line.v_x;
 			size_t n = widget.f_range();
