@@ -78,7 +78,10 @@ class t_widget
 	{
 		f_adjust(a_y, a_h0, a_h1);
 		size_t& p = std::get<0>(v_position);
-		if (p < a_p) return;
+		if (p < a_p) {
+			v_row = v_rows.f_at_in_text(p);
+			return;
+		}
 		if (p > a_p || a_n0 <= 0) p = (p < a_p + a_n0 ? a_p : p - a_n0) + a_n1;
 		f_from_position(v_row.f_index().v_y < a_y + a_h0);
 	};
@@ -306,24 +309,25 @@ public:
 	}
 	void f_from_position(bool a_retarget = false)
 	{
-		v_row = v_rows.f_at_in_text(std::get<0>(v_position));
+		auto& [p, x, width] = v_position;
+		v_row = v_rows.f_at_in_text(p);
 		v_line = v_rows.f_at_in_line(v_row.f_index().v_line + v_row.f_delta().v_line - 1).f_index();
-		v_position = v_rows.f_each_x(v_row, [&](size_t p, size_t, size_t)
+		v_position = v_rows.f_each_x(v_row, [&](size_t q, auto, auto)
 		{
-			return p < std::get<0>(v_position);
+			return q < p;
 		});
-		size_t tx = std::get<1>(v_position) - v_line.v_x;
-		if (a_retarget || v_target < tx || std::get<0>(v_position) < v_rows.f_at_in_line(v_line.v_line + 1).f_index().v_text - 1 && v_target >= tx + std::get<2>(v_position)) v_target = tx;
+		size_t tx = x - v_line.v_x;
+		if (a_retarget || v_target < tx || p < v_rows.f_at_in_line(v_line.v_line + 1).f_index().v_text - 1 && v_target >= tx + width) v_target = tx;
 	}
 	void f_position__(size_t a_value, bool a_forward)
 	{
-		size_t& position = std::get<0>(v_position);
-		position = a_value;
+		size_t& p = std::get<0>(v_position);
+		p = a_value;
 		std::vector<typename T_rows::t_creases::t_iterator> crease;
-		size_t p = v_rows.f_leaf_at_in_text(position, crease, true);
-		if (crease.back()->v_x && p > 0) {
-			position -= p;
-			if (a_forward) position += crease.back().f_delta().v_i1;
+		size_t q = v_rows.f_leaf_at_in_text(p, crease, true);
+		if (auto& back = crease.back(); back->v_x && q > 0) {
+			p -= q;
+			if (a_forward) p += back.f_delta().v_i1;
 		}
 		f_from_position(true);
 	}

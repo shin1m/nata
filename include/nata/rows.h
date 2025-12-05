@@ -166,9 +166,10 @@ private:
 		auto advance = [&](size_t n, const auto& size)
 		{
 			text += n;
-			width += std::get<0>(size);
-			if (std::get<1>(size) > ascent) ascent = std::get<1>(size);
-			if (std::get<2>(size) > descent) descent = std::get<2>(size);
+			auto [w, a, d] = size;
+			width += w;
+			if (a > ascent) ascent = a;
+			if (d > descent) descent = d;
 		};
 		auto cell = [&](size_t n, const auto& size)
 		{
@@ -237,13 +238,13 @@ private:
 	t_slot<size_t, size_t, size_t> v_tokens_replaced = [this](auto a_p, auto a_n0, auto a_n1)
 	{
 		v_creases.f_replace(a_p, a_n0, {{a_n1}});
-		auto x = f_replace(a_p, a_n0, a_n1);
-		v_replaced(a_p, a_n0, a_n1, std::get<0>(x), std::get<1>(x), std::get<2>(x));
+		auto [y, h0, h1] = f_replace(a_p, a_n0, a_n1);
+		v_replaced(a_p, a_n0, a_n1, y, h0, h1);
 	};
 	t_slot<size_t, size_t> v_tokens_painted = [this](auto a_p, auto a_n)
 	{
-		auto x = f_replace(a_p, a_n, a_n);
-		v_painted(a_p, a_n, std::get<0>(x), std::get<1>(x), std::get<2>(x));
+		auto [y, h0, h1] = f_replace(a_p, a_n, a_n);
+		v_painted(a_p, a_n, y, h0, h1);
 	};
 	t_slot<> v_target_resized = [this]
 	{
@@ -266,8 +267,8 @@ public:
 		v_tokens.v_replaced >> v_tokens_replaced;
 		v_tokens.v_painted >> v_tokens_painted;
 		v_target.v_resized >> v_target_resized;
-		auto size = v_target.f_eof();
-		v_array.f_insert(f_end(), t_row{1, true, 1, std::get<0>(size), std::get<1>(size), std::get<1>(size) + std::get<2>(size)});
+		auto [w, a, d] = v_target.f_eof();
+		v_array.f_insert(f_end(), t_row{1, true, 1, w, a, a + d});
 		v_creases.f_replace(0, 0, {{v_tokens.v_text.f_size() + 1}});
 		f_replace(0, 0, v_tokens.v_text.f_size());
 	}
