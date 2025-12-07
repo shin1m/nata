@@ -194,7 +194,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 			if ((a_value > a_this.v_text.f_size())) f_throw(L"out of range."sv);
 			a_this.v_widget.f_position__(a_value, a_forward);
 		}>())
-		(L"row"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
+		(L"head"sv, t_member<t_object*(*)(t_library*, const t_view&), [](auto a_library, auto a_this)
 		{
 			return t_view::f_row(a_library, a_this.v_widget.v_line);
 		}>())

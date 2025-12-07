@@ -159,11 +159,11 @@ nata.main(@ nata_curses.main(@
 			strip.move(0, size[1] - 1, size[0], 1
 		nata_curses.KEY_DOWN: @
 			commit(
-			line = view.row().line
+			line = view.head().line
 			line + 1 < view.size().line && view.line__(line + 1
 		nata_curses.KEY_UP: @
 			commit(
-			line = view.row().line
+			line = view.head().line
 			line > 0 && view.line__(line - 1
 		nata_curses.KEY_LEFT: @
 			position = view.position().text
@@ -195,12 +195,12 @@ nata.main(@ nata_curses.main(@
 			selection.paint(0, -1, false
 	update_status = @
 		position = view.position(
-		row = view.row(
+		head = view.head(
 		n = view.range(
 		status.replace(0, -1, "" +
-			row.line + "," +
-			(position.text - row.text) + "-" +
-			(position.x - row.x) + " " +
+			head.line + "," +
+			(position.text - head.text) + "-" +
+			(position.x - head.x) + " " +
 			(n > 0 ? view.top() * 100 / n : 100) + "% <" +
 			session.undos.size() +
 			(session.logs ? "?" + session.logs.size() : "") +

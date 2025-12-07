@@ -75,21 +75,21 @@ Chooser = Popup + @
 	$dispose = @
 		$selection.dispose(
 		Popup.dispose[$](
-	$at = @ $view.row().line
+	$at = @ $view.head().line
 	$at__ = @(i)
-		line = $text.line_at($view.row().line
+		line = $text.line_at($view.head().line
 		$selection.paint(line.from, line.count, false
 		$view.line__(i
-		line = $text.line_at($view.row().line
+		line = $text.line_at($view.head().line
 		$selection.paint(line.from, line.count, true
 	map = {
 		control("M"): @ $done(true
 		control("["): @ $done(false
 		letter("j"): @
-			line = $view.row().line
+			line = $view.head().line
 			line < $view.size().line - 1 && $at__(line + 1
 		letter("k"): @
-			line = $view.row().line
+			line = $view.head().line
 			line > 0 && $at__(line - 1
 		nata_curses.KEY_ENTER: @ $done(true
 	$__call = @(c) try
@@ -155,17 +155,17 @@ suisha.main(@ nata.main(@ nata_curses.main_with_resized(@(resized)
 				limit = size[1] - sh - 1
 				ph = popup.size().y
 				ph > limit && (ph = limit
-				row = main.row().y
+				hy = main.head().y
 				bh = main.size().y
-				bh = (mh > bh ? mh : bh) - row
+				bh = (mh > bh ? mh : bh) - hy
 				if bh < ph + 1
 					y = size[1] - sh - ph
 					main.move(0, 0, size[0], y + bh - 1
-					main.into_view(row, bh
+					main.into_view(hy, bh
 				else
 					main.move(0, 0, size[0], mh
-					main.into_view(row, ph + 1
-					y = row - main.top() + 1
+					main.into_view(hy, ph + 1
+					y = hy - main.top() + 1
 				popup.move(0, y, size[0], ph
 				popup.into_view(popup.position().text
 			else
