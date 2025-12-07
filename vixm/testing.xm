@@ -53,7 +53,7 @@ View = Object + @
 	$__call = @(p, n0, n1) $_position < p || $position__(($_position < p + n0 ? p : $_position - n0) + n1, false
 	$size = @
 		lines = $text.lines(
-		size = $text.size(
+		size = $text.size() + 1
 		Row(lines, lines, size, size, lines
 	$height = @ $_height
 	$range = @ $text.lines() - 1
@@ -64,9 +64,7 @@ View = Object + @
 		$_target = p - $text.line_at_text(p).from
 	to_row = @(line) Row(line.index, line.index, line.from, line.from, line.index
 	$row = @ to_row($text.line_at_text($_position
-	$row_at = @(x)
-		n = $text.lines(
-		to_row($text.line_at(x < n ? x : n - 1
+	$row_at = @(x) x < $text.lines() ? to_row($text.line_at(x)) : $size(
 	$row_at_line = @(x) $row_at(x
 	$row_at_y = @(x) $row_at(x
 	$from_line = @(line)

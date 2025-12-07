@@ -97,3 +97,87 @@ nata.main(@ test("CTRL-B scrolls window count pages upwards", "0\n1\n2\n3\n 4\n5
 	type("l^B"
 	assert(update() == "NORMAL 5,3-3 0% <0> "
 	assert(vi.buffer().view.top() == 0
+
+nata.main(@ test("z<CR> shows line at top of window with ^", "    0\n1\n2\n  3\n 4\n5\n6\n7\n8\n9\n   10", @(vi, type, update)
+	type("5z^M"
+	assert(update() == "NORMAL 5,2-2 40% <0> "
+	assert(vi.buffer().view.top() == 4
+	type("kz^M"
+	assert(update() == "NORMAL 4,3-3 30% <0> "
+	assert(vi.buffer().view.top() == 3
+	type("12z^M"
+	assert(update() == "NORMAL 11,4-4 100% <0> "
+	assert(vi.buffer().view.top() == 10
+	type("1z^M"
+	assert(update() == "NORMAL 1,5-5 0% <0> "
+	assert(vi.buffer().view.top() == 0
+
+nata.main(@ test("zt shows line at top of window without ^", "    0\n1\n2\n  3\n 4\n5\n6\n7\n8\n9\n   10", @(vi, type, update)
+	type("5zt"
+	assert(update() == "NORMAL 5,1-1 40% <0> "
+	assert(vi.buffer().view.top() == 4
+	type("kzt"
+	assert(update() == "NORMAL 4,1-1 30% <0> "
+	assert(vi.buffer().view.top() == 3
+	type("12zt"
+	assert(update() == "NORMAL 11,1-1 100% <0> "
+	assert(vi.buffer().view.top() == 10
+	type("1zt"
+	assert(update() == "NORMAL 1,1-1 0% <0> "
+	assert(vi.buffer().view.top() == 0
+
+nata.main(@ test("z. shows line at center of window with ^", "    0\n1\n2\n  3\n 4\n5\n6\n7\n8\n9\n   10", @(vi, type, update)
+	type("5z."
+	assert(update() == "NORMAL 5,2-2 30% <0> "
+	assert(vi.buffer().view.top() == 3
+	type("kz."
+	assert(update() == "NORMAL 4,3-3 20% <0> "
+	assert(vi.buffer().view.top() == 2
+	type("12z."
+	assert(update() == "NORMAL 11,4-4 90% <0> "
+	assert(vi.buffer().view.top() == 9
+	type("1z."
+	assert(update() == "NORMAL 1,5-5 0% <0> "
+	assert(vi.buffer().view.top() == 0
+
+nata.main(@ test("zz shows line at center of window without ^", "    0\n1\n2\n  3\n 4\n5\n6\n7\n8\n9\n   10", @(vi, type, update)
+	type("5zz"
+	assert(update() == "NORMAL 5,1-1 30% <0> "
+	assert(vi.buffer().view.top() == 3
+	type("kzz"
+	assert(update() == "NORMAL 4,1-1 20% <0> "
+	assert(vi.buffer().view.top() == 2
+	type("12zz"
+	assert(update() == "NORMAL 11,1-1 90% <0> "
+	assert(vi.buffer().view.top() == 9
+	type("1zz"
+	assert(update() == "NORMAL 1,1-1 0% <0> "
+	assert(vi.buffer().view.top() == 0
+
+nata.main(@ test("z- shows line at bottom of window with ^", "    0\n1\n2\n  3\n 4\n5\n6\n7\n8\n9\n   10", @(vi, type, update)
+	type("5z-"
+	assert(update() == "NORMAL 5,2-2 20% <0> "
+	assert(vi.buffer().view.top() == 2
+	type("kz-"
+	assert(update() == "NORMAL 4,3-3 10% <0> "
+	assert(vi.buffer().view.top() == 1
+	type("12z-"
+	assert(update() == "NORMAL 11,4-4 80% <0> "
+	assert(vi.buffer().view.top() == 8
+	type("1z-"
+	assert(update() == "NORMAL 1,5-5 0% <0> "
+	assert(vi.buffer().view.top() == 0
+
+nata.main(@ test("zb shows line at bottom of window without ^", "    0\n1\n2\n  3\n 4\n5\n6\n7\n8\n9\n   10", @(vi, type, update)
+	type("5zb"
+	assert(update() == "NORMAL 5,1-1 20% <0> "
+	assert(vi.buffer().view.top() == 2
+	type("kzb"
+	assert(update() == "NORMAL 4,1-1 10% <0> "
+	assert(vi.buffer().view.top() == 1
+	type("12zb"
+	assert(update() == "NORMAL 11,1-1 80% <0> "
+	assert(vi.buffer().view.top() == 8
+	type("1zb"
+	assert(update() == "NORMAL 1,1-1 0% <0> "
+	assert(vi.buffer().view.top() == 0
