@@ -6,7 +6,8 @@ utilities = Module("utilities"
 remove = utilities.remove
 letter = utilities.letter
 control = utilities.control
-open = utilities.open
+open_reader = utilities.open_reader
+open_writer = utilities.open_writer
 core = Module("core"
 syntax = Module("syntax"
 assist = Module("assist"
@@ -50,10 +51,14 @@ Buffer = core.Buffer + @
 		$disposing.each(@(x) x(
 		core.Buffer.dispose[$](
 
-read = @(text, path) open(path, @(reader) while
+read = @(text, path) open_reader(path, @(reader) while
 	s = reader.read(256
 	s == "" && break
 	text.replace(text.size(), 0, s
+
+write = @(text, path) open_writer(path, @(writer)
+	n = text.size(
+	for i = 0; i < n; i = i + 256; writer.write(text.slice(i, 256
 
 Popup = Object + @
 	$text
@@ -126,6 +131,7 @@ suisha.main(@ nata.main(@ nata_curses.main_with_resized(@(resized)
 					syntax.dispose(
 			hooks.each(@(x) x(buffer
 			buffer
+		$write = write
 		$timeout = @(timeout, action) loop.timer(@
 			action(
 			invalidate(

@@ -18,9 +18,14 @@ $find_index = @(s, i, predicate)
 	n = s.size(
 	for ; i < n; i = i + 1; predicate(s.code_at(i)) && break
 	i
-$open = @(path, action)
-	file = io.File("" + path, "r"
+open = @(path, mode, action)
+	file = io.File("" + path, mode
 	try
-		action(io.Reader(file.read, "utf-8"
+		action(file
 	finally
 		file.close(
+$open_reader = @(path, action) open(path, "r", @(file) action(io.Reader(file.read, "utf-8"
+$open_writer = @(path, action) open(path, "w", @(file)
+	writer = io.Writer(file.write, "utf-8"
+	action(writer
+	writer.flush(

@@ -23,8 +23,7 @@ Session = Object + @
 		$logs = null
 	$replay = @(message, logs)
 		$logs = [
-		while logs.size() > 0
-			logs.pop()(
+		while logs.size() > 0; logs.pop()(
 		e = '(message, $logs
 		$logs = null
 		e
@@ -128,6 +127,7 @@ $Buffer = Buffer = Session + @
 	$selection
 	$maps
 	$commands
+	$saved
 	$__initialize = @(path, maps, text, view, selection)
 		Session.__initialize[$](
 		$path = path
@@ -141,10 +141,16 @@ $Buffer = Buffer = Session + @
 			KeyMap(null, maps.INSERT
 			KeyMap(null, maps.prompt
 		$commands = {
+		$saved = 0
 	$dispose = @
 		$selection.dispose(
 		$view.dispose(
 		$text.dispose(
+	$commit = @(message)
+		Session.commit[$](message
+		$saved < $undos.size() || ($saved = -1
+	$modified = @ $saved != $undos.size(
+	$mark_saved = @ $saved = $undos.size(
 	$replace = @(p, n, s)
 		t = $text.slice(p, n
 		$log(Delta($, '(p, s.size(), t
@@ -192,10 +198,10 @@ $new = @(host, status, strip, path)
 		buffer
 	open_buffer = @(path)
 		n = buffers.size(
-		for i = 0;; i = i + 1
-			i < n || return switch_buffer(add_buffer(path
+		switch_buffer(for i = 0;; i = i + 1
+			i < n || break add_buffer(path
 			x = buffers[i]
-			x.path == path && break switch_buffer(x
+			x.path == path && break x
 	move_to = @(p)
 		view.folded(p, false
 		view.position__(p, false
@@ -435,7 +441,9 @@ $new = @(host, status, strip, path)
 					(n > 0 ? view.top() * 100 / n : 100) + "% <" +
 					buffer.undos.size() +
 					(buffer.logs ? "?" + buffer.logs.size() : "") +
-					(buffer.redos.size() > 0 ? "|" + buffer.redos.size() : "") + "> " + join($echo
+					(buffer.redos.size() > 0 ? "|" + buffer.redos.size() : "") +
+					(buffer.modified() ? ">* " : "> ") +
+					join($echo
 		rewind_builtin = @
 			:map = mode.map
 			:fallback = @(c)
@@ -584,7 +592,21 @@ $new = @(host, status, strip, path)
 		else
 			for_(maps)(@(x) x.remove(lhs
 			buffers.each(@(x) for_(x.maps)(@(x) x.merge(lhs
-	command_edit_pattern = new_pattern("^\\s*(?:(#\\d*)|(\\S*))"
+	expand = @(s)
+		s.size() > 0 || return s
+		c = s.code_at(0
+		c == 0x23 || return (c == 0x25 ? buffer.path : s
+		i = Integer(s.substring(1
+		i > 0 || throw Throwable("alternate file is not supported yet"
+		buffers[i - 1].path
+	command_edit_pattern = new_pattern("^\\s*(%|#\\d*|\\S*)"
+	command_write_pattern = new_pattern("^\\s*(%|#\\d*|\\S*)?"
+	quit = @
+		n = buffers.size(
+		n > 1 || return host.quit(
+		for i = 0; i < n; i = i + 1; buffers[i] === buffer && break
+		switch_buffer(buffers[i > 0 ? i - 1 : i + 1]
+		remove_buffer(i
 	builtin_commands = {
 		"buffers": @(i)
 			:message = "buffers" + join(@(f)
@@ -594,22 +616,34 @@ $new = @(host, status, strip, path)
 					f("\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path ? " \"" + x.path + "\"" : " no name"
 		"edit": @(i)
 			match = command_edit_pattern.search(status, i, -1
-			if match[1].count > 0
-				switch_buffer(buffers[Integer(status.slice(match[1].from + 1, match[1].count - 1)) - 1]
-			else if match[2].count > 0
-				open_buffer(status.slice(match[2].from, match[2].count
+			m1 = match[1
+			m1.count > 0 && open_buffer(expand(status.slice(m1.from, m1.count
 		"map": command_map(for_nvo, false
 		"map!": command_map(for_ip, false
 		"noremap": command_map(for_nvo, true
 		"noremap!": command_map(for_ip, true
-		"quit": @(i)
-			n = buffers.size(
-			n > 1 || return host.quit(
-			for i = 0; i < n; i = i + 1; buffers[i] === buffer && break
-			switch_buffer(buffers[i > 0 ? i - 1 : i + 1]
-			remove_buffer(i
+		"quit": @(i) buffer.modified() ? throw Throwable("not saved") : quit(
+		"quit!": @(i) quit(
 		"unmap": command_unmap(for_nvo
 		"unmap!": command_unmap(for_ip
+		"write": @(i)
+			match = command_write_pattern.search(status, i, -1
+			m1 = match[1
+			path = m1.count > 0 ? expand(status.slice(m1.from, m1.count)) : buffer.path
+			#path == buffer.path || host.exists(path) && throw Throwable("already exists"
+			path == buffer.path || throw Throwable("writing to the other file is not supported yet"
+			host.write(buffer.text, path
+			buffer.mark_saved(
+	builtin_commands["files"] = builtin_commands["buffers"
+	builtin_commands["ls"] = builtin_commands["buffers"
+	builtin_commands["e"] = builtin_commands["edit"
+	builtin_commands["no"] = builtin_commands["noremap"
+	builtin_commands["no!"] = builtin_commands["noremap!"
+	builtin_commands["q"] = builtin_commands["quit"
+	builtin_commands["q!"] = builtin_commands["quit!"
+	builtin_commands["unm"] = builtin_commands["unmap"
+	builtin_commands["unm!"] = builtin_commands["unmap!"
+	builtin_commands["w"] = builtin_commands["write"
 	commands = {
 	insert = @
 		:mode = mode_insert
@@ -758,7 +792,9 @@ $new = @(host, status, strip, path)
 						throw Throwable("no command: " + name
 					command[::$](m.from + m.count
 			letter("Z"): KeyMap(null, null, {
-				letter("Z"): KeyMap(@ host.quit(
+				letter("Z"): KeyMap(@
+					buffer.modified() && host.write(buffer.text, path
+					quit(
 			letter("c"): KeyMap(@ ::mode = ModeOperator(begin, replace, {
 				letter("c"): KeyMap(@ $for_lines(@(p, q)
 					begin(p

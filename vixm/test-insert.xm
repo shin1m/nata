@@ -21,19 +21,19 @@ nata.main(@ test("insert", null, @(vi, type, update)
 	assert(update() == "INSERT 1,3-3 100% <0?2> "
 	assert(vi.buffer().text.slice(0, -1) == "hi"
 	type("^["
-	assert(update() == "NORMAL 1,5-5 100% <1> "
+	assert(update() == "NORMAL 1,5-5 100% <1>* "
 	assert(vi.buffer().text.slice(0, -1) == "hihi"
 	type("u"
 	assert(update() == "NORMAL 1,1-1 100% <0|1> "
 	assert(vi.buffer().text.slice(0, -1) == ""
 	type("^R"
-	assert(update() == "NORMAL 1,5-5 100% <1> "
+	assert(update() == "NORMAL 1,5-5 100% <1>* "
 	assert(vi.buffer().text.slice(0, -1) == "hihi"
 	type("."
-	assert(update() == "NORMAL 1,9-9 100% <2> "
+	assert(update() == "NORMAL 1,9-9 100% <2>* "
 	assert(vi.buffer().text.slice(0, -1) == "hihihihi"
 	type("3."
-	assert(update() == "NORMAL 1,15-15 100% <3> "
+	assert(update() == "NORMAL 1,15-15 100% <3>* "
 	assert(vi.buffer().text.slice(0, -1) == "hihihihihihihi"
 
 nata.main(@ test("insert literally", "", @(vi, type, update)
@@ -45,10 +45,10 @@ nata.main(@ test("insert literally", "", @(vi, type, update)
 	E = String.from_code(0x1b
 	assert(vi.buffer().text.slice(0, -1) == E
 	type("^["
-	assert(update() == "NORMAL 1,4-4 100% <1> "
+	assert(update() == "NORMAL 1,4-4 100% <1>* "
 	assert(vi.buffer().text.slice(0, -1) == E + E + E
 	type("2."
-	assert(update() == "NORMAL 1,6-6 100% <2> "
+	assert(update() == "NORMAL 1,6-6 100% <2>* "
 	assert(vi.buffer().text.slice(0, -1) == E + E + E + E + E
 
 nata.main(@ test("insert by decimal digits", "", @(vi, type, update)
@@ -59,10 +59,10 @@ nata.main(@ test("insert by decimal digits", "", @(vi, type, update)
 	assert(update() == "INSERT 1,2-2 100% <0?2> "
 	assert(vi.buffer().text.slice(0, -1) == " "
 	type("^["
-	assert(update() == "NORMAL 1,4-4 100% <1> "
+	assert(update() == "NORMAL 1,4-4 100% <1>* "
 	assert(vi.buffer().text.slice(0, -1) == "   "
 	type("2."
-	assert(update() == "NORMAL 1,6-6 100% <2> "
+	assert(update() == "NORMAL 1,6-6 100% <2>* "
 	assert(vi.buffer().text.slice(0, -1) == "     "
 
 nata.main(@ test("insert by decimal digits followed by non digit", "", @(vi, type, update)
@@ -73,10 +73,10 @@ nata.main(@ test("insert by decimal digits followed by non digit", "", @(vi, typ
 	assert(update() == "INSERT 1,3-3 100% <0?2> "
 	assert(vi.buffer().text.slice(0, -1) == "!a"
 	type("^["
-	assert(update() == "NORMAL 1,7-7 100% <1> "
+	assert(update() == "NORMAL 1,7-7 100% <1>* "
 	assert(vi.buffer().text.slice(0, -1) == "!a!a!a"
 	type("2."
-	assert(update() == "NORMAL 1,11-11 100% <2> "
+	assert(update() == "NORMAL 1,11-11 100% <2>* "
 	assert(vi.buffer().text.slice(0, -1) == "!a!a!a!a!a"
 
 nata.main(@ test("insert by octal digits", "", @(vi, type, update)

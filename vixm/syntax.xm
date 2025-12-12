@@ -6,9 +6,9 @@ nata_tree_sitter = Module("nata-tree-sitter"
 utilities = Module("utilities"
 with = utilities.with
 find_index = utilities.find_index
-open = utilities.open
+open_reader = utilities.open_reader
 
-read_pairs = @(path) open(path, @(reader)
+read_pairs = @(path) open_reader(path, @(reader)
 	pairs = {
 	while
 		line = reader.read_line(
@@ -33,7 +33,7 @@ try_syntax = @(text, path, type)
 	load = @ '(type
 		nata_tree_sitter.Query(
 			Module("nata-tree-sitter-" + type).language
-			open(parent / "query.scm", @(reader)
+			open_reader(parent / "query.scm", @(reader)
 				text = ""
 				while
 					s = reader.read(256
