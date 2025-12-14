@@ -648,6 +648,13 @@ $new = @(host, status, strip, path)
 	insert = @
 		:mode = mode_insert
 		mode.start = mode.from = input.size(
+	new_line = @(p)
+		begin(view.position().text
+		buffer.replace(p, 0, "\n"
+		view.position__(p, false
+		insert(
+		input.push(0xa
+		mode.from = input.size(
 	register = '(false, ""
 	yank = @(p, q, line = false) mode.finish(@ ::register = '(line, text.slice(p, q - p
 	delete_and_edit = @(p, q, line) :register = '(line, buffer.replace(p, q - p, ""
@@ -663,7 +670,7 @@ $new = @(host, status, strip, path)
 	push = @(c)
 		input.push(c
 		mode(c
-	repeat = @(n, start) Mode.nomap(@ for ; n > 1; (:n = n - 1)
+	repeat = @(n, start) Mode.nomap(@ for ; n > 1; :n = n - 1
 		cs = [
 		while input.size() > start; cs.unshift(input.pop(
 		cs.each(push
@@ -791,10 +798,20 @@ $new = @(host, status, strip, path)
 					else
 						throw Throwable("no command: " + name
 					command[::$](m.from + m.count
+			letter("A"): KeyMap(@
+				view.target__(-1
+				insert(
+			letter("I"): KeyMap(@
+				hat(view.head().line
+				insert(
+			letter("O"): KeyMap(@ new_line(view.head().text
 			letter("Z"): KeyMap(null, null, {
 				letter("Z"): KeyMap(@
 					buffer.modified() && host.write(buffer.text, path
 					quit(
+			letter("a"): KeyMap(@
+				view.position__(view.position().text + 1, true
+				insert(
 			letter("c"): KeyMap(@ ::mode = ModeOperator(begin, replace, {
 				letter("c"): KeyMap(@ $for_lines(@(p, q)
 					begin(p
@@ -804,6 +821,7 @@ $new = @(host, status, strip, path)
 					begin(p
 					delete(p, q, true
 			letter("i"): KeyMap(insert
+			letter("o"): KeyMap(@ new_line(text.line_at(view.head().line + 1).from
 			letter("p"): KeyMap(@ $commit(@
 				p = view.position().text
 				begin(p
