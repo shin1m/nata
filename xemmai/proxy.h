@@ -11,7 +11,7 @@ class t_proxy : public t_entry
 	friend struct t_type_of<t_proxy>;
 
 	t_entry* v_session = v_previous;
-	t_root v_object = t_object::f_of(this);
+	t_root v_object;
 	size_t v_n = 1;
 
 protected:
@@ -21,6 +21,13 @@ protected:
 	virtual void f_destroy() = 0;
 
 public:
+	template<typename T>
+	static t_object* f_new(t_type* a_class, auto&&... a_xs)
+	{
+		auto p = a_class->template f_new<T>(std::forward<decltype(a_xs)>(a_xs)...);
+		return p->template f_as<T>().v_object = p;
+	}
+
 	virtual void f_dispose();
 	void f_acquire()
 	{

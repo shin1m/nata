@@ -61,7 +61,7 @@ void t_type_of<xemmaix::nata::t_text>::f_define(t_library* a_library)
 
 t_pvalue t_type_of<xemmaix::nata::t_text>::f_do_construct(t_pvalue* a_stack, size_t a_n)
 {
-	return t_construct<>::t_bind<xemmaix::nata::t_text>::f_do(this, a_stack, a_n);
+	return t_construct_with<t_object*(*)(t_type*), xemmaix::nata::t_proxy::f_new<xemmaix::nata::t_text>>::f_do(this, a_stack, a_n);
 }
 
 }

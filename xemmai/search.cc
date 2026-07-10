@@ -62,7 +62,7 @@ void t_type_of<xemmaix::nata::t_pattern>::f_define(t_library* a_library)
 
 t_pvalue t_type_of<xemmaix::nata::t_pattern>::f_do_construct(t_pvalue* a_stack, size_t a_n)
 {
-	return t_construct<std::wstring_view, intptr_t>::t_bind<xemmaix::nata::t_pattern>::f_do(this, a_stack, a_n);
+	return t_construct_with<t_object*(*)(t_type*, std::wstring_view&&, intptr_t&&), xemmaix::nata::t_proxy::f_new<xemmaix::nata::t_pattern>>::f_do(this, a_stack, a_n);
 }
 
 void t_type_of<xemmaix::nata::t_search>::f_define(t_library* a_library)
@@ -76,7 +76,7 @@ void t_type_of<xemmaix::nata::t_search>::f_define(t_library* a_library)
 
 t_pvalue t_type_of<xemmaix::nata::t_search>::f_do_construct(t_pvalue* a_stack, size_t a_n)
 {
-	return t_construct<xemmaix::nata::t_text&, xemmaix::nata::t_pattern&>::t_bind<xemmaix::nata::t_search>::f_do(this, a_stack, a_n);
+	return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_text&, xemmaix::nata::t_pattern&), xemmaix::nata::t_proxy::f_new<xemmaix::nata::t_search>>::f_do(this, a_stack, a_n);
 }
 
 }

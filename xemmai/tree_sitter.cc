@@ -49,9 +49,9 @@ t_pvalue t_type_of<xemmaix::nata::tree_sitter::t_query>::f_do_construct(t_pvalue
 		auto source = a_class->v_module->template f_as<t_library>().v_to_utf8(a_source);
 		uint32_t error_offset;
 		TSQueryError error_type;
-		if (auto query = ts_query_new(a_language.v_language, source.data(), source.size(), &error_offset, &error_type)) return a_class->template f_new<xemmaix::nata::tree_sitter::t_query>(a_language, query);
+		if (auto query = ts_query_new(a_language.v_language, source.data(), source.size(), &error_offset, &error_type)) return xemmaix::nata::t_proxy::f_new<xemmaix::nata::tree_sitter::t_query>(a_class, a_language, query);
 		f_throw(L"ts_query_new: "s + std::to_wstring(error_offset) + L": "s + (static_cast<size_t>(error_type) > TSQueryErrorLanguage ? L"unknown" : v_query_errors[error_type]));
-	}>::t_bind<xemmaix::nata::tree_sitter::t_query>::f_do(this, a_stack, a_n);
+	}>::f_do(this, a_stack, a_n);
 }
 
 void t_type_of<xemmaix::nata::tree_sitter::t_parser>::f_define(t_library* a_library)
@@ -68,7 +68,7 @@ void t_type_of<xemmaix::nata::tree_sitter::t_parser>::f_define(t_library* a_libr
 
 t_pvalue t_type_of<xemmaix::nata::tree_sitter::t_parser>::f_do_construct(t_pvalue* a_stack, size_t a_n)
 {
-	return t_construct<xemmaix::nata::t_text&, xemmaix::nata::tree_sitter::t_query&>::t_bind<xemmaix::nata::tree_sitter::t_parser>::f_do(this, a_stack, a_n);
+	return t_construct_with<t_object*(*)(t_type*, xemmaix::nata::t_text&, xemmaix::nata::tree_sitter::t_query&), xemmaix::nata::t_proxy::f_new<xemmaix::nata::tree_sitter::t_parser>>::f_do(this, a_stack, a_n);
 }
 
 }
