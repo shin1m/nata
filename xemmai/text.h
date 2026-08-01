@@ -2,6 +2,7 @@
 #define XEMMAIX__NATA__TEXT_H
 
 #include <nata/model.h>
+#include <nata/marks.h>
 #include "proxy.h"
 
 namespace xemmaix::nata
@@ -15,6 +16,11 @@ struct t_text : t_proxy, ::nata::t_text<>
 		return f_new_value(a_library->f_type_line(), i.v_i0, i.v_i1, a_line.f_delta().v_i1);
 	}
 
+	nata::t_marks<t_text, t_rvalue, 16, 16> v_marks;
+
+	t_text() : v_marks(*this)
+	{
+	}
 	virtual void f_destroy();
 	size_t f_lines() const
 	{

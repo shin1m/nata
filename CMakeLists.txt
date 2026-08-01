@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(nata VERSION 202510)
-find_package(jumoku 202306 REQUIRED)
+find_package(jumoku 202608 REQUIRED)
 find_package(Curses REQUIRED)
 find_package(xemmai 202510 REQUIRED)
 add_library(nata INTERFACE)
