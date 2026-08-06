@@ -34,6 +34,19 @@ namespace xemmai
 {
 
 template<>
+struct t_type_of<nata::t_fraction> : t_uninstantiatable<t_holds<nata::t_fraction>>
+{
+	using t_library = xemmaix::nata::t_library;
+
+	static t_pvalue f_transfer(auto* a_library, auto&& a_value)
+	{
+		return xemmai::f_new<nata::t_fraction>(a_library, std::forward<decltype(a_value)>(a_value));
+	}
+
+	using t_base::t_base;
+};
+
+template<>
 struct t_type_of<xemmaix::nata::t_text> : t_derivable<t_bears<xemmaix::nata::t_text, t_type_of<xemmaix::nata::t_proxy>>>
 {
 	static void f_define(t_library* a_library);

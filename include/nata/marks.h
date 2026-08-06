@@ -3,6 +3,7 @@
 
 #include "signal.h"
 #include "spans.h"
+#include "fraction.h"
 
 namespace nata
 {
@@ -10,15 +11,15 @@ namespace nata
 template<typename T_value>
 struct t_mark : t_span<T_value>
 {
-	double v_d;
+	t_fraction v_d;
 
 	bool operator==(const t_mark& a_x) const
 	{
 		return static_cast<const t_span<T_value>&>(*this) == a_x && v_d == a_x.v_d;
 	}
-	t_mark f_get(size_t a_n, double a_d) const
+	t_mark f_get(size_t a_n, t_fraction&& a_d) const
 	{
-		return {this->v_x, a_n, a_d};
+		return {this->v_x, a_n, std::move(a_d)};
 	}
 };
 
@@ -30,7 +31,7 @@ class t_marks
 	{
 		T v_i0;
 		T v_i1;
-		double v_i2;
+		t_fraction v_i2;
 
 		template<typename U>
 		operator t_index<U>() const
@@ -93,10 +94,10 @@ class t_marks
 			a_value.v_n += a_index.v_i1;
 			a_value.v_d += a_index.v_i2;
 		}
-		static constexpr auto f_get(auto* a_base, auto* a_p) -> decltype(a_p->f_get(0, 0.0))
+		static constexpr auto f_get(auto* a_base, auto* a_p) -> decltype(a_p->f_get(0, {}))
 		{
 			auto d = f_delta(a_base, a_p);
-			return a_p->f_get(d.v_i1, d.v_i2);
+			return a_p->f_get(d.v_i1, std::move(d.v_i2));
 		}
 		static constexpr t_index f_delta(auto* a_base, auto* a_p)
 		{
@@ -129,7 +130,7 @@ class t_marks
 		else if (n0 <= 0)
 			--i;
 		auto delta = j.f_index() - i.f_index();
-		v_array.f_insert(v_array.f_erase(i, j), t_span{{{}, delta.v_i1 - n0 + a_n1.v_character}, delta.v_i2});
+		v_array.f_insert(v_array.f_erase(i, j), t_span{{{}, delta.v_i1 - n0 + a_n1.v_character}, std::move(delta.v_i2)});
 	};
 
 public:
@@ -141,7 +142,7 @@ public:
 	t_marks(T_text& a_text) : v_text(a_text)
 	{
 		v_text.v_replaced >> v_text_replaced;
-		v_array.f_insert(f_end(), t_span{{{}, v_text.f_size() + 2}, 1.0});
+		v_array.f_insert(f_end(), t_span{{{}, v_text.f_size() + 2}, t_fraction::c_ONE});
 	}
 	t_index<size_t> f_size() const
 	{
@@ -169,7 +170,7 @@ public:
 	{
 		return f_at_text(a_p + 1);
 	}
-	t_iterator f_at_key(double a_p) const
+	t_iterator f_at_key(const t_fraction& a_p) const
 	{
 		return v_array.f_at(a_p, [](const auto& a_index)
 		{
@@ -183,14 +184,15 @@ public:
 		auto p = i.f_index().v_i1;
 		if (p == a_p) {
 			auto delta = (--i).f_delta();
-			auto d = delta.v_i2 * 0.5;
+			auto d = f_half(std::move(delta.v_i2));
 			t_span xs[] = {{i->v_x, delta.v_i1, d}, {std::move(a_value), 0, d}};
 			return ++v_array.f_insert(v_array.f_erase(i), std::begin(xs), std::end(xs));
 		}
 		auto n = a_p - p;
 		auto delta = i.f_delta();
-		auto d = delta.v_i2 * 0.5;
-		t_span xs[] = {{{{}, n}, d * 0.5}, {std::move(a_value), 0, d * 0.5}, {{{}, delta.v_i1 - n}, d}};
+		auto d = f_half(delta.v_i2);
+		auto d2 = f_half(d);
+		t_span xs[] = {{{{}, n}, d2}, {std::move(a_value), 0, d2}, {{{}, delta.v_i1 - n}, std::move(d)}};
 		return ++v_array.f_insert(v_array.f_erase(i), std::begin(xs), std::end(xs));
 	}
 	t_iterator f_erase(t_iterator a_i)
@@ -201,7 +203,7 @@ public:
 		++i;
 		if (a_i.f_delta().v_i1 && i.f_delta().v_i1) ++i;
 		auto delta = i.f_index() - a_i.f_index();
-		return ++v_array.f_insert(v_array.f_erase(a_i, i), t_span{a_i->v_x, delta.v_i1, delta.v_i2});
+		return ++v_array.f_insert(v_array.f_erase(a_i, i), t_span{a_i->v_x, delta.v_i1, std::move(delta.v_i2)});
 	}
 };
 

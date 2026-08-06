@@ -71,17 +71,17 @@ void t_type_of<xemmaix::nata::t_text>::f_define(t_library* a_library)
 			for (auto p = &tuple[0]; i != j; ++i) if (!i.f_delta().v_i1) new(p++) t_svalue(i->v_x);
 		});
 	}>())
-	(L"mark_of_key"sv, t_member<t_object*(*)(const t_text&, double), [](auto a_this, auto a_key)
+	(L"mark_of_key"sv, t_member<t_object*(*)(const t_text&, const nata::t_fraction&), [](auto a_this, auto a_key)
 	{
 		auto i = a_this.v_marks.f_at_key(a_key);
 		return f_tuple(i == a_this.v_marks.f_end() ? t_pvalue{} : t_pvalue{i->v_x}, i.f_index().v_i1 - 1);
 	}>())
-	(L"mark_at_text_with"sv, t_member<double(*)(t_text&, size_t, const t_pvalue&), [](auto a_this, auto a_p, auto a_mark)
+	(L"mark_at_text_with"sv, t_member<nata::t_fraction(*)(t_text&, size_t, const t_pvalue&), [](auto a_this, auto a_p, auto a_mark)
 	{
 		if ((a_p > a_this.f_size())) f_throw(L"out of range."sv);
 		return a_this.v_marks.f_insert(a_p, a_mark).f_index().v_i2;
 	}>())
-	(L"unmark_by_key"sv, t_member<void(*)(t_text&, double), [](auto a_this, auto a_key)
+	(L"unmark_by_key"sv, t_member<void(*)(t_text&, const nata::t_fraction&), [](auto a_this, auto a_key)
 	{
 		a_this.v_marks.f_erase(a_this.v_marks.f_at_key(a_key));
 	}>())

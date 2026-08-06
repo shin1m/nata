@@ -32,16 +32,18 @@ std::vector<std::pair<t_root, t_rvalue>> t_library::f_define()
 		(L"from"sv)
 		(L"count"sv)
 	));
+	t_define{this}.f_derive<nata::t_fraction, t_object>();
+	t_type_of<t_text>::f_define(this);
 	v_type_span.f_construct(f_type<t_object>()->f_derive(t_define{this}
 		(L"from"sv)
 		(L"count"sv)
 	));
-	t_type_of<t_text>::f_define(this);
 	t_type_of<t_pattern>::f_define(this);
 	t_type_of<t_search>::f_define(this);
 	return t_define{this}
 	(L"Proxy"sv, static_cast<t_object*>(v_type_proxy))
 	(L"Line"sv, static_cast<t_object*>(v_type_line))
+	(L"Fraction"sv, static_cast<t_object*>(v_type_fraction))
 	(L"Text"sv, static_cast<t_object*>(v_type_text))
 	(L"Span"sv, static_cast<t_object*>(v_type_span))
 	(L"Pattern"sv, static_cast<t_object*>(v_type_pattern))

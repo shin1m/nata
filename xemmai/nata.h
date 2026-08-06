@@ -14,6 +14,9 @@
 
 namespace nata
 {
+
+class t_fraction;
+
 }
 
 namespace xemmaix::nata
@@ -77,6 +80,7 @@ class t_library : public xemmai::t_library
 #define XEMMAIX__NATA__TYPES(_)\
 	_(proxy)\
 	_##_JUST(line)\
+	_(fraction)\
 	_(text)\
 	_##_JUST(span)\
 	_(pattern)\

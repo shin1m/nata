@@ -32,26 +32,17 @@ nata.main(@
 	catch Throwable t
 		assert(t.__string() == "out of range."
 
+Mark = Object + @
+	$key
+	$__initialize = @(text, p) $key = text.mark_at_text_with(p, $
+
 nata.main(@
 	text = nata.Text(
 	text.replace(0, -1, "Hello."
-	Mark = Object + @ $key
-	m0 = Mark(
-	m0.key = text.mark_at_text_with(0, m0
-	print(m0.key
-	assert(m0.key == 0.25
-	m1 = Mark(
-	m1.key = text.mark_at_text_with(5, m1
-	print(m1.key
-	assert(m1.key == 0.625
-	m2 = Mark(
-	m2.key = text.mark_at_text_with(5, m2
-	print(m2.key
-	assert(m2.key == 0.6875
-	m3 = Mark(
-	m3.key = text.mark_at_text_with(6, m3
-	print(m3.key
-	assert(m3.key == 0.8125
+	m0 = Mark(text, 0
+	m1 = Mark(text, 5
+	m2 = Mark(text, 5
+	m3 = Mark(text, 6
 	marks = text.marks_in_text_range(0, 0
 	assert(marks.size() == 0
 	marks = text.marks_in_text_range(0, 1
@@ -98,13 +89,9 @@ nata.main(@
 nata.main(@
 	text = nata.Text(
 	text.replace(0, -1, "Hello."
-	Mark = Object + @ $key
-	m0 = Mark(
-	m0.key = text.mark_at_text_with(0, m0
-	m1 = Mark(
-	m1.key = text.mark_at_text_with(5, m1
-	m2 = Mark(
-	m2.key = text.mark_at_text_with(5, m2
+	m0 = Mark(text, 0
+	m1 = Mark(text, 5
+	m2 = Mark(text, 5
 	text.replace(0, 0, "Hi, "
 	m = text.mark_of_key(m0.key
 	assert(m[0] === m0
