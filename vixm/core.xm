@@ -123,6 +123,7 @@ $Buffer = Buffer = Session + @
 
 	$path
 	$text
+	$marks
 	$view
 	$selection
 	$maps
@@ -132,6 +133,8 @@ $Buffer = Buffer = Session + @
 		Session.__initialize[$](
 		$path = path
 		$text = text
+		$marks = [
+		for i = 0; i < 26; i = i + 1; $marks.push(null
 		$view = view
 		$selection = selection
 		$maps = Maps(
@@ -146,15 +149,28 @@ $Buffer = Buffer = Session + @
 		$selection.dispose(
 		$view.dispose(
 		$text.dispose(
+	restore_mark = @(i, p) @ :$mark_at_position(i, p
+	log_marks = @
+		for i = 0; i < 26; i = i + 1
+			key = $marks[i
+			key && $log(restore_mark[$](i, $text.mark_of_key(key)[1
+		$log(@ :$log(log_marks[:$
+	$begin = @
+		Session.begin[$](
+		log_marks[$](
 	$commit = @(message)
+		$log(log_marks[$
 		Session.commit[$](message
 		$saved < $undos.size() || ($saved = -1
 	$modified = @ $saved != $undos.size(
 	$mark_saved = @ $saved = $undos.size(
+	$_replace = @(p, n, s)
+		n > 0 && $text.marks_in_text_range(p + 1, n - 1).each((@(i) $mark_at_position(i, null))[$
+		$text.replace(p, n, s
 	$replace = @(p, n, s)
 		t = $text.slice(p, n
 		$log(Delta($, '(p, s.size(), t
-		$text.replace(p, n, s
+		$_replace(p, n, s
 		t
 	$merge = @(p, n, s)
 		m = $logs.size()
@@ -172,7 +188,14 @@ $Buffer = Buffer = Session + @
 			x = s.size() + q0 - q
 			y = e.xs[2]
 		e.xs = p < p0 ? '(p, x, $text.slice(p, p0 - p) + y) : '(p0, p - p0 + x, y)
-		$text.replace(p, n, s
+		$_replace(p, n, s
+	$mark_at_position = @(i, p)
+		key = $marks[i
+		key && $text.unmark_by_key(key
+		$marks[i] = p && $text.mark_at_text_with(p, i
+	$position_at_mark = @(i)
+		key = $marks[i
+		key && $text.mark_of_key(key)[1
 
 new_pattern = @(pattern) nata.Pattern(pattern, nata.Pattern.ECMASCRIPT | nata.Pattern.OPTIMIZE
 
@@ -363,6 +386,11 @@ $new = @(host, status, strip, path)
 		:skip_word_end = new_pattern(end(word
 		:skip_WORD_start = new_pattern(start(WORD
 		:skip_WORD_end = new_pattern(end(WORD
+	map_marks = @(f)
+		map = {
+		key = @(i) KeyMap(@ $finish(@ f[$](i
+		for i = 0; i < 26; i = i + 1; map[0x61 + i] = key(i
+		map
 	map_motion = {
 		control("H"): KeyMap(@ $finish(@ backward(view.position().text, 0, @(p) view.position__(p, false
 		letter(" "): KeyMap(@ $finish(@ forward(view.position().text, text.size(), @(p) view.position__(p, true
@@ -372,6 +400,11 @@ $new = @(host, status, strip, path)
 		letter("%"): KeyMap(@ $finish(@ if count > 0 && count <= 100
 			n = text.lines(
 			forward_n(-1, n - 1, (count * n + 99) / 100, hat
+		letter("'"): KeyMap(null, null, map_marks(@(i)
+			p = buffer.position_at_mark(i
+			p || throw Throwable("mark is not set"
+			hat(text.line_at_text(p).index
+			$linewise(
 		letter("+"): KeyMap(@ $finish(@ forward(view.head().line, text.lines() - 1, hat
 		letter(","): KeyMap(@ find_next[$](true
 		letter("-"): KeyMap(@ $finish(@ backward(view.head().line, 0, hat
@@ -399,6 +432,10 @@ $new = @(host, status, strip, path)
 		letter("N"): KeyMap(@ search_next[$](true
 		letter("W"): KeyMap(@ $finish(@ skip_forward(skip_WORD_start
 		letter("^"): KeyMap(@ $finish(@ hat(view.head().line
+		letter("`"): KeyMap(null, null, map_marks(@(i)
+			p = buffer.position_at_mark(i
+			p || throw Throwable("mark is not set"
+			view.position__(p, p > view.position().text
 		letter("b"): KeyMap(@ $finish(@ skip_backward(skip_word_start
 		letter("e"): KeyMap(@ $finish(@ skip_forward(skip_word_end
 		letter("f"): find(false
@@ -420,7 +457,7 @@ $new = @(host, status, strip, path)
 	map_motion[control("M")] = map_motion[letter("+"
 	map_motion[control("N")] = map_motion[letter("j"
 	map_motion[control("P")] = map_motion[letter("k"
-	escape = @(x) x < 0x20 ? "^" + String.from_code(x + 0x40) : String.from_code(x)
+	escape = @(x) x < 0x20 ? "^" + String.from_code(0x40 + x) : String.from_code(x)
 	escape_string = @(s) join(@(f) each_code(s, @(c) f(escape(c
 	Mode = Object + @
 		$echo = @(f) input.each(@(x) f(escape(x
@@ -495,6 +532,7 @@ $new = @(host, status, strip, path)
 		$reset = @
 			::count = 0
 			::input = [
+		$linewise = @
 		$finish = @(f)
 			f[$](
 			$reset(
@@ -601,6 +639,21 @@ $new = @(host, status, strip, path)
 		buffers[i - 1].path
 	command_edit_pattern = new_pattern("^\\s*(%|#\\d*|\\S*)"
 	command_write_pattern = new_pattern("^\\s*(%|#\\d*|\\S*)?"
+	command_marks_pattern = new_pattern("^\\s*(:?([a-z](-[a-z])?)|\\S+)"
+	command_marks_each = @(i, none, f)
+		match = command_marks_pattern.search(status, i, -1
+		match.size() > 0 || return none(
+		for ;;
+			m1 = match[1
+			m1.count > 0 || throw Throwable("invalid argument"
+			i0 = status.slice(m1.from, 1).code_at(0) - 0x61
+			i1 = m1.count < 3 ? i0 : status.slice(m1.from + 2, 1).code_at(0) - 0x61
+			i0 > i1 && throw Throwable("invalid range"
+			for ;; i0 = i0 + 1
+				f(i0
+				i0 < i1 || break
+			match = command_marks_pattern.search(status, m1.from + m1.count, -1
+			match.size() > 0 || break
 	quit = @
 		n = buffers.size(
 		n > 1 || return host.quit(
@@ -608,18 +661,30 @@ $new = @(host, status, strip, path)
 		switch_buffer(buffers[i > 0 ? i - 1 : i + 1]
 		remove_buffer(i
 	builtin_commands = {
-		"buffers": @(i)
-			:message = "buffers" + join(@(f)
-				n = buffers.size(
-				for i = 0; i < n; i = i + 1
-					x = buffers[i
-					f("\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path ? " \"" + x.path + "\"" : " no name"
+		"buffers": @(i) :message = "buffers" + join(@(f)
+			n = buffers.size(
+			for i = 0; i < n; i = i + 1
+				x = buffers[i
+				f("\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path ? " \"" + x.path + "\"" : " no name"
+		"delmarks": @(i) command_marks_each(i
+			@ throw Throwable("marks must be specified"
+			@(i) buffer.mark_at_position(i, null
+		"delmarks!": @(i) for i = 0; i < 26; i = i + 1; buffer.mark_at_position(i, null
 		"edit": @(i)
 			match = command_edit_pattern.search(status, i, -1
 			m1 = match[1
 			m1.count > 0 && open_buffer(expand(status.slice(m1.from, m1.count
 		"map": command_map(for_nvo, false
 		"map!": command_map(for_ip, false
+		"marks": @(i) :message = "marks" + join(@(f)
+			g = @(i)
+				p = buffer.position_at_mark(i
+				p || return
+				l = text.line_at_text(p
+				f("\n " + String.from_code(0x61 + i) + " " + (l.index + 1) + " " + (p - l.from + 1
+			command_marks_each(i
+				@ for i = 0; i < 26; i = i + 1; g(i
+				g
 		"noremap": command_map(for_nvo, true
 		"noremap!": command_map(for_ip, true
 		"quit": @(i) buffer.modified() ? throw Throwable("not saved") : quit(
@@ -636,6 +701,8 @@ $new = @(host, status, strip, path)
 			buffer.mark_saved(
 	builtin_commands["files"] = builtin_commands["buffers"
 	builtin_commands["ls"] = builtin_commands["buffers"
+	builtin_commands["delm"] = builtin_commands["delmarks"
+	builtin_commands["delm!"] = builtin_commands["delmarks!"
 	builtin_commands["e"] = builtin_commands["edit"
 	builtin_commands["no"] = builtin_commands["noremap"
 	builtin_commands["no!"] = builtin_commands["noremap!"
@@ -821,6 +888,7 @@ $new = @(host, status, strip, path)
 					begin(p
 					delete(p, q, true
 			letter("i"): KeyMap(insert
+			letter("m"): KeyMap(null, null, map_marks(@(i) buffer.mark_at_position(i, view.position().text
 			letter("o"): KeyMap(@ new_line(text.line_at(view.head().line + 1).from
 			letter("p"): KeyMap(@ $commit(@
 				p = view.position().text
@@ -890,6 +958,7 @@ $new = @(host, status, strip, path)
 		$map
 		$name = 'operator
 		$count
+		$line
 		$post
 		$__initialize = @(begin, f, map)
 			Mode.__initialize[$](
@@ -905,14 +974,20 @@ $new = @(host, status, strip, path)
 				p1 = view.position().text
 				begin(p0
 				if p1 < p0
-					f(p1, p0
-				else
-					f(p0, p1
+					p = p0
+					:p0 = p1
+					p1 = p
+				if :$line
+					:p0 = text.line_at_text(p0).from
+					l1 = text.line_at_text(p1
+					p1 = l1.from + l1.count
+				f(p0, p1, :$line
 			$map = KeyMap(null, map_motion, map
 		$prepare = mode_normal.prepare
 		$reset = @
 			::mode = mode_normal
 			mode.reset(
+		$linewise = @ $line = true
 		$finish = @(f)
 			f[$](
 			$post(

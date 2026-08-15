@@ -94,7 +94,7 @@ Overlay = Object + @
 		$text = view.text
 		$text.replaced.push($
 		$values = [
-		$replace(0, 0, $text.size(), false
+		$replace(0, 0, $text.size() + 1, false
 	$dispose = @ remove($text.replaced, $
 	$replace = @(p, n0, n1, on)
 		for ; n0 > 0; n0 = n0 - 1; $values.remove(p

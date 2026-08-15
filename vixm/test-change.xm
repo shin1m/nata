@@ -21,10 +21,10 @@ nata.main(@ test("delete motion", "abcdefghijklmnopqr", @(vi, type, update)
 
 nata.main(@ test("change motion", "abcdefghijklmnopqr", @(vi, type, update)
 	type("2c3l"
-	assert(update() == "INSERT 1,1-1 100% <0?2> "
+	assert(update() == "INSERT 1,1-1 100% <0?3> "
 	assert(vi.buffer().text.slice(0, -1) == "ghijklmnopqr"
 	type("ABC"
-	assert(update() == "INSERT 1,4-4 100% <0?2> "
+	assert(update() == "INSERT 1,4-4 100% <0?3> "
 	assert(vi.buffer().text.slice(0, -1) == "ABCghijklmnopqr"
 	type("^["
 	assert(update() == "NORMAL 1,4-4 100% <1>* "
@@ -71,10 +71,10 @@ nata.main(@ test("delete lines", "abc\ndef\nghi\njkl\nmno\npqr", @(vi, type, upd
 
 nata.main(@ test("change lines", "abc\ndef\nghi\njkl\nmno\npqr", @(vi, type, update)
 	type("2cc"
-	assert(update() == "INSERT 1,1-1 0% <0?2> "
+	assert(update() == "INSERT 1,1-1 0% <0?3> "
 	assert(vi.buffer().text.slice(0, -1) == "\nghi\njkl\nmno\npqr"
 	type("ABC"
-	assert(update() == "INSERT 1,4-4 0% <0?2> "
+	assert(update() == "INSERT 1,4-4 0% <0?3> "
 	assert(vi.buffer().text.slice(0, -1) == "ABC\nghi\njkl\nmno\npqr"
 	type("^["
 	assert(update() == "NORMAL 1,4-4 0% <1>* "
@@ -125,10 +125,10 @@ nata.main(@ test("change selection", "abcdefghi", @(vi, type, update)
 	type("v3l"
 	assert(update() == "VISUAL 1,4-4 100% <0> "
 	type("c"
-	assert(update() == "INSERT 1,1-1 100% <0?2> "
+	assert(update() == "INSERT 1,1-1 100% <0?3> "
 	assert(vi.buffer().text.slice(0, -1) == "defghi"
 	type("ABC"
-	assert(update() == "INSERT 1,4-4 100% <0?2> "
+	assert(update() == "INSERT 1,4-4 100% <0?3> "
 	assert(vi.buffer().text.slice(0, -1) == "ABCdefghi"
 	type("^["
 	assert(update() == "NORMAL 1,4-4 100% <1>* "

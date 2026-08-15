@@ -6,13 +6,13 @@ test = testing.test
 nata.main(@ test("builtin map C", "abcdefghi", @(vi, type, update)
 	assert(vi.buffer().view.position__(3, false
 	type("C"
-	assert(update() == "INSERT 1,4-4 100% <0?2> "
+	assert(update() == "INSERT 1,4-4 100% <0?3> "
 	assert(vi.buffer().view.text.slice(0, -1) == "abc"
 
 nata.main(@ test("builtin map s", "abcdefghi", @(vi, type, update)
 	assert(vi.buffer().view.position__(3, false
 	type("2s"
-	assert(update() == "INSERT 1,4-4 100% <0?2> "
+	assert(update() == "INSERT 1,4-4 100% <0?3> "
 	assert(vi.buffer().view.text.slice(0, -1) == "abcfghi"
 
 nata.main(@ test("map", "abcdefghi", @(vi, type, update)
@@ -25,7 +25,7 @@ nata.main(@ test("map", "abcdefghi", @(vi, type, update)
 	type(":map _ya iYAH!^M"
 	assert(update() == "NORMAL 1,1-1 100% <0> "
 	type("_ya"
-	assert(update() == "INSERT 1,5-5 100% <0?2> "
+	assert(update() == "INSERT 1,5-5 100% <0?3> "
 	assert(vi.buffer().text.slice(0, -1) == "YAH!abcdefghi"
 	type("^["
 	assert(update() == "NORMAL 1,5-5 100% <1>* "
@@ -76,7 +76,7 @@ nata.main(@ test("map ambiguous operator pending", "abcdefghi", @(vi, type, upda
 	type("cc"
 	assert(update() == "NORMAL 1,4-4 100% <0> cc t1000"
 	type(","
-	assert(update() == "INSERT 1,4-4 100% <0?2> "
+	assert(update() == "INSERT 1,4-4 100% <0?3> "
 	assert(vi.buffer().text.slice(0, -1) == "abcghi"
 
 nata.main(@ test("noremap", "abcdefghi", @(vi, type, update)
@@ -89,7 +89,7 @@ nata.main(@ test("noremap", "abcdefghi", @(vi, type, update)
 	type("l"
 	assert(update() == "NORMAL 1,1-1 100% <0> "
 	type("3c2h"
-	assert(update() == "INSERT 1,1-1 100% <0?2> "
+	assert(update() == "INSERT 1,1-1 100% <0?3> "
 	assert(vi.buffer().text.slice(0, -1) == "ghi"
 
 nata.main(@ test("noremap!", "", @(vi, type, update)
@@ -98,7 +98,7 @@ nata.main(@ test("noremap!", "", @(vi, type, update)
 	type(":noremAp! b Abc^M"
 	assert(update() == "NORMAL 1,1-1 100% <0> "
 	type("2ia"
-	assert(update() == "INSERT 1,4-4 100% <0?2> "
+	assert(update() == "INSERT 1,4-4 100% <0?3> "
 	assert(vi.buffer().text.slice(0, -1) == "abc"
 	type("^["
 	assert(update() == "NORMAL 1,7-7 100% <1>* "
