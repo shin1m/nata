@@ -165,3 +165,22 @@ nata.main(@ test("N repeats the latest ? in opposite direction", "abcdefabcdefab
 	type("2N"
 	assert(update() == "/de"
 	assert(vi.buffer().view.position().text == 15
+
+nata.main(@ test("* searches forward for the word nearest to the cursor", "foo bar \nbar foo", @(vi, type, update)
+	type("*"
+	assert(update() == "/\\bfoo\\b"
+	assert(vi.buffer().view.position().text == 13
+	type("-3l*"
+	assert(update() == "/\\bbar\\b"
+	assert(vi.buffer().view.position().text == 9
+	type("-7l*"
+	assert(update() == "word not found"
+	assert(vi.buffer().view.position().text == 7
+
+nata.main(@ test("# searches backward for the word nearest to the cursor", "foo bar \nbar foo", @(vi, type, update)
+	type("+#"
+	assert(update() == "?\\bbar\\b"
+	assert(vi.buffer().view.position().text == 4
+	type("+3l#"
+	assert(update() == "?\\bfoo\\b"
+	assert(vi.buffer().view.position().text == 0

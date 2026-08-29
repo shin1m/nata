@@ -386,6 +386,21 @@ $new = @(host, status, strip, path)
 		:skip_word_end = new_pattern(end(word
 		:skip_WORD_start = new_pattern(start(WORD
 		:skip_WORD_end = new_pattern(end(WORD
+	word_pattern = new_pattern("\\w+"
+	search_word = @(reverse)
+		p = view.position().text
+		l = text.line_at_text(p
+		from = l.from
+		to = from + l.count - 1
+		while
+			m = word_pattern.search(text, from, to - from
+			m.size() > 0 || throw Throwable("word not found"
+			from = m[0].from + m[0].count
+			from > p || continue
+			view.position__(m[0].from, false
+			:search_pattern = "\\b" + text.slice(m[0].from, m[0].count) + "\\b"
+			:search_reverse = reverse
+			return search_next[$](false
 	map_marks = @(f)
 		map = {
 		key = @(i) KeyMap(@ $finish(@ f[$](i
@@ -394,6 +409,7 @@ $new = @(host, status, strip, path)
 	map_motion = {
 		control("H"): KeyMap(@ $finish(@ backward(view.position().text, 0, @(p) view.position__(p, false
 		letter(" "): KeyMap(@ $finish(@ forward(view.position().text, text.size(), @(p) view.position__(p, true
+		letter("#"): KeyMap(@ search_word[$](true
 		letter("$"): KeyMap(@ $finish(@
 			view.target__(-1
 			count > 1 && forward_n(view.head().line, text.lines() - 1, count - 1, view.line__
@@ -405,6 +421,7 @@ $new = @(host, status, strip, path)
 			p || throw Throwable("mark is not set"
 			hat(text.line_at_text(p).index
 			$linewise(
+		letter("*"): KeyMap(@ search_word[$](false
 		letter("+"): KeyMap(@ $finish(@ forward(view.head().line, text.lines() - 1, hat
 		letter(","): KeyMap(@ find_next[$](true
 		letter("-"): KeyMap(@ $finish(@ backward(view.head().line, 0, hat
