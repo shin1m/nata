@@ -364,7 +364,7 @@ $new = @(host, status, strip, path)
 		for n = count > 0 ? count : 1; q = f(q)
 			n = n - 1
 			n > 0 || break
-		q != p && view.position__(q, q > p
+		q && q != p && view.position__(q, q > p
 	skip_forward = @(pattern) skip_loop(@(p)
 		m = pattern.search(text, p, -1
 		m.size() > 0 && m[0].from + m[0].count
@@ -386,6 +386,14 @@ $new = @(host, status, strip, path)
 		:skip_word_end = new_pattern(end(word
 		:skip_WORD_start = new_pattern(start(WORD
 		:skip_WORD_end = new_pattern(end(WORD
+		:skip_paragraph = new_pattern(".\\n(?=\\n)|(?:.|\\n)$"
+	skip_backward_paragraph = @ skip_loop(@(p)
+		p > 0 || return
+		for l = text.line_at_text(p); l.count <= 1; l = text.line_at(l.index - 1; l.index > 0 || return 0
+		while l.index > 0
+			l = text.line_at(l.index - 1
+			l.count > 1 || break
+		return l.from
 	word_pattern = new_pattern("\\w+"
 	search_word = @(reverse)
 		p = view.position().text
@@ -469,7 +477,9 @@ $new = @(host, status, strip, path)
 			forward(p, l.from + l.count - 1, @(p) view.position__(p, true
 		letter("n"): KeyMap(@ search_next[$](false
 		letter("w"): KeyMap(@ $finish(@ skip_forward(skip_word_start
+		letter("{"): KeyMap(@ $finish(@ skip_backward_paragraph(
 		letter("|"): KeyMap(@ $finish(@ view.target__(count > 0 ? count - 1 : 0
+		letter("}"): KeyMap(@ $finish(@ skip_forward(skip_paragraph
 	map_motion[control("J")] = map_motion[letter("j"
 	map_motion[control("M")] = map_motion[letter("+"
 	map_motion[control("N")] = map_motion[letter("j"
@@ -1033,7 +1043,7 @@ $new = @(host, status, strip, path)
 			n = input.size(
 			for i = $from; i < n; i = i + 1; f(escape(input[i]
 		$unknown = @(c)
-			(c == host.KEY_ENTER || c == 0xd) && (c = 0xa)
+			(c == host.KEY_ENTER || c == 0xd) && (c = 0xa
 			p = view.position().text
 			buffer.logs || begin(p
 			buffer.merge(p, 0, String.from_code(c

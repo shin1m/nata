@@ -300,3 +300,33 @@ nata.main(@ test("B moves count WORDS backward", "abc() abc\t()\n\n(abc)", @(vi,
 	assert(update() == "NORMAL 1,7-7 0% <0> "
 	type("3B"
 	assert(update() == "NORMAL 1,1-1 0% <0> "
+
+nata.main(@ test("} moves count paragraphs forward", "abc\nabc\n\nabc\nabc\n\n\nabc\nabc", @(vi, type, update)
+	type("}"
+	assert(update() == "NORMAL 3,1-1 0% <0> "
+	type("}"
+	assert(update() == "NORMAL 6,1-1 0% <0> "
+	type("}"
+	assert(update() == "NORMAL 9,4-4 0% <0> "
+	assert(vi.buffer().view.position__(0, false
+	assert(update() == "NORMAL 1,1-1 0% <0> "
+	type("2}"
+	assert(update() == "NORMAL 6,1-1 0% <0> "
+	type("2}"
+	assert(update() == "NORMAL 6,1-1 0% <0> "
+
+nata.main(@ test("{ moves count paragraphs backward", "abc\nabc\n\nabc\nabc\n\n\nabc\nabc", @(vi, type, update)
+	assert(vi.buffer().view.position__(26, false
+	assert(update() == "NORMAL 9,4-4 0% <0> "
+	type("{"
+	assert(update() == "NORMAL 7,1-1 0% <0> "
+	type("{"
+	assert(update() == "NORMAL 3,1-1 0% <0> "
+	type("{"
+	assert(update() == "NORMAL 1,1-1 0% <0> "
+	assert(vi.buffer().view.position__(26, false
+	assert(update() == "NORMAL 9,4-4 0% <0> "
+	type("2{"
+	assert(update() == "NORMAL 3,1-1 0% <0> "
+	type("2{"
+	assert(update() == "NORMAL 3,1-1 0% <0> "
