@@ -739,35 +739,43 @@ $new = @(host, status, strip, path)
 	builtin_commands["unm!"] = builtin_commands["unmap!"
 	builtin_commands["w"] = builtin_commands["write"
 	commands = {
+	push = @(c)
+		input.push(c
+		mode(c
+	repeat_once = @(start)
+		cs = [
+		while input.size() > start; cs.unshift(input.pop(
+		cs.each(push
+	repeat = @(n, start) Mode.nomap(@ for ; n > 1; :n = n - 1; repeat_once(start
 	insert = @
-		:mode = mode_insert
-		mode.start = mode.from = input.size(
+		start = input.size(
+		:mode = ModeInsert(@
+			c = input.pop(
+			repeat(count, start
+			input.push(c
 	new_line = @(p)
 		begin(view.position().text
 		buffer.replace(p, 0, "\n"
 		view.position__(p, false
-		insert(
-		input.push(0xa
-		mode.from = input.size(
+		start = input.size(
+		:mode = ModeInsert(@
+			c = input.pop(
+			Mode.nomap(@ for n = count; n > 1; n = n - 1
+				buffer.replace(view.position().text, 0, "\n"
+				repeat_once(start
+			input.push(c
 	register = '(false, ""
 	yank = @(p, q, line = false) mode.finish(@ ::register = '(line, text.slice(p, q - p
 	delete_and_edit = @(p, q, line) :register = '(line, buffer.replace(p, q - p, ""
 	replace = @(p, q, line = false)
 		delete_and_edit(p, q, line
-		insert(
+		:mode = ModeInsert(@
 	delete = @(p, q, line = false) mode.commit(@
 		if p < q
 			delete_and_edit(p, q, line
 			commit(
 		else
 			buffer.cancel(
-	push = @(c)
-		input.push(c
-		mode(c
-	repeat = @(n, start) Mode.nomap(@ for ; n > 1; :n = n - 1
-		cs = [
-		while input.size() > start; cs.unshift(input.pop(
-		cs.each(push
 	literal = do(@
 		add = @(base, i) @ ::code = code * base + i
 		digit = @(map, depth, code) @
@@ -1018,7 +1026,7 @@ $new = @(host, status, strip, path)
 		$finish = @(f)
 			f[$](
 			$post(
-	mode_insert = do(Mode + @
+	ModeInsert = Mode + @
 		backspace = KeyMap(@
 			p = view.position().text
 			if p > 0
@@ -1030,15 +1038,16 @@ $new = @(host, status, strip, path)
 			control("H"): backspace
 			control("V"): literal(@(c) $unknown(c
 			control("["): KeyMap(@
-				c = input.pop(
-				repeat(count, $start
-				input.push(c
+				$committing(
 				::mode = mode_normal
 				mode.commit(commit
 			host.KEY_BACKSPACE: backspace
 		$name = 'INSERT
-		$start
+		$committing
 		$from
+		$__initialize = @(committing)
+			$committing = committing
+			$from = input.size(
 		$echo = @(f)
 			n = input.size(
 			for i = $from; i < n; i = i + 1; f(escape(input[i]
