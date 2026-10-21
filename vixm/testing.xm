@@ -151,10 +151,12 @@ $test = @(name, text, f)
 					:timers = [
 					ts.each(@(x) x[1](
 					continue
-				if c == 0x5e
+				if c == 0x5c
 					i = i + 1
 					c = s.code_at(i
-					c == 0x5e || (c = c - 0x40)
+				else if c == 0x5e
+					i = i + 1
+					c = s.code_at(i) - 0x40
 				vi(c
 		@ if !done
 			vi.prepare(

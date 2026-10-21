@@ -211,8 +211,12 @@ $new = @(host, status, strip, path)
 		buffer = host.buffer(path, maps
 		buffers.push(buffer
 		buffer
-	remove_buffer = @(i) buffers.remove(i).dispose(
-	switch_buffer = @(buffer)
+	remove_buffer = @(i)
+		x = buffers.remove(i
+		x === alternate && (:alternate = null
+		x.dispose(
+	switch_buffer = @(buffer) if buffer !== :buffer
+		:alternate = :buffer
 		:buffer = buffer
 		:text = buffer.text
 		:current = :view = buffer.view
@@ -223,7 +227,7 @@ $new = @(host, status, strip, path)
 		n = buffers.size(
 		switch_buffer(for i = 0;; i = i + 1
 			i < n || break add_buffer(path
-			x = buffers[i]
+			x = buffers[i
 			x.path == path && break x
 	move_to = @(p)
 		view.folded(p, false
@@ -661,9 +665,10 @@ $new = @(host, status, strip, path)
 		s.size() > 0 || return s
 		c = s.code_at(0
 		c == 0x23 || return (c == 0x25 ? buffer.path : s
-		i = Integer(s.substring(1
-		i > 0 || throw Throwable("alternate file is not supported yet"
-		buffers[i - 1].path
+		i = s.size() > 1 ? Integer(s.substring(1)) : 0
+		i > 0 && return buffers[i - 1].path
+		alternate && return alternate.path
+		throw Throwable("no alternate file"
 	command_edit_pattern = new_pattern("^\\s*(%|#\\d*|\\S*)"
 	command_write_pattern = new_pattern("^\\s*(%|#\\d*|\\S*)?"
 	command_marks_pattern = new_pattern("^\\s*(:?([a-z](-[a-z])?)|\\S+)"
@@ -685,14 +690,14 @@ $new = @(host, status, strip, path)
 		n = buffers.size(
 		n > 1 || return host.quit(
 		for i = 0; i < n; i = i + 1; buffers[i] === buffer && break
-		switch_buffer(buffers[i > 0 ? i - 1 : i + 1]
+		switch_buffer(buffers[i > 0 ? i - 1 : i + 1
 		remove_buffer(i
 	builtin_commands = {
 		"buffers": @(i) :message = "buffers" + join(@(f)
 			n = buffers.size(
 			for i = 0; i < n; i = i + 1
 				x = buffers[i
-				f("\n" + (i + 1) + (x === buffer ? " %" : "  ") + (x.path ? " \"" + x.path + "\"" : " no name"
+				f("\n" + (i + 1) + (x === buffer ? " %" : x === alternate ? " #" : "  ") + (x.path ? " \"" + x.path + "\"" : " no name"
 		"delmarks": @(i) command_marks_each(i
 			@ throw Throwable("marks must be specified"
 			@(i) buffer.mark_at_position(i, null
@@ -876,6 +881,7 @@ $new = @(host, status, strip, path)
 		command_pattern = new_pattern("^(\\w|!)+"
 		$map = KeyMap(null, map_motion_scroll, {
 			control("R"): KeyMap(@ $finish(@ times(@ buffer.redo(
+			control("^"): KeyMap(@ $finish(@ switch_buffer(count > 0 ? buffers[count - 1] : alternate || throw Throwable("no alternate file"
 			letter("."): KeyMap(@ Mode.nomap(@
 				input.pop(
 				last = last_input
@@ -908,7 +914,7 @@ $new = @(host, status, strip, path)
 				insert(
 			letter("O"): KeyMap(@ new_line(view.head().text
 			letter("Z"): KeyMap(null, null, {
-				letter("Z"): KeyMap(@
+				letter("Z"): KeyMap(@ $finish(@
 					buffer.modified() && host.write(buffer.text, path
 					quit(
 			letter("a"): KeyMap(@

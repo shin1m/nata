@@ -24,11 +24,11 @@ nata.main(@ test("just 0 moves to the head", "abc", @(vi, type, update)
 	assert(update() == "NORMAL 1,1-1 100% <0> "
 
 nata.main(@ test("^ moves to the first non-blank", " abc", @(vi, type, update)
-	type("^^"
+	type("\\^"
 	assert(update() == "NORMAL 1,2-2 100% <0> "
 	type("lll"
 	assert(update() == "NORMAL 1,5-5 100% <0> "
-	type("3^^"
+	type("3\\^"
 	assert(update() == "NORMAL 1,2-2 100% <0> "
 
 nata.main(@ test("$ moves to the end of line", "abc\nabcd\nabcde\nabcdef", @(vi, type, update)
