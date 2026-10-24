@@ -358,10 +358,10 @@ $new = @(host, status, strip, path)
 			$get = @
 			$more = @ true
 	hat_pattern = new_pattern("\\S"
-	hat = @(line)
-		l = text.line_at(line
+	hat_position = @(l)
 		m = hat_pattern.search(text, l.from, l.count - 1
-		view.position__(m.size() > 0 ? m[0].from : l.from + l.count - 1, false
+		m.size() > 0 ? m[0].from : l.from + l.count - 1
+	hat = @(line) view.position__(hat_position(text.line_at(line)), false
 	goto = @(default, f) forward_n(-1, text.lines() - 1, count > 0 ? count : default + 1, f
 	skip_loop = @(f)
 		p = q = view.position().text
@@ -879,6 +879,7 @@ $new = @(host, status, strip, path)
 			letter("z"): KeyMap(@ $finish(@ scroll_to_center(view.line__
 	mode = mode_normal = do(Mode + @
 		command_pattern = new_pattern("^(\\w|!)+"
+		whitespace_pattern = new_pattern("\\s"
 		$map = KeyMap(null, map_motion_scroll, {
 			control("R"): KeyMap(@ $finish(@ times(@ buffer.redo(
 			control("^"): KeyMap(@ $finish(@ switch_buffer(count > 0 ? buffers[count - 1] : alternate || throw Throwable("no alternate file"
@@ -912,6 +913,18 @@ $new = @(host, status, strip, path)
 			letter("I"): KeyMap(@
 				hat(view.head().line
 				insert(
+			letter("J"): KeyMap(@ $commit(@
+				head = view.head(
+				i = head.line + 1
+				for n = count < 2 ? 2 : count; n > 1; n = n - 1
+					i < text.lines() || break
+					l = text.line_at(i
+					p = l.from - 1
+					view.position__(p, true
+					q = hat_position(l
+					buffer.logs || begin(p
+					buffer.merge(p, q - p, p <= head.text || q >= l.from + l.count - 1 || text.slice(q, 1) == ")" || whitespace_pattern.search(text, p - 1, 1).size() > 0 ? "" : " "
+				commit(
 			letter("O"): KeyMap(@ new_line(view.head().text
 			letter("Z"): KeyMap(null, null, {
 				letter("Z"): KeyMap(@ $finish(@
@@ -1092,9 +1105,9 @@ $new = @(host, status, strip, path)
 		map(for_n, "C", "c$", true
 		map(for_n, "D", "d$", true
 		map(for_n, "S", "cc", true
-		map(for_n, "X", "dh", true
-		map(for_n, "s", "cl", true
-		map(for_n, "x", "dl", true
+		map(for_n, "X", "d\b", true
+		map(for_n, "s", "c ", true
+		map(for_n, "x", "d ", true
 	)(@(f) f(mode_normal.map
 	switch_buffer(add_buffer(path
 	do(Object + @

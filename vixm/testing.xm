@@ -50,7 +50,9 @@ View = Object + @
 		$_height = 3
 		$_position = $_target = $_top = 0
 	$dispose = @ remove($text.replaced, $
-	$__call = @(p, n0, n1) $_position < p || $position__(($_position < p + n0 ? p : $_position - n0) + n1, false
+	$__call = @(p, n0, n1)
+		q = $_position
+		q < p || $position__(q > p || n0 <= 0 ? (q < p + n0 ? p : q - n0) + n1 : q, false
 	$size = @
 		lines = $text.lines(
 		size = $text.size() + 1
