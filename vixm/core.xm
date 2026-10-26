@@ -5,6 +5,7 @@ with = utilities.with
 letter = utilities.letter
 control = utilities.control
 each_code = utilities.each_code
+join = utilities.join
 
 min = @(x, y) x < y ? x : y
 
@@ -30,11 +31,6 @@ Session = Object + @
 	$cancel = @ $replay(null, $logs
 	$undo = @ $redos.push($replay(*$undos.pop(
 	$redo = @ $undos.push($replay(*$redos.pop(
-
-join = @(each)
-	s = ""
-	each(@(x) :s = s + x
-	s
 
 KeyMap = Object + @
 	$action
@@ -488,10 +484,8 @@ $new = @(host, status, strip, path)
 	map_motion[control("M")] = map_motion[letter("+"
 	map_motion[control("N")] = map_motion[letter("j"
 	map_motion[control("P")] = map_motion[letter("k"
-	escape = @(x) x < 0x20 ? "^" + String.from_code(0x40 + x) : String.from_code(x)
-	escape_string = @(s) join(@(f) each_code(s, @(c) f(escape(c
 	Mode = Object + @
-		$echo = @(f) input.each(@(x) f(escape(x
+		$echo = @(f) input.each(@(x) f(String.from_code(x
 		$prepare = @
 			if progress != ""
 				status.replace(0, -1, progress
@@ -600,7 +594,7 @@ $new = @(host, status, strip, path)
 			each_code(lhs, @(c) input.pop(
 			each_code(rhs, push
 		kma = KeyMapAction(
-			(noremap ? "*" : " ") + escape_string(rhs
+			(noremap ? "*" : " ") + rhs
 			noremap ? @ Mode.nomap(action) : action
 		for_(@(x) x.put(lhs, kma
 	for_nvo = @(maps) @(f)
@@ -649,7 +643,7 @@ $new = @(host, status, strip, path)
 					ms = join(@(f) for_maps(@(y)
 						m = modes[y]
 						f((x[2] & m[0]) == 0 ? " " : m[1]
-					push("\n " + ms + "\t" + escape_string(x[0]) + "\t" + x[1]
+					push("\n " + ms + "\t" + x[0] + "\t" + x[1]
 			::message = "maps <buffer>" + list(buffer.maps) + "\nmaps" + list(maps
 	command_unmap_pattern = new_pattern("^\\s*(<buffer>)?\\s*(\\S+)"
 	command_unmap = @(for_) @(i)
@@ -1069,7 +1063,7 @@ $new = @(host, status, strip, path)
 			$from = input.size(
 		$echo = @(f)
 			n = input.size(
-			for i = $from; i < n; i = i + 1; f(escape(input[i]
+			for i = $from; i < n; i = i + 1; f(String.from_code(input[i
 		$unknown = @(c)
 			(c == host.KEY_ENTER || c == 0xd) && (c = 0xa
 			p = view.position().text
@@ -1087,6 +1081,7 @@ $new = @(host, status, strip, path)
 		$map = KeyMap(null, {
 			control("H"): backspace
 			control("M"): KeyMap(@ $done(true
+			control("V"): literal(@(c) $unknown(c
 			control("["): KeyMap(@
 				status.replace($prompt.size(), -1, ""
 				$doing(

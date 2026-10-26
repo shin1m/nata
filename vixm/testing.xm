@@ -3,6 +3,8 @@ print = system.out.write_line
 nata = Module("nata"
 utilities = Module("utilities"
 remove = utilities.remove
+each_code = utilities.each_code
+join = utilities.join
 core = Module("core"
 
 Text = nata.Text + @
@@ -162,7 +164,7 @@ $test = @(name, text, f)
 				vi(c
 		@ if !done
 			vi.prepare(
-			status = :status.slice(0, -1
+			status = join(@(f) each_code(::status.slice(0, -1), @(c) f(c < 0x20 && c != 0x9 && c != 0xa ? "^" + String.from_code(0x40 + c) : String.from_code(c
 			timers.each(@(x) :status = status + " t" + x[0]
 			print("\t" + status
 			status

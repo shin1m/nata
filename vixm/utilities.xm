@@ -14,6 +14,10 @@ $control = @(x) letter(x) - letter("@")
 $each_code = @(s, f)
 	n = s.size(
 	for i = 0; i < n; i = i + 1; f(s.code_at(i
+$join = @(each)
+	s = ""
+	each(@(x) :s = s + x
+	s
 $find_index = @(s, i, predicate)
 	n = s.size(
 	for ; i < n; i = i + 1; predicate(s.code_at(i)) && break

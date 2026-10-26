@@ -110,7 +110,7 @@ struct t_target : t_window
 #endif
 	std::tuple<size_t, size_t, size_t> f_size(wchar_t a_c, attr_t a_a) const
 	{
-		return {wcwidth(a_c), 1, 0};
+		return {a_c < L'\x20' ? 2 : wcwidth(a_c), 1, 0};
 	}
 	std::tuple<size_t, size_t, size_t> f_tab(size_t a_x, attr_t a_a) const
 	{
@@ -184,8 +184,15 @@ struct t_graphics
 	}
 	void f_put(wchar_t a_c)
 	{
-		v_c.chars[0] = a_c;
-		wadd_wch(v_target.v_window, &v_c);
+		if (a_c < L'\x20') {
+			cchar_t cc{v_overlay == A_NORMAL ? v_target.v_attribute_control : v_overlay, L"^"};
+			wadd_wch(v_target.v_window, &cc);
+			cc.chars[0] = L'@' + a_c;
+			wadd_wch(v_target.v_window, &cc);
+		} else {
+			v_c.chars[0] = a_c;
+			wadd_wch(v_target.v_window, &v_c);
+		}
 		v_x += std::get<0>(v_target.f_size(a_c, v_c.attr));
 	}
 	void f_tab()
