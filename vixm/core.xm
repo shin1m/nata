@@ -1109,6 +1109,10 @@ $new = @(host, status, strip, path)
 		map(for_n, "s", "c ", true
 		map(for_n, "x", "d ", true
 	)(@(f) f(mode_normal.map
+	(@(for_v)
+		map(for_v, "s", "c", true
+		map(for_v, "x", "d", true
+	)(@(f) f(mode_visual.map
 	switch_buffer(add_buffer(path
 	do(Object + @
 		$prepare = @ mode.prepare(
