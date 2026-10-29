@@ -280,11 +280,12 @@ $new = @(host, status, strip, path)
 	search_forward = @(pattern, p) with(new_pattern(pattern), @(pattern)
 		f = @(p) pattern.search(text, p, -1
 		search_loop(p, @(p) p < text.size() ? f(p + 1) : '(), @ f(0
+	search_last = @(search, limit)
+		last = '(
+		for m = search.first(0, -1); m.size() > 0 && m[0].from <= limit; m = search.next(); last = m
+		last
 	search_backward = @(pattern, p) with(new_pattern(pattern), @(pattern) with(nata.Search(text, pattern), @(search)
-		f = @(p)
-			last = '(
-			for m = search.first(0, -1); m.size() > 0 && m[0].from <= p; m = search.next(); last = m
-			last
+		f = @(p) search_last(search, p
 		search_loop(p, @(p) p > 0 ? f(p - 1) : '(), @ f(text.size(
 	search_pattern = null
 	search_reverse = false
@@ -298,7 +299,7 @@ $new = @(host, status, strip, path)
 		search_pattern || throw Throwable("no last pattern"
 		reverse = search_reverse ^ :reverse
 		p = view.position().text
-		match = reverse ? search_backward(search_pattern, p) : search_forward(search_pattern, p)
+		match = (reverse ? search_backward : search_forward)(search_pattern, p
 		search_message(reverse, match
 		move_to(match[0].from
 	search = @(reverse)
@@ -312,7 +313,7 @@ $new = @(host, status, strip, path)
 				:pattern = status.slice(1, -1
 				paint(false
 				try
-					:match = pattern.size() > 0 && (reverse ? search_backward(pattern, p) : search_forward(pattern, p)
+					:match = pattern.size() > 0 && (reverse ? search_backward : search_forward)(pattern, p
 					:error = null
 				catch Throwable t
 					:match = null
@@ -409,6 +410,14 @@ $new = @(host, status, strip, path)
 			:search_pattern = "\\b" + text.slice(m[0].from, m[0].count) + "\\b"
 			:search_reverse = reverse
 			return search_next[$](false
+	pair_pattern = new_pattern("[([{]|([}\\])])"
+	pair_items = {
+		"(": "[()]"
+		")": "[()]"
+		"[": "[[\\]]"
+		"]": "[[\\]]"
+		"{": "[{}]"
+		"}": "[{}]"
 	map_marks = @(f)
 		map = {
 		key = @(i) KeyMap(@ $finish(@ f[$](i
@@ -421,9 +430,29 @@ $new = @(host, status, strip, path)
 		letter("$"): KeyMap(@ $finish(@
 			view.target__(-1
 			count > 1 && forward_n(view.head().line, text.lines() - 1, count - 1, view.line__
-		letter("%"): KeyMap(@ $finish(@ if count > 0 && count <= 100
-			n = text.lines(
-			forward_n(-1, n - 1, (count * n + 99) / 100, hat
+		letter("%"): KeyMap(@
+			if count <= 0
+				p = view.position().text
+				l = text.line_at_text(p
+				m = pair_pattern.search(text, p, l.from + l.count - 1 - p
+				m.size() > 0 || return $reset(
+				p = m[0].from
+				item = text.slice(p, m[0].count
+				f = (@(search) for p = :p, depth = 1
+					m = search(p
+					m.size() > 0 || break $reset(
+					p = m[0].from
+					depth = depth + (text.slice(p, m[0].count) == item ? 1 : -1
+					depth > 0 || break $finish(@ move_to(p
+				)[$
+				with(new_pattern(pair_items[item]), @(pattern)
+					if m[1].count > 0
+						with(nata.Search(text, pattern), @(search) f(@(p) p > 0 ? search_last(search, p - 1) : '(
+					else
+						f(@(p) p < text.size() ? pattern.search(text, p + 1, -1) : '(
+			else if count <= 100
+				n = text.lines(
+				$finish(@ forward_n(-1, n - 1, (count * n + 99) / 100, hat
 		letter("'"): KeyMap(null, null, map_marks(@(i)
 			p = buffer.position_at_mark(i
 			p || throw Throwable("mark is not set"
