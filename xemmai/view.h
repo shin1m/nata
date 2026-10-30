@@ -141,7 +141,7 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 		{
 			size_t n = a_this.v_text.f_size();
 			if ((a_p > n)) f_throw(L"out of range."sv);
-			a_this.v_tokens.f_paint(a_p, {{std::move(a_token), std::min(a_n, n - a_p)}});
+			if ((a_n > 0)) a_this.v_tokens.f_paint(a_p, {{std::move(a_token), std::min(a_n, n - a_p)}});
 		}>())
 		(L"crease"sv, t_member<void(*)(t_view&, size_t, size_t, bool), [](auto a_this, auto a_p, auto a_n, auto a_on)
 		{
@@ -268,7 +268,7 @@ struct t_type_of<xemmaix::nata::t_overlay<T_target>> : t_derivable<t_bears<xemma
 		{
 			size_t n = a_this.v_view.v_text.f_size();
 			if ((a_p > n)) f_throw(L"out of range."sv);
-			a_this.v_overlay->f_paint(a_p, {{a_on, std::min(a_n, n - a_p)}});
+			if ((a_n > 0)) a_this.v_overlay->f_paint(a_p, {{a_on, std::min(a_n, n - a_p)}});
 		}>())
 		.template f_derive<t_overlay, xemmaix::nata::t_proxy>();
 	}
