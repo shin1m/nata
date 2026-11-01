@@ -729,6 +729,9 @@ $new = @(host, status, strip, path)
 			match = command_edit_pattern.search(status, i, -1
 			m1 = match[1
 			m1.count > 0 && open_buffer(expand(status.slice(m1.from, m1.count
+		"file": @(i)
+			n = view.range(
+			:message = "\"" + buffer.path + "\" " + (buffer.modified() ? "[modified] " : "") + text.lines() + " lines --" + (n > 0 ? view.top() * 100 / n : 100) + "%--"
 		"map": command_map(for_nvo, false
 		"map!": command_map(for_ip, false
 		"marks": @(i) :message = "marks" + join(@(f)
@@ -759,6 +762,7 @@ $new = @(host, status, strip, path)
 	builtin_commands["delm"] = builtin_commands["delmarks"
 	builtin_commands["delm!"] = builtin_commands["delmarks!"
 	builtin_commands["e"] = builtin_commands["edit"
+	builtin_commands["f"] = builtin_commands["file"
 	builtin_commands["no"] = builtin_commands["noremap"
 	builtin_commands["no!"] = builtin_commands["noremap!"
 	builtin_commands["q"] = builtin_commands["quit"
@@ -1126,6 +1130,7 @@ $new = @(host, status, strip, path)
 			status.replace(status.size(), 0, String.from_code(c
 			$doing(
 	(@(for_n)
+		map(for_n, "\a", ":file\r", true
 		map(for_n, "C", "c$", true
 		map(for_n, "D", "d$", true
 		map(for_n, "S", "cc", true
