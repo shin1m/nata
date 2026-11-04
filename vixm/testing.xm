@@ -59,6 +59,7 @@ View = Object + @
 		lines = $text.lines(
 		size = $text.size() + 1
 		Row(lines, lines, size, size, lines
+	$width = @ 32
 	$height = @ $_height
 	$range = @ $text.lines() - 1
 	$top = @ $_top

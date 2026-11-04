@@ -522,19 +522,26 @@ $new = @(host, status, strip, path)
 			else if message != ""
 				status.replace(0, -1, message
 			else
-				position = view.position(
-				head = view.head(
-				n = view.range(
-				status.replace(0, -1, "" + $name + " " +
-					(head.line + 1) + "," +
-					(position.text - head.text + 1) + "-" +
-					(position.x - head.x + 1) + " " +
-					(n > 0 ? view.top() * 100 / n : 100) + "% <" +
+				status.replace(0, -1, "" + $name + " <" +
 					buffer.undos.size() +
 					(buffer.logs ? "?" + buffer.logs.size() : "") +
 					(buffer.redos.size() > 0 ? "|" + buffer.redos.size() : "") +
 					(buffer.modified() ? ">* " : "> ") +
 					join($echo
+			status.lines() > 1 && return
+			space = strip.width() - strip.size().x
+			n = view.range(
+			p = " " + (n > 0 ? view.top() * 100 / n : 100) + "%"
+			space = space - p.size(
+			space < 0 && return
+			position = view.position(
+			head = view.head(
+			s = " " + (head.line + 1) + "," +
+				(position.text - head.text + 1) + "-" +
+				(position.x - head.x + 1
+			s.size() > space && (s = ""
+			while s.size() < space; s = " " + s
+			status.replace(status.size(), -1, s + p
 		rewind_builtin = @
 			:map = mode.map
 			:fallback = @(c)

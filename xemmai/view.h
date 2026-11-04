@@ -172,6 +172,10 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 		{
 			return t_view::f_row(a_library, a_this.v_rows.f_size());
 		}>())
+		(L"width"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
+		{
+			return a_this.f_width();
+		}>())
 		(L"height"sv, t_member<size_t(*)(const t_view&), [](auto a_this)
 		{
 			return a_this.v_widget.f_height();
