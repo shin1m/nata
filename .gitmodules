@@ -10,3 +10,6 @@
 [submodule "externals/tree-sitter-json"]
 	path = externals/tree-sitter-json
 	url = https://github.com/tree-sitter/tree-sitter-json.git
+[submodule "externals/tree-sitter-xemmai"]
+	path = externals/tree-sitter-xemmai
+	url = git@github.com:shin1m/tree-sitter-xemmai.git

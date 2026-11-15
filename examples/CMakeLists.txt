@@ -2,9 +2,9 @@ link_libraries(nata)
 add_executable(dump dump.cc)
 add_library(examples-tree-sitter OBJECT
 	${TREE_SITTER}/lib/src/lib.c
-	${TREE_SITTER}-bash/src/scanner.cc
+	${TREE_SITTER}-bash/src/scanner.c
 	${TREE_SITTER}-bash/src/parser.c
-	${TREE_SITTER}-cpp/src/scanner.cc
+	${TREE_SITTER}-cpp/src/scanner.c
 	${TREE_SITTER}-cpp/src/parser.c
 	${TREE_SITTER}-json/src/parser.c
 )
