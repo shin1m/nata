@@ -56,7 +56,7 @@ class t_widget
 			v_top += b1 - b0;
 		} else if (b1 <= 0) {
 			f_scroll(0, b0);
-			v_top = b1;
+			v_top += b1;
 		} else {
 			if (y < 0) y = 0;
 			int b = std::min(b0, b1);
