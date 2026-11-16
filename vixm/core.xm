@@ -535,10 +535,10 @@ $new = @(host, status, strip, path)
 			space = space - p.size(
 			space < 0 && return
 			position = view.position(
-			head = view.head(
-			s = " " + (head.line + 1) + "," +
-				(position.text - head.text + 1) + "-" +
-				(position.x - head.x + 1
+			line = text.line_at_text(position.text
+			s = " " + (line.index + 1) + "," +
+				(position.text - line.from + 1) + "-" +
+				(position.x - view.head().x + 1
 			s.size() > space && (s = ""
 			while s.size() < space; s = " " + s
 			status.replace(status.size(), -1, s + p
