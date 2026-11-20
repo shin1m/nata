@@ -226,8 +226,12 @@ $new = @(host, status, strip, path)
 			x = buffers[i
 			x.path == path && break x
 	move_to = @(p)
-		view.folded(p, false
+		view.expose(p
 		view.position__(p, false
+	move_to_line = @(line)
+		p = text.line_at(line).from
+		view.expose(p
+		view.line__(view.row_at_text(p).line
 	log_position = @(p) buffer.log(@
 		move_to(p
 		buffer.log(@ log_position(p
@@ -358,7 +362,10 @@ $new = @(host, status, strip, path)
 	hat_position = @(l)
 		m = hat_pattern.search(text, l.from, l.count - 1
 		m.size() > 0 ? m[0].from : l.from + l.count - 1
-	hat = @(line) view.position__(hat_position(text.line_at(line)), false
+	hat_at_text = @(p) view.position__(hat_position(text.line_at_text(p)), false
+	hat_at_view_line = @(line) hat_at_text(view.row_at_line(line).text
+	move_to_hat_at_text = @(p) move_to(hat_position(text.line_at_text(p
+	move_to_hat_at_line = @(line) move_to(hat_position(text.line_at(line
 	goto = @(default, f) forward_n(-1, text.lines() - 1, count > 0 ? count : default + 1, f
 	skip_loop = @(f)
 		p = q = view.position().text
@@ -429,7 +436,7 @@ $new = @(host, status, strip, path)
 		letter("#"): KeyMap(@ search_word[$](true
 		letter("$"): KeyMap(@ $finish(@
 			view.target__(-1
-			count > 1 && forward_n(view.head().line, text.lines() - 1, count - 1, view.line__
+			count > 1 && forward_n(view.head().line, view.size().line - 1, count - 1, view.line__
 		letter("%"): KeyMap(@
 			if count <= 0
 				p = view.position().text
@@ -452,22 +459,22 @@ $new = @(host, status, strip, path)
 						f(@(p) p < text.size() ? pattern.search(text, p + 1, -1) : '(
 			else if count <= 100
 				n = text.lines(
-				$finish(@ forward_n(-1, n - 1, (count * n + 99) / 100, hat
+				$finish(@ forward_n(-1, n - 1, (count * n + 99) / 100, move_to_hat_at_line
 		letter("'"): KeyMap(null, null, map_marks(@(i)
-			p = buffer.position_at_mark(i
-			p || throw Throwable("mark is not set"
-			hat(text.line_at_text(p).index
+			move_to_hat_at_text(buffer.position_at_mark(i) || throw Throwable("mark is not set"
 			$linewise(
 		letter("*"): KeyMap(@ search_word[$](false
-		letter("+"): KeyMap(@ $finish(@ forward(view.head().line, text.lines() - 1, hat
+		letter("+"): KeyMap(@ $finish(@ forward(
+			view.head().line, view.size().line - 1, hat_at_view_line
 		letter(","): KeyMap(@ find_next[$](true
-		letter("-"): KeyMap(@ $finish(@ backward(view.head().line, 0, hat
+		letter("-"): KeyMap(@ $finish(@ backward(
+			view.head().line, 0, hat_at_view_line
 		letter("/"): KeyMap(@ search[$](false
 		letter("0"): KeyMap(@
 			if count > 0
 				:count = count * 10
 			else
-				$finish(@ view.position__(text.line_at(view.head().line).from, false
+				$finish(@ view.position__(view.head().text, false
 		letter("1"): KeyMap(@ :count = count * 10 + 1
 		letter("2"): KeyMap(@ :count = count * 10 + 2
 		letter("3"): KeyMap(@ :count = count * 10 + 3
@@ -482,28 +489,27 @@ $new = @(host, status, strip, path)
 		letter("B"): KeyMap(@ $finish(@ skip_backward(skip_WORD_start
 		letter("E"): KeyMap(@ $finish(@ skip_forward(skip_WORD_end
 		letter("F"): find(true
-		letter("G"): KeyMap(@ $finish(@ goto(text.lines() - 1, hat
+		letter("G"): KeyMap(@ $finish(@ goto(text.lines() - 1, move_to_hat_at_line
 		letter("N"): KeyMap(@ search_next[$](true
 		letter("W"): KeyMap(@ $finish(@ skip_forward(skip_WORD_start
-		letter("^"): KeyMap(@ $finish(@ hat(view.head().line
-		letter("`"): KeyMap(null, null, map_marks(@(i)
-			p = buffer.position_at_mark(i
-			p || throw Throwable("mark is not set"
-			view.position__(p, p > view.position().text
+		letter("^"): KeyMap(@ $finish(@ hat_at_text(view.head().text
+		letter("`"): KeyMap(null, null, map_marks(@(i) move_to(
+			buffer.position_at_mark(i) || throw Throwable("mark is not set"
 		letter("b"): KeyMap(@ $finish(@ skip_backward(skip_word_start
 		letter("e"): KeyMap(@ $finish(@ skip_forward(skip_word_end
 		letter("f"): find(false
 		letter("g"): KeyMap(null, null, {
-			letter("g"): KeyMap(@ $finish(@ goto(0, hat
-		letter("h"): KeyMap(@ $finish(@
-			p = view.position().text
-			backward(p, text.line_at_text(p).from, @(p) view.position__(p, false
-		letter("j"): KeyMap(@ $finish(@ forward(view.head().line, text.lines() - 1, view.line__
+			letter("g"): KeyMap(@ $finish(@ goto(0, move_to_hat_at_line
+		letter("h"): KeyMap(@ $finish(@ backward(
+			view.position().text
+			view.head().text
+			@(p) view.position__(p, false
+		letter("j"): KeyMap(@ $finish(@ forward(view.head().line, view.size().line - 1, view.line__
 		letter("k"): KeyMap(@ $finish(@ backward(view.head().line, 0, view.line__
-		letter("l"): KeyMap(@ $finish(@
-			p = view.position().text
-			l = text.line_at_text(p
-			forward(p, l.from + l.count - 1, @(p) view.position__(p, true
+		letter("l"): KeyMap(@ $finish(@ forward(
+			view.position().text
+			view.row_at_line(view.head().line + 1).text - 1
+			@(p) view.position__(p, true
 		letter("n"): KeyMap(@ search_next[$](false
 		letter("w"): KeyMap(@ $finish(@ skip_forward(skip_word_start
 		letter("{"): KeyMap(@ $finish(@ skip_backward_paragraph(
@@ -854,45 +860,46 @@ $new = @(host, status, strip, path)
 					map_commit
 				$get = @
 				$more = @ true
-	line_at_y = @(y) view.row_at_y(y).line
-	head_at_y = @(y) view.row_at_line(line_at_y(y
+	line_at_head = @ text.line_at_text(view.head().text).index
+	view_line_at_y = @(y) view.row_at_y(y).line
+	head_at_y = @(y) view.row_at_line(view_line_at_y(y
 	top__ = @(row) view.into_view(row.y, view.height(
 	scroll = @ count > 0 ? count : (view.height() + 1) / 2
 	pages = @() (count > 0 ? count : 1) * (view.height() - 2
 	scroll_to_top = @(f)
-		goto(view.head().line, f
+		goto(line_at_head(), f
 		top__(view.head(
 	top__offset = @(y, n) top__(head_at_y(y > n ? y - n : 0
 	scroll_to_center = @(f)
-		goto(view.head().line, f
+		goto(line_at_head(), f
 		top__offset(view.head().y, (view.height() - 1) / 2
 	scroll_to_bottom = @(f)
-		goto(view.head().line, f
+		goto(line_at_head(), f
 		top__offset(view.row_at_line(view.head().line + 1).y, view.height(
 	map_motion_scroll = KeyMap(null, map_motion, {
 		control("B"): KeyMap(@ $finish(@ backward_n(view.top(), 0, pages(), @(x)
 			top = head_at_y(x
-			hat(min(line_at_y(top.y + view.height() - 1), text.lines() - 1
+			hat_at_view_line(min(view_line_at_y(top.y + view.height() - 1), view.size().line - 1
 			top__(top
 		control("D"): KeyMap(@ $finish(@
 			n = scroll(
 			forward_n(view.head().y, view.range(), n, @(x)
-				hat(line_at_y(x
+				hat_at_view_line(view_line_at_y(x
 				forward_n(view.top(), view.size().y - view.height(), n, @(x) top__(head_at_y(x
-		control("E"): KeyMap(@ $finish(@ forward(line_at_y(view.top()), text.lines() - 1, @(x)
+		control("E"): KeyMap(@ $finish(@ forward(view_line_at_y(view.top()), view.size().line - 1, @(x)
 			top = view.row_at_line(x
 			view.head().y < top.y && view.line__(top.line
 			top__(top
 		control("F"): KeyMap(@ $finish(@ forward_n(view.top(), view.range(), pages(), @(x)
 			top = head_at_y(x
-			hat(top.line
+			hat_at_text(top.text
 			top__(top
 		control("U"): KeyMap(@ $finish(@
 			n = scroll(
 			backward_n(view.head().y, 0, n, @(x)
-				hat(line_at_y(x
+				hat_at_view_line(view_line_at_y(x
 				backward_n(view.top(), 0, n, @(x) top__(head_at_y(x
-		control("Y"): KeyMap(@ $finish(@ backward(line_at_y(view.top()), 0, @(x)
+		control("Y"): KeyMap(@ $finish(@ backward(view_line_at_y(view.top()), 0, @(x)
 			top = view.row_at_line(x
 			bottom = top.y + view.height(
 			last = view.row_at_y(bottom - 1).line
@@ -903,14 +910,14 @@ $new = @(host, status, strip, path)
 			head.line > top.line && view.row_at(head.index + 1).y > bottom && view.line__(head.line - 1
 			top__(top
 		letter("z"): KeyMap(null, null, {
-			control("M"): KeyMap(@ $finish(@ scroll_to_top(hat
-			letter("-"): KeyMap(@ $finish(@ scroll_to_bottom(hat
-			letter("."): KeyMap(@ $finish(@ scroll_to_center(hat
-			letter("b"): KeyMap(@ $finish(@ scroll_to_bottom(view.line__
+			control("M"): KeyMap(@ $finish(@ scroll_to_top(move_to_hat_at_line
+			letter("-"): KeyMap(@ $finish(@ scroll_to_bottom(move_to_hat_at_line
+			letter("."): KeyMap(@ $finish(@ scroll_to_center(move_to_hat_at_line
+			letter("b"): KeyMap(@ $finish(@ scroll_to_bottom(move_to_line
 			letter("c"): KeyMap(@ $finish(@ view.position__(view.folded(view.position().text, true), false
 			letter("o"): KeyMap(@ $finish(@ view.folded(view.position().text, false
-			letter("t"): KeyMap(@ $finish(@ scroll_to_top(view.line__
-			letter("z"): KeyMap(@ $finish(@ scroll_to_center(view.line__
+			letter("t"): KeyMap(@ $finish(@ scroll_to_top(move_to_line
+			letter("z"): KeyMap(@ $finish(@ scroll_to_center(move_to_line
 	mode = mode_normal = do(Mode + @
 		command_pattern = new_pattern("^(\\w|!)+"
 		whitespace_pattern = new_pattern("\\s"
@@ -945,7 +952,7 @@ $new = @(host, status, strip, path)
 				view.target__(-1
 				insert(
 			letter("I"): KeyMap(@
-				hat(view.head().line
+				hat_at_text(view.head().text
 				insert(
 			letter("J"): KeyMap(@ $commit(@
 				head = view.head(
@@ -1083,7 +1090,7 @@ $new = @(host, status, strip, path)
 		backspace = KeyMap(@
 			p = view.position().text
 			if p > 0
-				view.folded(p - 1, false
+				view.expose(p - 1
 				buffer.logs || begin(p
 				buffer.merge(p - 1, 1, ""
 			$from = input.size(

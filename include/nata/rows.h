@@ -359,6 +359,28 @@ public:
 		}
 		return p;
 	}
+	void f_expose(size_t a_p)
+	{
+		std::vector<typename t_creases::t_iterator> path;
+		size_t p = a_p - f_crease_at_text(a_p, path);
+		auto i = path.end() - 1;
+		if (p == a_p || !(*i)->v_x) {
+			if (i == path.begin()) return;
+			p -= (i--)->f_index().v_i1;
+		}
+		size_t q;
+		size_t n = 0;
+		while (true) {
+			if ((*i)->v_x->v_folded) {
+				(*i)->v_x->v_folded = false;
+				q = p;
+				n = i->f_delta().v_i1;
+			}
+			if (i == path.begin()) break;
+			p -= (i--)->f_index().v_i1;
+		}
+		if (n) v_tokens_painted(q, n);
+	}
 	std::tuple<size_t, size_t, size_t> f_each_x(t_iterator a_i, auto a_do) const
 	{
 		size_t p = a_i.f_index().v_text;

@@ -157,6 +157,11 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 			if ((a_p > a_this.v_text.f_size())) f_throw(L"out of range."sv);
 			return a_this.v_rows.f_folded(a_p, a_on);
 		}>())
+		(L"expose"sv, t_member<void(*)(t_view&, size_t), [](auto a_this, auto a_p)
+		{
+			if ((a_p > a_this.v_text.f_size())) f_throw(L"out of range."sv);
+			a_this.v_rows.f_expose(a_p);
+		}>())
 		(L"render"sv, t_member<void(*)(t_view&), [](auto a_this)
 		{
 			typename T_target::t_graphics g(a_this);
@@ -209,6 +214,10 @@ struct t_type_of<xemmaix::nata::t_view<T_target>> : t_derivable<t_bears<xemmaix:
 		(L"row_at_line"sv, t_member<t_object*(*)(t_library*, const t_view&, size_t), [](auto a_library, auto a_this, auto a_p)
 		{
 			return t_view::f_row(a_library, a_this.v_rows.f_at_line(a_p).f_index());
+		}>())
+		(L"row_at_text"sv, t_member<t_object*(*)(t_library*, const t_view&, size_t), [](auto a_library, auto a_this, auto a_p)
+		{
+			return t_view::f_row(a_library, a_this.v_rows.f_at_text(a_p).f_index());
 		}>())
 		(L"row_at_y"sv, t_member<t_object*(*)(t_library*, const t_view&, size_t), [](auto a_library, auto a_this, auto a_p)
 		{

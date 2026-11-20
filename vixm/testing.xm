@@ -71,6 +71,7 @@ View = Object + @
 	$head = @ to_row($text.line_at_text($_position
 	$row_at = @(x) x < $text.lines() ? to_row($text.line_at(x)) : $size(
 	$row_at_line = @(x) $row_at(x
+	$row_at_text = @(x) x < $text.size() ? to_row($text.line_at_text(x)) : $size(
 	$row_at_y = @(x) $row_at(x
 	$from_line = @(line)
 		n = line.count - 1
@@ -82,6 +83,7 @@ View = Object + @
 		$from_line($text.line_at_text($_position
 	$into_view = @(p, h = null) h && ($_top = p
 	$folded = @(p, on)
+	$expose = @(p)
 
 Span = Object + @
 	$from
